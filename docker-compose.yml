@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: shadow_app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./backend:/var/www/html
+    networks:
+      - shadow_network
+    depends_on:
+      - db
+
+  webserver:
+    image: nginx:alpine
+    container_name: shadow_webserver
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ./backend:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - shadow_network
+    depends_on:
+      - app
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: shadow_frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - shadow_network
+
+  db:
+    image: mysql:8.0
+    container_name: shadow_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: shadow_partner
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_PASSWORD: root
+      MYSQL_USER: shadow
+    volumes:
+      - shadow_db_data:/var/lib/mysql
+    networks:
+      - shadow_network
+
+networks:
+  shadow_network:
+    driver: bridge
+
+volumes:
+  shadow_db_data:
