@@ -10,7 +10,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import ObserverDashboard from './pages/ObserverDashboard';
 import AdminUsers from './pages/AdminUsers';
 import Layout from './components/Layout';
-import { Camera, ClipboardEdit, BookOpencover, ShieldAlert, Eye, Users } from 'lucide-react';
+import { Camera } from 'lucide-react';
 
 const Dashboard = () => {
     const { user } = useAuth();
