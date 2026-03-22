@@ -12,8 +12,10 @@ echo "Installing React node_modules..."
 docker-compose run --rm frontend npm install
 
 echo "Setting up Laravel env..."
-cp backend/.env.example backend/.env
-docker-compose run --rm app php artisan key:generate
+if [ ! -f backend/.env ]; then
+    cp backend/.env.example backend/.env
+    docker-compose run --rm app php artisan key:generate
+fi
 
 echo "Starting services..."
 docker-compose up -d
