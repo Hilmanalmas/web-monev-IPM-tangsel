@@ -24,4 +24,4 @@ echo "Running migrations..."
 sleep 10 # wait for db to be ready
 docker-compose exec app php artisan migrate --force
 
-echo "Deployment complete! Application running on ports 8000 (Backend) and 5173 (Frontend)."
+echo "Deployment complete! Application running on ports 8001 (Backend) and 5173 (Frontend)."
