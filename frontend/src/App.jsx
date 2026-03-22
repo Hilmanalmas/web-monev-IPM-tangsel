@@ -6,7 +6,9 @@ import Login from './pages/Login';
 import SelfieAttendance from './SelfieAttendance';
 import EvaluationForm from './EvaluationForm';
 import IbadahReport from './IbadahReport';
-import { LogOut, Camera, ClipboardEdit, BookOpencover } from 'lucide-react';
+import AdminDashboard from './pages/AdminDashboard';
+import ObserverDashboard from './pages/ObserverDashboard';
+import { LogOut, Camera, ClipboardEdit, BookOpencover, ShieldAlert, Eye } from 'lucide-react';
 
 const Dashboard = () => {
     const { user, logout } = useAuth();
@@ -55,13 +57,19 @@ const Dashboard = () => {
             )}
             
             {user.role === 'admin' && (
-                <div className="text-gray-500 italic mt-8 p-6 bg-white rounded-xl shadow-sm border border-gray-100">
-                    Admin Dashboard (Navigation links will appear here in Phase 5)
+                <div className="grid grid-cols-1 gap-4 mt-8">
+                    <Link to="/admin" className="bg-gradient-to-r from-gray-900 to-gray-800 hover:from-black hover:to-gray-900 text-white font-bold py-6 px-4 rounded-2xl shadow-xl transition-all flex flex-col items-center gap-3 hover:scale-[1.01]">
+                        <ShieldAlert size={36} className="text-amber-400"/>
+                        <span className="text-lg tracking-wide uppercase">Masuk Ruang Kendali Pusat</span>
+                    </Link>
                 </div>
             )}
             {user.role === 'observer' && (
-                <div className="text-gray-500 italic mt-8 p-6 bg-white rounded-xl shadow-sm border border-gray-100">
-                    Observer Dashboard (Navigation links will appear here in Phase 6)
+                <div className="grid grid-cols-1 gap-4 mt-8">
+                    <Link to="/observer" className="bg-gradient-to-r from-purple-800 to-indigo-900 hover:from-black hover:to-indigo-900 text-white font-bold py-6 px-4 rounded-2xl shadow-xl transition-all flex flex-col items-center gap-3 hover:scale-[1.01]">
+                        <Eye size={36} className="text-amber-400"/>
+                        <span className="text-lg tracking-wide uppercase">Masuk Markas Pengawas</span>
+                    </Link>
                 </div>
             )}
         </div>
@@ -95,6 +103,16 @@ function App() {
                   <Route path="/ibadah" element={
                      <ProtectedRoute allowedRoles={['peserta']}>
                          <IbadahReport />
+                     </ProtectedRoute>
+                  } />
+                  <Route path="/admin" element={
+                     <ProtectedRoute allowedRoles={['admin']}>
+                         <AdminDashboard />
+                     </ProtectedRoute>
+                  } />
+                  <Route path="/observer" element={
+                     <ProtectedRoute allowedRoles={['admin', 'observer']}>
+                         <ObserverDashboard />
                      </ProtectedRoute>
                   } />
               </Routes>

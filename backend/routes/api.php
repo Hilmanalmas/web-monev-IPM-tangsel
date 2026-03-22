@@ -20,9 +20,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/ibadah', [\App\Http\Controllers\WorshipLogController::class, 'index']);
     
     // Admin Routes
-    Route::middleware('role:admin')->group(function () {
+    Route::middleware([\App\Http\Middleware\AdminMiddleware::class])->group(function () {
+        Route::get('/admin/stats', [\App\Http\Controllers\AdminController::class, 'stats']);
+        Route::get('/admin/users', [\App\Http\Controllers\AdminController::class, 'users']);
         Route::post('/admin/manito/shuffle', [\App\Http\Controllers\ManitoController::class, 'shuffle']);
-        // Route::get('/admin/evaluations/pending', [\App\Http\Controllers\EvaluationController::class, 'getPending']);
+        Route::get('/admin/scores/export', [\App\Http\Controllers\AdminController::class, 'exportScores']);
+    });
+
+    // Observer Routes
+    Route::middleware([\App\Http\Middleware\ObserverMiddleware::class])->group(function () {
+        Route::get('/observer/peserta', [\App\Http\Controllers\ObserverController::class, 'getPeserta']);
+        Route::post('/observer/score', [\App\Http\Controllers\ObserverController::class, 'storeScore']);
     });
 });
 
