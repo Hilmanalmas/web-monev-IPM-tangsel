@@ -20,7 +20,7 @@ const Dashboard = () => {
     if (!user) {
         return (
             <div className="mt-10 text-center">
-                <Link to="/login" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full transition-colors shadow-lg">Login to Continue</Link>
+                <Link to="/login" className="bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-8 rounded-full transition-colors shadow-lg">Login to Continue</Link>
             </div>
         );
     }
@@ -28,9 +28,12 @@ const Dashboard = () => {
     return (
         <div className="w-full max-w-4xl text-center">
             <div className="flex justify-between items-center mb-8 pb-4 border-b border-gray-200">
-                <div className="text-left">
-                    <h2 className="text-2xl font-bold text-gray-800">Welcome, {user.name}</h2>
-                    <p className="text-gray-500 capitalize">{user.role} | {user.asal_instansi || 'No Instansi'}</p>
+                <div className="text-left flex items-center gap-4">
+                    <img src="https://ipmtangsel.or.id/wp-content/uploads/2023/07/Logo-IPM-Tangsel.png" alt="IPM Logo" className="h-10 md:h-12 object-contain hidden sm:block"/>
+                    <div>
+                        <h2 className="text-2xl font-bold text-gray-800">Welcome, {user.name}</h2>
+                        <p className="text-gray-500 capitalize">{user.role} | {user.asal_instansi || 'No Instansi'}</p>
+                    </div>
                 </div>
                 <button onClick={handleLogout} className="flex items-center gap-2 text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors font-medium">
                     <LogOut size={20} /> Logout
@@ -39,14 +42,14 @@ const Dashboard = () => {
 
             {user.role === 'peserta' && (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <Link to="/attendance" className="bg-white hover:bg-blue-50 text-blue-800 font-bold py-6 px-4 border-2 border-blue-100 rounded-2xl shadow-sm transition-all flex flex-col items-center gap-3 hover:scale-[1.02]">
-                        <Camera size={28} className="text-blue-500"/> Selfie Attendance
+                    <Link to="/attendance" className="bg-white hover:bg-amber-50 text-gray-800 font-bold py-6 px-4 border-2 border-gray-100 hover:border-amber-200 rounded-2xl shadow-sm transition-all flex flex-col items-center gap-3 hover:scale-[1.02]">
+                        <Camera size={28} className="text-amber-500"/> Selfie Attendance
                     </Link>
-                    <Link to="/evaluation" className="bg-white hover:bg-green-50 text-green-800 font-bold py-6 px-4 border-2 border-green-100 rounded-2xl shadow-sm transition-all flex flex-col items-center gap-3 hover:scale-[1.02]">
-                        <ClipboardEdit size={28} className="text-green-500"/> Manito Evaluation
+                    <Link to="/evaluation" className="bg-white hover:bg-amber-50 text-gray-800 font-bold py-6 px-4 border-2 border-gray-100 hover:border-amber-200 rounded-2xl shadow-sm transition-all flex flex-col items-center gap-3 hover:scale-[1.02]">
+                        <ClipboardEdit size={28} className="text-amber-500"/> Manito Evaluation
                     </Link>
-                    <Link to="/ibadah" className="bg-white hover:bg-purple-50 text-purple-800 font-bold py-6 px-4 border-2 border-purple-100 rounded-2xl shadow-sm transition-all flex flex-col items-center gap-3 hover:scale-[1.02]">
-                        <BookOpencover size={28} className="text-purple-500"/> Ibadah Report
+                    <Link to="/ibadah" className="bg-white hover:bg-amber-50 text-gray-800 font-bold py-6 px-4 border-2 border-gray-100 hover:border-amber-200 rounded-2xl shadow-sm transition-all flex flex-col items-center gap-3 hover:scale-[1.02]">
+                        <BookOpencover size={28} className="text-amber-500"/> Ibadah Report
                     </Link>
                 </div>
             )}
@@ -69,10 +72,12 @@ function App() {
   return (
     <AuthProvider>
         <BrowserRouter>
-          <div className="min-h-screen bg-gray-50 flex flex-col items-center py-12 px-4">
-              <div className="max-w-4xl w-full mb-8 text-center">
-                 <h1 className="text-4xl font-extrabold text-blue-900 mb-2 tracking-tight">Shadow Partner System</h1>
-                 <p className="text-gray-500 font-medium text-lg">Manito Peer-Assessment Training Module</p>
+          <div className="min-h-screen bg-gray-50 flex flex-col items-center py-10 px-4 font-sans">
+              <div className="max-w-4xl w-full mb-10 text-center">
+                 <h1 className="text-4xl font-extrabold text-gray-900 mb-2 tracking-tight uppercase">
+                    PELAJAR <span className="text-amber-500">ANGGREK</span>
+                 </h1>
+                 <p className="text-gray-600 font-medium text-lg">Shadow Partner System &bull; IPM Tangsel</p>
               </div>
               <Routes>
                   <Route path="/login" element={<Login />} />

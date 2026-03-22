@@ -56,9 +56,9 @@ const IbadahReport = () => {
 
     return (
         <div className="max-w-2xl mx-auto w-full space-y-6">
-            <div className="bg-white rounded-2xl shadow-xl overflow-hidden p-6 sm:p-8">
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden p-6 sm:p-8 border-t-4 border-amber-500">
                 <div className="flex items-center gap-3 mb-6 border-b pb-4 border-gray-100">
-                    <div className="p-3 bg-purple-100 text-purple-600 rounded-lg"><BookOpencover size={24} /></div>
+                    <div className="p-3 bg-amber-100 text-amber-600 rounded-lg"><BookOpencover size={24} /></div>
                     <div>
                          <h2 className="text-2xl font-bold text-gray-800">Ibadah Self-Report</h2>
                          <p className="text-sm text-gray-500">Record your daily worship activities for bonus points (+2 limit per day/activity)</p>
@@ -89,7 +89,7 @@ const IbadahReport = () => {
                                     type="button"
                                     onClick={() => { setActivity(preset); setError(null); }}
                                     className={`p-3 rounded-xl border-2 text-sm font-medium transition-all text-left
-                                        ${activity === preset ? 'border-purple-600 bg-purple-50 text-purple-700' : 'border-gray-200 text-gray-600 hover:border-purple-300 hover:bg-gray-50'}`}
+                                        ${activity === preset ? 'border-amber-500 bg-amber-50 text-amber-700' : 'border-gray-200 text-gray-600 hover:border-amber-300 hover:bg-gray-50'}`}
                                 >
                                     {preset}
                                 </button>
@@ -107,14 +107,14 @@ const IbadahReport = () => {
                             value={activity}
                             onChange={(e) => { setActivity(e.target.value); setError(null); }}
                             placeholder="Enter another worship activity manually..."
-                            className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all placeholder-gray-400"
+                            className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all placeholder-gray-400"
                         />
                     </div>
 
                     <button 
                         type="submit" 
                         disabled={status === "submitting" || !activity.trim()}
-                        className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-xl transition-transform transform active:scale-95 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold py-4 px-6 rounded-xl transition-transform transform active:scale-95 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                         {status === "submitting" ? <Loader2 className="animate-spin" size={20} /> : <Plus size={20}/>}
                         {status === "submitting" ? "Submitting..." : "Submit Report"}
@@ -123,9 +123,9 @@ const IbadahReport = () => {
             </div>
 
             {/* History Section */}
-            <div className="bg-white rounded-2xl shadow-xl overflow-hidden p-6">
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden p-6 border-t border-gray-100">
                  <h3 className="font-bold text-gray-800 flex items-center gap-2 mb-4 border-b pb-3 border-gray-100">
-                     <History size={18} className="text-purple-600" /> My Recent Reports
+                     <History size={18} className="text-amber-600" /> My Recent Reports
                  </h3>
                  
                  {history.length === 0 ? (

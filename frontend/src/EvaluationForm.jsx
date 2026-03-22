@@ -97,7 +97,7 @@ const EvaluationForm = () => {
                                 key={val} type="button" 
                                 onClick={() => handleScoreChange(f.key, val)}
                                 className={`w-8 h-8 rounded-full font-bold text-sm transition-colors shadow-sm
-                                    ${scores[f.key] === val ? 'bg-blue-600 text-white border-transparent' : 'bg-white text-gray-600 border border-gray-200 hover:bg-blue-50'}`}
+                                    ${scores[f.key] === val ? 'bg-amber-500 text-white border-transparent' : 'bg-white text-gray-600 border border-gray-200 hover:bg-amber-50'}`}
                             >
                                 {val}
                             </button>
@@ -109,9 +109,9 @@ const EvaluationForm = () => {
     );
 
     return (
-        <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden p-6 sm:p-8 w-full">
+        <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden p-6 sm:p-8 w-full border-t-4 border-amber-500">
             <div className="flex items-center gap-3 mb-6 border-b pb-4 border-gray-100">
-                <div className="p-3 bg-blue-100 text-blue-600 rounded-lg"><ClipboardEdit size={24} /></div>
+                <div className="p-3 bg-amber-100 text-amber-600 rounded-lg"><ClipboardEdit size={24} /></div>
                 <div>
                      <h2 className="text-2xl font-bold text-gray-800">Manito Evaluation</h2>
                      <p className="text-sm text-gray-500">Evaluating: <span className="font-semibold text-gray-700 bg-yellow-100 px-2 rounded">{target?.name || "Unknown"}</span></p>
@@ -146,7 +146,7 @@ const EvaluationForm = () => {
                         <p className="text-xs text-gray-500 mb-3">Provide a clear statement justifying the scores. Explain what you observed.</p>
                         <textarea 
                             required rows="3" minLength={10}
-                            className="w-full border border-gray-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-shadow resize-none"
+                            className="w-full border border-gray-300 rounded-xl p-3 focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-shadow resize-none"
                             placeholder="e.g. He completed the task quickly but struggled with..."
                             value={evidence} onChange={e => setEvidence(e.target.value)}
                         />
@@ -157,7 +157,7 @@ const EvaluationForm = () => {
                     <button 
                         type="submit" 
                         disabled={status === "submitting"}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-xl transition-transform transform active:scale-[0.98] shadow-lg disabled:opacity-50 flex justify-center items-center gap-2"
+                        className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-4 px-6 rounded-xl transition-transform transform active:scale-[0.98] shadow-lg disabled:opacity-50 flex justify-center items-center gap-2"
                     >
                         {status === "submitting" ? <><Loader2 className="animate-spin" size={20}/> Submitting...</> : "Submit Confidential Evaluation"}
                     </button>

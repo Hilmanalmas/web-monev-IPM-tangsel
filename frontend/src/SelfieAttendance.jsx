@@ -61,7 +61,7 @@ const SelfieAttendance = () => {
     };
 
     return (
-        <div className="max-w-md mx-auto bg-white rounded-2xl shadow-xl overflow-hidden p-6 w-full relative">
+        <div className="max-w-md mx-auto bg-white rounded-2xl shadow-xl overflow-hidden p-6 w-full relative border-t-4 border-amber-500">
             <h2 className="text-2xl font-bold text-gray-800 text-center mb-6">Selfie Attendance</h2>
 
             {status === 'success' ? (
@@ -80,7 +80,7 @@ const SelfieAttendance = () => {
                 
                     <div className="relative rounded-xl overflow-hidden bg-gray-100 aspect-video flex items-center justify-center shadow-inner border-2 border-dashed border-gray-300">
                         {status === 'location' && (
-                            <div className="absolute inset-0 bg-white/80 z-10 flex flex-col items-center justify-center text-blue-600">
+                            <div className="absolute inset-0 bg-white/80 z-10 flex flex-col items-center justify-center text-amber-600">
                                 <Loader2 className="animate-spin mb-2" size={32}/>
                                 <p className="font-semibold text-sm">Getting Location...</p>
                             </div>
@@ -109,7 +109,7 @@ const SelfieAttendance = () => {
                     {!imageSrc ? (
                         <button 
                             onClick={capture}
-                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded-xl flex items-center justify-center gap-2 transition-transform transform active:scale-[0.98] shadow-lg"
+                            className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-4 px-4 rounded-xl flex items-center justify-center gap-2 transition-transform transform active:scale-[0.98] shadow-lg"
                         >
                             <Camera size={22} /> Take Selfie
                         </button>
@@ -125,7 +125,7 @@ const SelfieAttendance = () => {
                                 onClick={submitAttendance}
                                 disabled={!location || status === 'uploading'}
                                 className={`w-2/3 text-white font-bold py-4 px-4 rounded-xl flex items-center justify-center gap-2 transition-transform shadow-lg
-                                    ${(!location || status === 'uploading') ? 'bg-blue-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 active:scale-[0.98]'}`}
+                                    ${(!location || status === 'uploading') ? 'bg-amber-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 active:scale-[0.98]'}`}
                             >
                                 {status === 'uploading' ? <><Loader2 className="animate-spin" size={20}/> Uploading...</> : 'Confirm Attendance'}
                             </button>
