@@ -42,7 +42,7 @@ const Dashboard = () => {
 const AppLayout = () => (
     <Layout>
         <Routes>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/attendance" element={<ProtectedRoute allowedRoles={['peserta']}><SelfieAttendance /></ProtectedRoute>} />
             <Route path="/evaluation" element={<ProtectedRoute allowedRoles={['peserta']}><EvaluationForm /></ProtectedRoute>} />
             <Route path="/ibadah" element={<ProtectedRoute allowedRoles={['peserta']}><IbadahReport /></ProtectedRoute>} />
