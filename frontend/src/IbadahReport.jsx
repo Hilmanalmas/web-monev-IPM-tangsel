@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { BookOpencover, Plus, CheckCircle, Loader2, AlertCircle, History } from 'lucide-react';
+import { BookOpen, Plus, CheckCircle, Loader2, AlertCircle, History } from 'lucide-react';
 
 const IbadahReport = () => {
     const [activity, setActivity] = useState('');
@@ -58,7 +58,7 @@ const IbadahReport = () => {
         <div className="max-w-2xl mx-auto w-full space-y-6">
             <div className="bg-white rounded-2xl shadow-xl overflow-hidden p-6 sm:p-8 border-t-4 border-amber-500">
                 <div className="flex items-center gap-3 mb-6 border-b pb-4 border-gray-100">
-                    <div className="p-3 bg-amber-100 text-amber-600 rounded-lg"><BookOpencover size={24} /></div>
+                    <div className="p-3 bg-amber-100 text-amber-600 rounded-lg"><BookOpen size={24} /></div>
                     <div>
                          <h2 className="text-2xl font-bold text-gray-800">Ibadah Self-Report</h2>
                          <p className="text-sm text-gray-500">Record your daily worship activities for bonus points (+2 limit per day/activity)</p>
