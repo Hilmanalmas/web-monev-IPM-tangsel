@@ -3,21 +3,40 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Add Admin
+        User::firstOrCreate(['email' => 'admin@example.com'], [
+            'name' => 'Super Admin',
+            'role' => 'admin',
+            'password' => Hash::make('password'),
+            'nip' => 'ADM-001',
+            'asal_instansi' => 'Pusat'
+        ]);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        // Add 3 Pesertas for Manito Shuffling
+        for ($i = 1; $i <= 3; $i++) {
+            User::firstOrCreate(['email' => "peserta{$i}@example.com"], [
+                'name' => "Peserta {$i}",
+                'role' => 'peserta',
+                'password' => Hash::make('password'),
+                'nip' => "PST-00{$i}",
+                'asal_instansi' => "Cabang {$i}"
+            ]);
+        }
+        
+        // Add 1 Observer
+        User::firstOrCreate(['email' => "observer@example.com"], [
+            'name' => "Official Observer",
+            'role' => 'observer',
+            'password' => Hash::make('password'),
+            'nip' => "OBS-001",
+            'asal_instansi' => "Pusat"
         ]);
     }
 }
