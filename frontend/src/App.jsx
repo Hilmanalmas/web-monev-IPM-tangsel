@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-do
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
+import AdminLogin from './pages/AdminLogin';
 import SelfieAttendance from './SelfieAttendance';
 import EvaluationForm from './EvaluationForm';
 import IbadahReport from './IbadahReport';
@@ -59,6 +60,7 @@ function App() {
         <BrowserRouter>
            <Routes>
               <Route path="/login" element={<Login />} />
+              <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/*" element={<AppLayout />} />
            </Routes>
         </BrowserRouter>

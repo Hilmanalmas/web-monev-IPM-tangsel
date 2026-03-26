@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { LogOut, Home, Camera, ClipboardEdit, BookOpen, ShieldAlert, Users, Eye } from 'lucide-react';
+import logo from '../assets/logo.png';
 
 const Layout = ({ children }) => {
     const { user, logout } = useAuth();
@@ -9,8 +10,9 @@ const Layout = ({ children }) => {
     const navigate = useNavigate();
 
     const handleLogout = async () => {
+        const isAdmin = user?.role === 'admin';
         await logout();
-        navigate('/login');
+        navigate(isAdmin ? '/admin/login' : '/login');
     };
 
     if (!user) return <>{children}</>;
@@ -38,7 +40,7 @@ const Layout = ({ children }) => {
             {/* Sidebar (Desktop) */}
             <aside className="hidden md:flex flex-col w-64 bg-white border-r border-gray-100 fixed h-full shadow-sm z-10">
                 <div className="p-6 border-b border-gray-100 flex items-center gap-3">
-                    <img src="https://ipmtangsel.or.id/wp-content/uploads/2023/07/Logo-IPM-Tangsel.png" alt="IPM" className="h-10"/>
+                    <img src={logo} alt="PD IPM Logo" className="h-10 w-10 object-contain"/>
                     <div>
                         <span className="font-black text-gray-800 tracking-tight block leading-none">MONEV</span>
                         <span className="text-[10px] uppercase font-bold text-amber-500 tracking-wider">Pelajar Anggrek</span>
@@ -72,7 +74,7 @@ const Layout = ({ children }) => {
             <main className="flex-1 md:ml-64 pb-24 md:pb-0 w-full min-h-screen flex flex-col">
                 <div className="md:hidden bg-white p-4 border-b border-gray-100 flex justify-between items-center shadow-sm sticky top-0 z-20">
                     <div className="flex items-center gap-2">
-                        <img src="https://ipmtangsel.or.id/wp-content/uploads/2023/07/Logo-IPM-Tangsel.png" alt="IPM" className="h-8"/>
+                        <img src={logo} alt="PD IPM Logo" className="h-8 w-8 object-contain"/>
                         <span className="font-black text-gray-800 tracking-tight">MONEV</span>
                     </div>
                      <button onClick={handleLogout} className="text-red-500 p-2 bg-red-50 rounded-lg"><LogOut size={18}/></button>

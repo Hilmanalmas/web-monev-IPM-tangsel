@@ -29,8 +29,8 @@ class AdminController extends Controller
     public function users(Request $request) 
     {
         // Get all peserta with their assigned manito target
-        $users = User::where('role', 'peserta')
-            ->select('id', 'name', 'nip', 'asal_instansi')
+        // Get all users for management
+        $users = User::select('id', 'name', 'username', 'role', 'nip', 'asal_instansi')
             ->get();
             
         $mappings = ManitoMapping::where('is_active', true)->with('target')->get()->keyBy('assessor_id');
@@ -40,8 +40,11 @@ class AdminController extends Controller
             return [
                 'id' => $user->id,
                 'name' => $user->name,
+                'username' => $user->username,
+                'role' => $user->role,
+                'nip' => $user->nip,
                 'instansi' => $user->asal_instansi,
-                'target_name' => $target ? $target->name : 'Belum Ada Target',
+                'target_name' => $target ? $target->name : ($user->role === 'peserta' ? 'Belum Ada Target' : '-'),
                 'target_id' => $target ? $target->id : null,
             ];
         });
@@ -106,5 +109,29 @@ class AdminController extends Controller
             'Content-Type' => 'text/csv',
             'Content-Disposition' => "attachment; filename={$filename}",
         ]);
+    }
+
+    public function storeUser(Request $request)
+    {
+        $data = $request->validate([
+            'name' => 'required|string',
+            'username' => 'required|string|unique:users',
+            'password' => 'required|string',
+            'role' => 'required|in:admin,observer,peserta',
+            'nip' => 'nullable|string',
+            'asal_instansi' => 'nullable|string'
+        ]);
+
+        $data['password'] = \Illuminate\Support\Facades\Hash::make($data['password']);
+        $user = User::create($data);
+
+        return response()->json(['message' => 'User created successfully', 'user' => $user], 201);
+    }
+
+    public function destroyUser($id)
+    {
+        $user = User::findOrFail($id);
+        $user->delete();
+        return response()->json(['message' => 'User deleted successfully']);
     }
 }

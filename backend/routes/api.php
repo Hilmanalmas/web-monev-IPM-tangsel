@@ -23,6 +23,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware([\App\Http\Middleware\AdminMiddleware::class])->group(function () {
         Route::get('/admin/stats', [\App\Http\Controllers\AdminController::class, 'stats']);
         Route::get('/admin/users', [\App\Http\Controllers\AdminController::class, 'users']);
+        Route::post('/admin/users', [\App\Http\Controllers\AdminController::class, 'storeUser']);
+        Route::delete('/admin/users/{id}', [\App\Http\Controllers\AdminController::class, 'destroyUser']);
         Route::post('/admin/manito/shuffle', [\App\Http\Controllers\ManitoController::class, 'shuffle']);
         Route::get('/admin/scores/export', [\App\Http\Controllers\AdminController::class, 'exportScores']);
     });
