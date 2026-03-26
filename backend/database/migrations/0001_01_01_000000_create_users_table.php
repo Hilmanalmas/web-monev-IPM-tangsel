@@ -18,6 +18,8 @@ return new class extends Migration
             $table->enum('role', ['admin', 'observer', 'peserta'])->default('peserta');
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('nip')->nullable();
+            $table->string('asal_instansi')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
