@@ -19,9 +19,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/ibadah', [\App\Http\Controllers\WorshipLogController::class, 'store']);
     Route::get('/ibadah', [\App\Http\Controllers\WorshipLogController::class, 'index']);
     
-    // New: Survey and Exam for Participants
-    Route::get('/surveys', [\App\Http\Controllers\AdminController::class, 'listSurveys']); // Both see active ones
-    Route::post('/surveys/{surveyId}/respond', [\App\Http\Controllers\ResponseController::class, 'storeSurvey']);
+    // Simplified Survey and Exam for Participants
+    Route::get('/surveys/questions', [\App\Http\Controllers\ResponseController::class, 'activeQuestions']);
+    Route::get('/surveys/status', [\App\Http\Controllers\ResponseController::class, 'checkStatus']);
+    Route::post('/surveys/respond', [\App\Http\Controllers\ResponseController::class, 'storeSurvey']);
     Route::get('/exams', [\App\Http\Controllers\ExamController::class, 'availableExams']);
     Route::post('/exams/{examId}/submit', [\App\Http\Controllers\ExamController::class, 'submit']);
     
@@ -34,9 +35,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/admin/manito/shuffle', [\App\Http\Controllers\ManitoController::class, 'shuffle']);
         Route::get('/admin/scores/export', [\App\Http\Controllers\AdminController::class, 'exportScores']);
 
-        // Admin Survey Management
-        Route::post('/admin/surveys', [\App\Http\Controllers\AdminController::class, 'storeSurvey']);
-        Route::post('/admin/surveys/{id}/questions', [\App\Http\Controllers\AdminController::class, 'storeQuestion']);
+        // Admin Survey Management (Simplified & Dynamic Slots)
+        Route::get('/admin/surveys/questions', [\App\Http\Controllers\AdminController::class, 'listQuestions']);
+        Route::post('/admin/surveys/questions', [\App\Http\Controllers\AdminController::class, 'storeQuestion']);
+        Route::delete('/admin/surveys/questions/{id}', [\App\Http\Controllers\AdminController::class, 'destroyQuestion']);
+        Route::get('/admin/surveys/slots', [\App\Http\Controllers\AdminController::class, 'listSlots']);
+        Route::post('/admin/surveys/slots', [\App\Http\Controllers\AdminController::class, 'storeSlot']);
+        Route::delete('/admin/surveys/slots/{id}', [\App\Http\Controllers\AdminController::class, 'destroySlot']);
         
         // Admin Exam Management
         Route::post('/admin/exams', [\App\Http\Controllers\AdminController::class, 'storeExam']);

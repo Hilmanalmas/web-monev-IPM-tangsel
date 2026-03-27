@@ -1,145 +1,166 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { ClipboardEdit, Plus, Trash2, Save, HelpCircle, CheckCircle } from 'lucide-react';
+import { Plus, Trash2, ClipboardCheck, Star, Clock, Calendar, Save } from 'lucide-react';
 
 const AdminSurveys = () => {
-    const [surveys, setSurveys] = useState([]);
-    const [newSurvey, setNewSurvey] = useState({ title: '', description: '' });
-    const [selectedSurvey, setSelectedSurvey] = useState(null);
-    const [newQuestion, setNewQuestion] = useState({ question_text: '', type: 'rating' });
+    const [questions, setQuestions] = useState([]);
+    const [newQuestion, setNewQuestion] = useState('');
+    const [slots, setSlots] = useState([]);
+    const [newSlot, setNewSlot] = useState({ name: '', start: '', end: '' });
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        fetchSurveys();
+        fetchData();
     }, []);
 
-    const fetchSurveys = async () => {
-        const res = await axios.get('/api/admin/surveys');
-        setSurveys(res.data);
-    };
-
-    const handleCreateSurvey = async (e) => {
-        e.preventDefault();
-        await axios.post('/api/admin/surveys', newSurvey);
-        setNewSurvey({ title: '', description: '' });
-        fetchSurveys();
+    const fetchData = async () => {
+        const [qRes, sRes] = await Promise.all([
+            axios.get('/api/admin/surveys/questions'),
+            axios.get('/api/admin/surveys/slots')
+        ]);
+        setQuestions(qRes.data);
+        setSlots(sRes.data);
     };
 
     const handleAddQuestion = async (e) => {
         e.preventDefault();
-        await axios.post(`/api/admin/surveys/${selectedSurvey.id}/questions`, newQuestion);
-        setNewQuestion({ question_text: '', type: 'rating' });
-        const res = await axios.get('/api/admin/surveys'); // Refresh all
-        setSurveys(res.data);
-        setSelectedSurvey(res.data.find(s => s.id === selectedSurvey.id));
+        if (!newQuestion.trim()) return;
+        setLoading(true);
+        try {
+            await axios.post('/api/admin/surveys/questions', { question_text: newQuestion });
+            setNewQuestion('');
+            fetchData();
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDeleteQuestion = async (id) => {
+        if (!confirm('Hapus pertanyaan ini?')) return;
+        await axios.delete(`/api/admin/surveys/questions/${id}`);
+        fetchData();
+    };
+
+    const handleAddSlot = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            await axios.post('/api/admin/surveys/slots', {
+                name: newSlot.name,
+                start_time: newSlot.start,
+                end_time: newSlot.end
+            });
+            setNewSlot({ name: '', start: '', end: '' });
+            fetchData();
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDeleteSlot = async (id) => {
+        if (!confirm('Hapus waktu evaluasi ini?')) return;
+        await axios.delete(`/api/admin/surveys/slots/${id}`);
+        fetchData();
     };
 
     return (
-        <div className="p-6 space-y-8 animate-in fade-in duration-500">
-            <header className="flex justify-between items-center">
+        <div className="p-4 md:p-8 space-y-12 animate-in fade-in duration-700 pb-20">
+            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b pb-10 border-gray-100">
                 <div>
-                    <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-                        <ClipboardEdit className="text-amber-500" /> Manajemen Angket
-                    </h1>
-                    <p className="text-gray-400 mt-1">Buat panduan penilaian untuk Manito</p>
+                    <h1 className="text-5xl font-black text-gray-900 leading-tight tracking-tight uppercase italic">Pengaturan <br/><span className="text-amber-500">Angket & Waktu</span></h1>
+                    <p className="text-gray-500 text-lg mt-2 font-medium">Kelola pertanyaan evaluasi dan jendela waktu pengisian Manito.</p>
+                </div>
+                <div className="bg-amber-500 text-white p-6 rounded-[2.5rem] shadow-2xl shadow-amber-500/20">
+                    <ClipboardCheck size={40} />
                 </div>
             </header>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Create Survey */}
-                <div className="bg-gray-900/50 border border-gray-800 p-6 rounded-2xl">
-                    <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-                        <Plus size={20} className="text-amber-500" /> Buat Angket Baru
-                    </h2>
-                    <form onSubmit={handleCreateSurvey} className="space-y-4">
-                        <input 
-                            type="text" placeholder="Judul Angket (Contoh: Evaluasi Adab)"
-                            className="w-full bg-black/50 border border-gray-700 rounded-xl p-3 text-white focus:border-amber-500 outline-none transition-all"
-                            value={newSurvey.title} onChange={e => setNewSurvey({...newSurvey, title: e.target.value})}
-                            required
-                        />
-                        <textarea 
-                            placeholder="Deskripsi singkat..."
-                            className="w-full bg-black/50 border border-gray-700 rounded-xl p-3 text-white focus:border-amber-500 outline-none transition-all"
-                            value={newSurvey.description} onChange={e => setNewSurvey({...newSurvey, description: e.target.value})}
-                        />
-                        <button className="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-amber-900/20">
-                            Simpan Angket
-                        </button>
-                    </form>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                {/* Section Pertanyaan */}
+                <div className="space-y-8">
+                    <div className="bg-white p-8 rounded-[3rem] shadow-2xl border border-gray-100 space-y-6">
+                        <h2 className="text-2xl font-black text-gray-900 uppercase italic">Item Pertanyaan</h2>
+                        <form onSubmit={handleAddQuestion} className="space-y-4">
+                            <textarea
+                                value={newQuestion}
+                                onChange={(e) => setNewQuestion(e.target.value)}
+                                className="w-full bg-gray-50 border-2 border-gray-100 rounded-3xl p-5 text-gray-700 focus:bg-white focus:border-amber-500 outline-none transition-all resize-none"
+                                placeholder="Contoh: Bagaimana inisiatifnya hari ini?"
+                                rows={3}
+                                required
+                            />
+                            <button className="w-full bg-gray-900 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-black transition-all">
+                                <Plus size={20} /> Tambah Pertanyaan
+                            </button>
+                        </form>
 
-                    <div className="mt-8 space-y-3">
-                        <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Daftar Angket</h3>
-                        {surveys.map(s => (
-                            <div 
-                                key={s.id} 
-                                onClick={() => setSelectedSurvey(s)}
-                                className={`p-4 rounded-xl cursor-pointer border transition-all ${selectedSurvey?.id === s.id ? 'border-amber-500 bg-amber-500/10' : 'border-gray-800 bg-gray-900/30 hover:border-gray-600'}`}
-                            >
-                                <h4 className="font-bold text-white">{s.title}</h4>
-                                <p className="text-xs text-gray-500 truncate">{s.description || 'Tanpa deskripsi'}</p>
-                            </div>
-                        ))}
+                        <div className="space-y-3">
+                            {questions.map((q, idx) => (
+                                <div key={q.id} className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-between group">
+                                    <span className="font-bold text-gray-800">{idx+1}. {q.question_text}</span>
+                                    <button onClick={() => handleDeleteQuestion(q.id)} className="text-red-400 hover:text-red-600 p-2"><Trash2 size={18} /></button>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
 
-                {/* Question Manager */}
-                <div className="lg:col-span-2 space-y-6">
-                    {selectedSurvey ? (
-                        <div className="bg-gray-900/50 border border-amber-500/30 p-8 rounded-3xl relative overflow-hidden">
-                            <div className="relative z-10">
-                                <h2 className="text-2xl font-bold text-white mb-2">{selectedSurvey.title}</h2>
-                                <p className="text-gray-400 mb-6">{selectedSurvey.description}</p>
-
-                                <form onSubmit={handleAddQuestion} className="flex flex-wrap gap-4 mb-8 bg-black/40 p-4 rounded-2xl border border-gray-800">
-                                    <div className="flex-1 min-w-[200px]">
-                                        <input 
-                                            type="text" placeholder="Pertanyaan baru..."
-                                            className="w-full bg-transparent border-b border-gray-700 p-2 text-white focus:border-amber-500 outline-none"
-                                            value={newQuestion.question_text} onChange={e => setNewQuestion({...newQuestion, question_text: e.target.value})}
-                                            required
-                                        />
-                                    </div>
-                                    <select 
-                                        className="bg-gray-800 text-white p-2 rounded-lg outline-none border border-gray-700"
-                                        value={newQuestion.type} onChange={e => setNewQuestion({...newQuestion, type: e.target.value})}
-                                    >
-                                        <option value="rating">Skala 1-5</option>
-                                        <option value="text">Teks Narasi</option>
-                                    </select>
-                                    <button className="bg-amber-600 p-2 rounded-lg text-white hover:bg-amber-500">
-                                        Tambah
-                                    </button>
-                                </form>
-
-                                <div className="space-y-4">
-                                    {selectedSurvey.questions.length === 0 && (
-                                        <div className="text-center py-10 text-gray-600 italic">Belum ada pertanyaan. Tambahkan pertanyaan untuk memulai angket.</div>
-                                    )}
-                                    {selectedSurvey.questions.map((q, idx) => (
-                                        <div key={q.id} className="group flex items-center justify-between p-4 bg-gray-800/40 rounded-xl border border-gray-700 hover:border-amber-500/50 transition-all">
-                                            <div className="flex items-center gap-4">
-                                                <span className="w-8 h-8 rounded-full bg-gray-900 border border-gray-700 flex items-center justify-center text-xs font-bold text-amber-500">
-                                                    {idx + 1}
-                                                </span>
-                                                <div>
-                                                    <p className="text-white font-medium">{q.question_text}</p>
-                                                    <span className="text-[10px] uppercase font-bold text-gray-500">{q.type === 'rating' ? 'Skala 1-5' : 'Text Freeform'}</span>
-                                                </div>
-                                            </div>
-                                            <button className="text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all">
-                                                <Trash2 size={18} />
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
+                {/* Section Waktu/Slots */}
+                <div className="space-y-8">
+                    <div className="bg-white p-8 rounded-[3rem] shadow-2xl border border-gray-100 space-y-6">
+                        <h2 className="text-2xl font-black text-gray-900 uppercase italic">Jadwal Evaluasi</h2>
+                        <form onSubmit={handleAddSlot} className="grid grid-cols-2 gap-4">
+                            <div className="col-span-2 space-y-2">
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">Nama Sesi</label>
+                                <input
+                                    type="text"
+                                    value={newSlot.name}
+                                    onChange={e => setNewSlot({...newSlot, name: e.target.value})}
+                                    placeholder="e.g. Sesi Siang"
+                                    className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl p-4 outline-none focus:border-amber-500 transition-all font-bold"
+                                    required
+                                />
                             </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">Mulai</label>
+                                <input
+                                    type="time"
+                                    value={newSlot.start}
+                                    onChange={e => setNewSlot({...newSlot, start: e.target.value})}
+                                    className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl p-4 outline-none focus:border-amber-500 transition-all font-bold"
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">Berakhir</label>
+                                <input
+                                    type="time"
+                                    value={newSlot.end}
+                                    onChange={e => setNewSlot({...newSlot, end: e.target.value})}
+                                    className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl p-4 outline-none focus:border-amber-500 transition-all font-bold"
+                                    required
+                                />
+                            </div>
+                            <button className="col-span-2 bg-amber-500 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-amber-600 transition-all mt-2">
+                                <Plus size={20} /> Simpan Jadwal
+                            </button>
+                        </form>
+
+                        <div className="space-y-3">
+                            {slots.map(slot => (
+                                <div key={slot.id} className="p-5 bg-gray-50 rounded-2xl border-2 border-gray-100 flex items-center justify-between group">
+                                    <div className="flex items-center gap-4">
+                                        <div className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm"><Clock size={20} className="text-amber-500" /></div>
+                                        <div>
+                                            <p className="font-black text-gray-900 leading-none mb-1 uppercase tracking-tight">{slot.name}</p>
+                                            <p className="text-xs text-gray-400 font-bold">{slot.start_time.slice(0,5)} - {slot.end_time.slice(0,5)} WIB</p>
+                                        </div>
+                                    </div>
+                                    <button onClick={() => handleDeleteSlot(slot.id)} className="text-red-400 hover:text-red-600 p-2"><Trash2 size={24} /></button>
+                                </div>
+                            ))}
                         </div>
-                    ) : (
-                        <div className="h-full flex flex-col items-center justify-center text-gray-600 border-2 border-dashed border-gray-800 rounded-3xl p-10">
-                            <HelpCircle size={48} className="mb-4 opacity-20" />
-                            <p>Pilih angket dari daftar di samping untuk melihat atau mengelola pertanyaan.</p>
-                        </div>
-                    )}
+                    </div>
                 </div>
             </div>
         </div>

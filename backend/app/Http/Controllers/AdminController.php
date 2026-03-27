@@ -8,8 +8,9 @@ use App\Models\Evaluation;
 use App\Models\ManitoMapping;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
-use App\Models\Survey;
 use App\Models\SurveyQuestion;
+use App\Models\SurveyResponse;
+use App\Models\SurveySlot;
 use App\Models\Exam;
 use App\Models\ExamQuestion;
 use App\Models\WorshipLog;
@@ -140,22 +141,34 @@ class AdminController extends Controller
         return response()->json(['message' => 'User deleted successfully']);
     }
 
-    // --- Survey Management ---
-    public function listSurveys() { return response()->json(Survey::with('questions')->get()); }
+    // --- Survey (Angket) Management (Simplified) ---
+    public function listQuestions() { return response()->json(SurveyQuestion::all()); }
     
-    public function storeSurvey(Request $request) {
-        $data = $request->validate(['title' => 'required', 'description' => 'nullable']);
-        return response()->json(Survey::create($data));
+    public function storeQuestion(Request $request) {
+        $data = $request->validate(['question_text' => 'required']);
+        return response()->json(SurveyQuestion::create($data));
     }
 
-    public function storeQuestion(Request $request, $surveyId) {
+    public function destroyQuestion($id) {
+        SurveyQuestion::findOrFail($id)->delete();
+        return response()->json(['message' => 'Question deleted']);
+    }
+
+    // --- Survey Slot Management ---
+    public function listSlots() { return response()->json(SurveySlot::all()); }
+    
+    public function storeSlot(Request $request) {
         $data = $request->validate([
-            'question_text' => 'required',
-            'type' => 'required|in:text,rating,multiple_choice',
-            'options' => 'nullable|array'
+            'name' => 'required|string',
+            'start_time' => 'required',
+            'end_time' => 'required'
         ]);
-        $data['survey_id'] = $surveyId;
-        return response()->json(SurveyQuestion::create($data));
+        return response()->json(SurveySlot::create($data));
+    }
+
+    public function destroySlot($id) {
+        SurveySlot::findOrFail($id)->delete();
+        return response()->json(['message' => 'Slot deleted']);
     }
 
     // --- Exam Management ---
