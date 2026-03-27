@@ -8,6 +8,11 @@ use App\Models\Evaluation;
 use App\Models\ManitoMapping;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
+use App\Models\Survey;
+use App\Models\SurveyQuestion;
+use App\Models\Exam;
+use App\Models\ExamQuestion;
+use App\Models\WorshipLog;
 
 class AdminController extends Controller
 {
@@ -133,5 +138,55 @@ class AdminController extends Controller
         $user = User::findOrFail($id);
         $user->delete();
         return response()->json(['message' => 'User deleted successfully']);
+    }
+
+    // --- Survey Management ---
+    public function listSurveys() { return response()->json(Survey::with('questions')->get()); }
+    
+    public function storeSurvey(Request $request) {
+        $data = $request->validate(['title' => 'required', 'description' => 'nullable']);
+        return response()->json(Survey::create($data));
+    }
+
+    public function storeQuestion(Request $request, $surveyId) {
+        $data = $request->validate([
+            'question_text' => 'required',
+            'type' => 'required|in:text,rating,multiple_choice',
+            'options' => 'nullable|array'
+        ]);
+        $data['survey_id'] = $surveyId;
+        return response()->json(SurveyQuestion::create($data));
+    }
+
+    // --- Exam Management ---
+    public function listExams() { return response()->json(Exam::with('questions')->get()); }
+
+    public function storeExam(Request $request) {
+        $data = $request->validate([
+            'title' => 'required',
+            'description' => 'nullable',
+            'start_time' => 'required|date',
+            'end_time' => 'required|date',
+            'duration_minutes' => 'required|integer'
+        ]);
+        return response()->json(Exam::create($data));
+    }
+
+    public function storeExamQuestion(Request $request, $examId) {
+        $data = $request->validate([
+            'question_text' => 'required',
+            'options' => 'required|array',
+            'correct_answer' => 'required|string',
+            'points' => 'integer'
+        ]);
+        $data['exam_id'] = $examId;
+        return response()->json(ExamQuestion::create($data));
+    }
+
+    // --- Observer Ibadah Reporting ---
+    public function observerIbadah() {
+        $observers = User::where('role', 'observer')->get();
+        $logs = WorshipLog::whereIn('user_id', $observers->pluck('id'))->with('user')->get();
+        return response()->json(['logs' => $logs]);
     }
 }

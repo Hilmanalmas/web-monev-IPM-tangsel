@@ -19,6 +19,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/ibadah', [\App\Http\Controllers\WorshipLogController::class, 'store']);
     Route::get('/ibadah', [\App\Http\Controllers\WorshipLogController::class, 'index']);
     
+    // New: Survey and Exam for Participants
+    Route::get('/surveys', [\App\Http\Controllers\AdminController::class, 'listSurveys']); // Both see active ones
+    Route::post('/surveys/{surveyId}/respond', [\App\Http\Controllers\ResponseController::class, 'storeSurvey']);
+    Route::get('/exams', [\App\Http\Controllers\ExamController::class, 'availableExams']);
+    Route::post('/exams/{examId}/submit', [\App\Http\Controllers\ExamController::class, 'submit']);
+    
     // Admin Routes
     Route::middleware([\App\Http\Middleware\AdminMiddleware::class])->group(function () {
         Route::get('/admin/stats', [\App\Http\Controllers\AdminController::class, 'stats']);
@@ -27,6 +33,17 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/admin/users/{id}', [\App\Http\Controllers\AdminController::class, 'destroyUser']);
         Route::post('/admin/manito/shuffle', [\App\Http\Controllers\ManitoController::class, 'shuffle']);
         Route::get('/admin/scores/export', [\App\Http\Controllers\AdminController::class, 'exportScores']);
+
+        // Admin Survey Management
+        Route::post('/admin/surveys', [\App\Http\Controllers\AdminController::class, 'storeSurvey']);
+        Route::post('/admin/surveys/{id}/questions', [\App\Http\Controllers\AdminController::class, 'storeQuestion']);
+        
+        // Admin Exam Management
+        Route::post('/admin/exams', [\App\Http\Controllers\AdminController::class, 'storeExam']);
+        Route::post('/admin/exams/{id}/questions', [\App\Http\Controllers\AdminController::class, 'storeExamQuestion']);
+        
+        // Observer Logging Rekap
+        Route::get('/admin/observer/ibadah', [\App\Http\Controllers\AdminController::class, 'observerIbadah']);
     });
 
     // Observer Routes

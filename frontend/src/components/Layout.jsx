@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Home, Camera, ClipboardEdit, BookOpen, ShieldAlert, Users, Eye } from 'lucide-react';
+import { LogOut, Home, Camera, ClipboardEdit, BookOpen, ShieldAlert, Users, Eye, ClipboardCheck, BarChart3 } from 'lucide-react';
 import logo from '../assets/logo.png';
 
 const Layout = ({ children }) => {
@@ -22,16 +22,24 @@ const Layout = ({ children }) => {
 
     if (user.role === 'peserta') {
         navItems.push({ path: '/attendance', label: 'Absensi', icon: <Camera size={22} /> });
-        navItems.push({ path: '/evaluation', label: 'Manito', icon: <ClipboardEdit size={22} /> });
-        navItems.push({ path: '/ibadah', label: 'Ibadah', icon: <BookOpen size={22} /> });
+        navItems.push({ path: '/surveys', label: 'Manito', icon: <ClipboardEdit size={22} /> });
+        navItems.push({ path: '/exams', label: 'Tugas', icon: <BookOpen size={22} /> });
+        navItems.push({ path: '/ibadah', label: 'Ibadah', icon: <ShieldAlert size={22} /> });
     }
 
     if (user.role === 'admin') {
         navItems.push({ path: '/admin', label: 'Statistik', icon: <ShieldAlert size={22} /> });
-        navItems.push({ path: '/admin/users', label: 'Target Manito', icon: <Users size={22} /> });
+        navItems.push({ path: '/admin/users', label: 'Pasukan', icon: <Users size={22} /> });
+        navItems.push({ path: '/admin/surveys', label: 'Angket', icon: <ClipboardCheck size={22} /> });
+        navItems.push({ path: '/admin/exams', label: 'Ujian', icon: <BookOpen size={22} /> });
     }
 
-    if (user.role === 'observer' || user.role === 'admin') {
+    if (user.role === 'observer') {
+        navItems.push({ path: '/observer', label: 'Kognitif', icon: <Eye size={22} /> });
+        navItems.push({ path: '/observer/ibadah', label: 'Ibadah', icon: <BarChart3 size={22} /> });
+    }
+    
+    if (user.role === 'admin') {
         navItems.push({ path: '/observer', label: 'Nilai Kognitif', icon: <Eye size={22} /> });
     }
 

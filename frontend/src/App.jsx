@@ -10,6 +10,11 @@ import IbadahReport from './IbadahReport';
 import AdminDashboard from './pages/AdminDashboard';
 import ObserverDashboard from './pages/ObserverDashboard';
 import AdminUsers from './pages/AdminUsers';
+import AdminSurveys from './pages/AdminSurveys';
+import AdminExams from './pages/AdminExams';
+import ExamPortal from './pages/ExamPortal';
+import SurveyPortal from './pages/SurveyPortal';
+import ObserverIbadah from './pages/ObserverIbadah';
 import Layout from './components/Layout';
 import { Camera } from 'lucide-react';
 
@@ -49,7 +54,12 @@ const AppLayout = () => (
             <Route path="/ibadah" element={<ProtectedRoute allowedRoles={['peserta']}><IbadahReport /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
             <Route path="/admin/users" element={<ProtectedRoute allowedRoles={['admin']}><AdminUsers /></ProtectedRoute>} />
+            <Route path="/admin/surveys" element={<ProtectedRoute allowedRoles={['admin']}><AdminSurveys /></ProtectedRoute>} />
+            <Route path="/admin/exams" element={<ProtectedRoute allowedRoles={['admin']}><AdminExams /></ProtectedRoute>} />
             <Route path="/observer" element={<ProtectedRoute allowedRoles={['admin', 'observer']}><ObserverDashboard /></ProtectedRoute>} />
+            <Route path="/observer/ibadah" element={<ProtectedRoute allowedRoles={['observer']}><ObserverIbadah /></ProtectedRoute>} />
+            <Route path="/exams" element={<ProtectedRoute allowedRoles={['peserta']}><ExamPortal /></ProtectedRoute>} />
+            <Route path="/surveys" element={<ProtectedRoute allowedRoles={['peserta']}><SurveyPortal /></ProtectedRoute>} />
         </Routes>
     </Layout>
 );
