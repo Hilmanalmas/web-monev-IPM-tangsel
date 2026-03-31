@@ -22,7 +22,7 @@ const Layout = ({ children }) => {
 
     if (user.role === 'peserta') {
         navItems.push({ path: '/attendance', label: 'Absensi', icon: <Camera size={22} /> });
-        navItems.push({ path: '/surveys', label: 'Manito', icon: <ClipboardEdit size={22} /> });
+        navItems.push({ path: '/surveys', label: 'Manito Master', icon: <ClipboardEdit size={22} /> });
         navItems.push({ path: '/exams', label: 'Test', icon: <BookOpen size={22} /> });
         navItems.push({ path: '/ibadah', label: 'Ibadah', icon: <ShieldAlert size={22} /> });
     }
@@ -30,7 +30,7 @@ const Layout = ({ children }) => {
     if (user.role === 'admin') {
         navItems.push({ path: '/admin', label: 'Statistik', icon: <ShieldAlert size={22} /> });
         navItems.push({ path: '/admin/users', label: 'Pasukan', icon: <Users size={22} /> });
-        navItems.push({ path: '/admin/surveys', label: 'Angket', icon: <ClipboardCheck size={22} /> });
+        navItems.push({ path: '/admin/surveys', label: 'Manito Master', icon: <ClipboardCheck size={22} /> });
         navItems.push({ path: '/admin/exams', label: 'Test', icon: <BookOpen size={22} /> });
     }
 

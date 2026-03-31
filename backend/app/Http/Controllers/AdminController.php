@@ -145,7 +145,10 @@ class AdminController extends Controller
     public function listQuestions() { return response()->json(SurveyQuestion::all()); }
     
     public function storeQuestion(Request $request) {
-        $data = $request->validate(['question_text' => 'required']);
+        $data = $request->validate([
+            'question_text' => 'required',
+            'category' => 'required|in:afektif,psikomotorik'
+        ]);
         return response()->json(SurveyQuestion::create($data));
     }
 

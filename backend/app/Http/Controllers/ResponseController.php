@@ -12,6 +12,8 @@ class ResponseController extends Controller {
             'target_id' => 'required|exists:users,id',
             'period' => 'required|string', // name of the slot
             'responses' => 'required|array',
+            'responses.*.question_id' => 'required|exists:survey_questions,id',
+            'responses.*.answer' => 'required|integer|min:1|max:4',
         ]);
 
         $date = Carbon::today()->format('Y-m-d');

@@ -4,7 +4,7 @@ import { Plus, Trash2, ClipboardCheck, Star, Clock, Calendar, Save } from 'lucid
 
 const AdminSurveys = () => {
     const [questions, setQuestions] = useState([]);
-    const [newQuestion, setNewQuestion] = useState('');
+    const [newQuestion, setNewQuestion] = useState({ text: '', category: 'afektif' });
     const [slots, setSlots] = useState([]);
     const [newSlot, setNewSlot] = useState({ name: '', start: '', end: '' });
     const [loading, setLoading] = useState(false);
@@ -24,11 +24,14 @@ const AdminSurveys = () => {
 
     const handleAddQuestion = async (e) => {
         e.preventDefault();
-        if (!newQuestion.trim()) return;
+        if (!newQuestion.text.trim()) return;
         setLoading(true);
         try {
-            await axios.post('/api/admin/surveys/questions', { question_text: newQuestion });
-            setNewQuestion('');
+            await axios.post('/api/admin/surveys/questions', { 
+                question_text: newQuestion.text,
+                category: newQuestion.category
+            });
+            setNewQuestion({ text: '', category: 'afektif' });
             fetchData();
         } finally {
             setLoading(false);
@@ -67,8 +70,8 @@ const AdminSurveys = () => {
         <div className="p-4 md:p-8 space-y-12 animate-in fade-in duration-700 pb-20">
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b pb-10 border-gray-100">
                 <div>
-                    <h1 className="text-5xl font-black text-gray-900 leading-tight tracking-tight uppercase italic">Pengaturan <br/><span className="text-amber-500">Angket & Waktu</span></h1>
-                    <p className="text-gray-500 text-lg mt-2 font-medium">Kelola pertanyaan evaluasi dan jendela waktu pengisian Manito.</p>
+                    <h1 className="text-5xl font-black text-gray-900 leading-tight tracking-tight uppercase italic">Pengaturan <br/><span className="text-amber-500">Manito Master</span></h1>
+                    <p className="text-gray-500 text-lg mt-2 font-medium">Kelola pertanyaan evaluasi afektif dan psikomotorik partisipan.</p>
                 </div>
                 <div className="bg-amber-500 text-white p-6 rounded-[2.5rem] shadow-2xl shadow-amber-500/20">
                     <ClipboardCheck size={40} />
@@ -81,14 +84,25 @@ const AdminSurveys = () => {
                     <div className="bg-white p-8 rounded-[3rem] shadow-2xl border border-gray-100 space-y-6">
                         <h2 className="text-2xl font-black text-gray-900 uppercase italic">Item Pertanyaan</h2>
                         <form onSubmit={handleAddQuestion} className="space-y-4">
+                            <div className="flex bg-gray-100 p-1 rounded-2xl w-full">
+                                <button type="button" onClick={() => setNewQuestion({...newQuestion, category: 'afektif'})} className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${newQuestion.category === 'afektif' ? 'bg-amber-500 text-white shadow-md' : 'text-gray-500 hover:text-gray-800'}`}>
+                                    Afektif (Resonansi Jiwa)
+                                </button>
+                                <button type="button" onClick={() => setNewQuestion({...newQuestion, category: 'psikomotorik'})} className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${newQuestion.category === 'psikomotorik' ? 'bg-amber-500 text-white shadow-md' : 'text-gray-500 hover:text-gray-800'}`}>
+                                    Psikomotorik (Aliran Kinetik)
+                                </button>
+                            </div>
                             <textarea
-                                value={newQuestion}
-                                onChange={(e) => setNewQuestion(e.target.value)}
+                                value={newQuestion.text}
+                                onChange={(e) => setNewQuestion({...newQuestion, text: e.target.value})}
                                 className="w-full bg-gray-50 border-2 border-gray-100 rounded-3xl p-5 text-gray-700 focus:bg-white focus:border-amber-500 outline-none transition-all resize-none"
-                                placeholder="Contoh: Bagaimana inisiatifnya hari ini?"
+                                placeholder={`Tulis indikator ${newQuestion.category === 'afektif' ? 'sikap/emosional' : 'tindakan/teknis'}...`}
                                 rows={3}
                                 required
                             />
+                            <div className="text-[10px] text-gray-400 italic px-2">
+                                Skala 1-4 otomatis akan menyesuaikan kategori saat ditampilkan di layar peserta.
+                            </div>
                             <button className="w-full bg-gray-900 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-black transition-all">
                                 <Plus size={20} /> Tambah Pertanyaan
                             </button>
@@ -97,7 +111,14 @@ const AdminSurveys = () => {
                         <div className="space-y-3">
                             {questions.map((q, idx) => (
                                 <div key={q.id} className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-between group">
-                                    <span className="font-bold text-gray-800">{idx+1}. {q.question_text}</span>
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <span className="font-bold text-gray-800">{idx+1}. {q.question_text}</span>
+                                        </div>
+                                        <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${q.category === 'afektif' ? 'bg-pink-100 text-pink-500' : 'bg-blue-100 text-blue-500'}`}>
+                                            {q.category}
+                                        </span>
+                                    </div>
                                     <button onClick={() => handleDeleteQuestion(q.id)} className="text-red-400 hover:text-red-600 p-2"><Trash2 size={18} /></button>
                                 </div>
                             ))}

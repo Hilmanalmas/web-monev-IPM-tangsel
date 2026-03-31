@@ -3,5 +3,5 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
 class SurveyQuestion extends Model {
-    protected $fillable = ['question_text', 'is_active'];
+    protected $fillable = ['question_text', 'category', 'is_active'];
 }

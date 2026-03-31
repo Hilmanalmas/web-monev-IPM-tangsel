@@ -2,6 +2,21 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { User, Send, Star, Clock, CheckCircle2, AlertCircle, Calendar } from 'lucide-react';
 
+const SCALE_OPTIONS = {
+    afektif: [
+        { value: 1, label: 'Void', desc: 'Hampa' },
+        { value: 2, label: 'Echo', desc: 'Gema' },
+        { value: 3, label: 'Pulse', desc: 'Berdenyut' },
+        { value: 4, label: 'Radiance', desc: 'Memancar' }
+    ],
+    psikomotorik: [
+        { value: 1, label: 'Glitchy', desc: 'Tersendat' },
+        { value: 2, label: 'Rigid', desc: 'Kaku' },
+        { value: 3, label: 'Fluid', desc: 'Mengalir' },
+        { value: 4, label: 'Artistry', desc: 'Berseni' }
+    ]
+};
+
 const SurveyPortal = () => {
     const [questions, setQuestions] = useState([]);
     const [target, setTarget] = useState(null);
@@ -139,18 +154,20 @@ const SurveyPortal = () => {
                                     <p className="text-2xl font-black text-gray-800 leading-tight tracking-tight uppercase italic">{q.question_text}</p>
                                 </div>
 
-                                <div className="flex justify-between max-w-xl mx-auto p-5 bg-gray-50/50 rounded-[3rem] border-2 border-gray-100/50 relative group">
-                                    {[1, 2, 3, 4, 5].map(num => (
-                                        <button
-                                            key={num}
-                                            type="button"
-                                            onClick={() => setResponses({...responses, [q.id]: num})}
-                                            className={`w-16 h-16 md:w-20 md:h-20 rounded-[2rem] border-4 flex flex-col items-center justify-center transition-all ${responses[q.id] === num ? 'bg-black border-black text-white shadow-2xl scale-110 rotate-3' : 'bg-white border-gray-100 text-gray-300 hover:border-amber-400 hover:text-amber-500'}`}
-                                        >
-                                            <span className="text-3xl font-black italic">{num}</span>
-                                        </button>
-                                    ))}
-                                </div>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto mt-6">
+                                        {(SCALE_OPTIONS[q.category] || SCALE_OPTIONS['afektif']).map(opt => (
+                                            <button
+                                                key={opt.value}
+                                                type="button"
+                                                onClick={() => setResponses({...responses, [q.id]: opt.value})}
+                                                className={`p-5 rounded-[2rem] border-2 flex flex-col items-center justify-center transition-all group ${responses[q.id] === opt.value ? 'bg-amber-500 border-amber-500 text-white shadow-xl shadow-amber-500/20 scale-105' : 'bg-white border-gray-100 text-gray-400 hover:border-amber-300'}`}
+                                            >
+                                                <span className="text-3xl font-black italic mb-2">{opt.value}</span>
+                                                <span className={`font-black uppercase tracking-widest text-sm text-center ${responses[q.id] === opt.value ? 'text-white' : 'text-gray-900 group-hover:text-amber-500'}`}>{opt.label}</span>
+                                                <span className={`text-[10px] font-bold mt-1 uppercase ${responses[q.id] === opt.value ? 'text-white opacity-80' : 'text-gray-400'}`}>({opt.desc})</span>
+                                            </button>
+                                        ))}
+                                    </div>
                             </div>
                         ))}
                     </div>
