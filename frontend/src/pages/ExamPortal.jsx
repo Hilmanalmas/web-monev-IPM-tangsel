@@ -83,18 +83,30 @@ const ExamPortal = () => {
                                 <span className="text-2xl font-black text-gray-200 font-mono italic">{idx + 1}.</span>
                                 <p className="text-xl font-medium text-gray-800 leading-snug">{q.question_text}</p>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ml-4">
-                                {q.options.map(opt => (
-                                    <button
-                                        key={opt.key}
-                                        onClick={() => setAnswers({...answers, [q.id]: opt.key})}
-                                        className={`p-4 rounded-2xl border-2 text-left transition-all flex items-center gap-4 ${answers[q.id] === opt.key ? 'bg-amber-500 border-amber-500 text-white shadow-lg shadow-amber-500/20 active:scale-[0.98]' : 'bg-gray-50 border-gray-100 text-gray-600 hover:border-amber-200'}`}
-                                    >
-                                        <span className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${answers[q.id] === opt.key ? 'bg-white/20' : 'bg-white border text-gray-400'}`}>{opt.key}</span>
-                                        <span className="font-medium">{opt.val}</span>
-                                    </button>
-                                ))}
-                            </div>
+
+                            {q.type === 'essay' ? (
+                                <div className="ml-4">
+                                    <textarea
+                                        placeholder="Tuliskan jawaban Anda di sini..."
+                                        className="w-full bg-gray-50 border-2 border-gray-100 rounded-3xl p-6 text-gray-800 outline-none focus:border-amber-500 min-h-[180px] transition-all text-lg"
+                                        value={answers[q.id] || ''}
+                                        onChange={(e) => setAnswers({...answers, [q.id]: e.target.value})}
+                                    />
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ml-4">
+                                    {(q.options || []).map(opt => (
+                                        <button
+                                            key={opt.key}
+                                            onClick={() => setAnswers({...answers, [q.id]: opt.key})}
+                                            className={`p-4 rounded-2xl border-2 text-left transition-all flex items-center gap-4 ${answers[q.id] === opt.key ? 'bg-amber-500 border-amber-500 text-white shadow-lg shadow-amber-500/20 active:scale-[0.98]' : 'bg-gray-50 border-gray-100 text-gray-600 hover:border-amber-200'}`}
+                                        >
+                                            <span className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${answers[q.id] === opt.key ? 'bg-white/20' : 'bg-white border text-gray-400'}`}>{opt.key}</span>
+                                            <span className="font-medium">{opt.val}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     ))}
                     

@@ -70,9 +70,10 @@ const AdminExams = () => {
         setEditingQuestionsExam(exam);
         const loadedQuestions = exam.questions.map(q => ({
             id: q.id,
+            type: q.type || 'pg',
             question_text: q.question_text,
-            options: JSON.parse(JSON.stringify(q.options)),
-            correct_answer: q.correct_answer,
+            options: q.options ? JSON.parse(JSON.stringify(q.options)) : [{ key: 'A', val: '' }, { key: 'B', val: '' }, { key: 'C', val: '' }, { key: 'D', val: '' }],
+            correct_answer: q.correct_answer || 'A',
             points: q.points
         }));
         setQuestionsForm(loadedQuestions);
@@ -80,6 +81,7 @@ const AdminExams = () => {
 
     const handleAddQuestionToForm = () => {
         setQuestionsForm([...questionsForm, { 
+            type: 'pg',
             question_text: '', 
             options: [{ key: 'A', val: '' }, { key: 'B', val: '' }, { key: 'C', val: '' }, { key: 'D', val: '' }], 
             correct_answer: 'A', 
@@ -90,6 +92,17 @@ const AdminExams = () => {
     const handleRemoveQuestionFromForm = (index) => {
         const newQ = [...questionsForm];
         newQ.splice(index, 1);
+        setQuestionsForm(newQ);
+    };
+
+    const handleTypeChange = (index, value) => {
+        const newQ = [...questionsForm];
+        newQ[index].type = value;
+        // Reset defaults for type if needed
+        if (value === 'pg' && !newQ[index].options) {
+            newQ[index].options = [{ key: 'A', val: '' }, { key: 'B', val: '' }, { key: 'C', val: '' }, { key: 'D', val: '' }];
+            newQ[index].correct_answer = 'A';
+        }
         setQuestionsForm(newQ);
     };
 
@@ -119,7 +132,7 @@ const AdminExams = () => {
             fetchExams();
         } catch (error) {
             console.error(error);
-            alert("Gagal menyimpan soal.");
+            alert(error.response?.data?.message || "Gagal menyimpan soal.");
         }
     };
 
@@ -127,7 +140,7 @@ const AdminExams = () => {
         <div className="p-6 space-y-8 animate-in slide-in-from-bottom duration-500">
             <header>
                 <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-                    <BookOpen className="text-amber-500" /> Manajemen Test
+                    < BookOpen className="text-amber-500" /> Manajemen Test
                 </h1>
                 <p className="text-gray-400 mt-1">Atur jadwal dan daftar soal Test</p>
             </header>
@@ -227,31 +240,58 @@ const AdminExams = () => {
                                         <button onClick={() => handleRemoveQuestionFromForm(qIndex)} title="Hapus Soal Ini" className="absolute top-4 right-4 text-gray-600 hover:text-red-500 transition-colors"><Trash2 size={18} /></button>
                                         
                                         <div className="space-y-4 mt-2 pr-8">
+                                            <div className="flex items-center gap-4 mb-2">
+                                                <label className="text-[10px] uppercase font-bold text-gray-500">Tipe Soal:</label>
+                                                <div className="flex bg-gray-800 rounded-lg p-1">
+                                                    <button 
+                                                        onClick={() => handleTypeChange(qIndex, 'pg')}
+                                                        className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all ${q.type === 'pg' ? 'bg-amber-500 text-white' : 'text-gray-400 hover:text-gray-200'}`}
+                                                    >
+                                                        Pilihan Ganda
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => handleTypeChange(qIndex, 'essay')}
+                                                        className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all ${q.type === 'essay' ? 'bg-amber-500 text-white' : 'text-gray-400 hover:text-gray-200'}`}
+                                                    >
+                                                        Essay
+                                                    </button>
+                                                </div>
+                                            </div>
+
                                             <textarea 
                                                 placeholder="Tulis pertanyaan di sini..."
                                                 className="w-full bg-black/60 border border-gray-700 rounded-xl p-4 text-white outline-none focus:border-blue-500 placeholder-gray-600 min-h-[100px]"
                                                 value={q.question_text} onChange={(e) => handleQuestionTextChange(qIndex, e.target.value)}
                                             />
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                {q.options.map((opt, optIndex) => (
-                                                    <div key={optIndex} className={`flex items-center gap-3 bg-gray-900 border p-2 rounded-xl transition-all ${q.correct_answer === opt.key ? 'border-green-500/50 shadow-[0_0_10px_rgba(34,197,94,0.1)]' : 'border-gray-800'}`}>
-                                                        <div className="flex flex-col items-center pl-2">
-                                                            <span className={`text-xs font-black ${q.correct_answer === opt.key ? 'text-green-500' : 'text-gray-500'}`}>{opt.key}</span>
+                                            
+                                            {q.type === 'pg' && (
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                                    {q.options.map((opt, optIndex) => (
+                                                        <div key={optIndex} className={`flex items-center gap-3 bg-gray-900 border p-2 rounded-xl transition-all ${q.correct_answer === opt.key ? 'border-green-500/50 shadow-[0_0_10px_rgba(34,197,94,0.1)]' : 'border-gray-800'}`}>
+                                                            <div className="flex flex-col items-center pl-2">
+                                                                <span className={`text-xs font-black ${q.correct_answer === opt.key ? 'text-green-500' : 'text-gray-500'}`}>{opt.key}</span>
+                                                                <input 
+                                                                    type="radio" name={`correct_${qIndex}`} 
+                                                                    checked={q.correct_answer === opt.key} 
+                                                                    onChange={() => handleCorrectAnswerChange(qIndex, opt.key)}
+                                                                    className="mt-1 cursor-pointer accent-green-500"
+                                                                />
+                                                            </div>
                                                             <input 
-                                                                type="radio" name={`correct_${qIndex}`} 
-                                                                checked={q.correct_answer === opt.key} 
-                                                                onChange={() => handleCorrectAnswerChange(qIndex, opt.key)}
-                                                                className="mt-1 cursor-pointer accent-green-500"
+                                                                type="text" placeholder={`Opsi ${opt.key}`}
+                                                                className="bg-transparent border-none text-white w-full outline-none text-sm p-2"
+                                                                value={opt.val} onChange={(e) => handleOptionChange(qIndex, optIndex, e.target.value)}
                                                             />
                                                         </div>
-                                                        <input 
-                                                            type="text" placeholder={`Opsi ${opt.key}`}
-                                                            className="bg-transparent border-none text-white w-full outline-none text-sm p-2"
-                                                            value={opt.val} onChange={(e) => handleOptionChange(qIndex, optIndex, e.target.value)}
-                                                        />
-                                                    </div>
-                                                ))}
-                                            </div>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            {q.type === 'essay' && (
+                                                <div className="bg-amber-500/5 border border-amber-500/20 p-4 rounded-xl text-[10px] text-amber-500/80 italic animate-in fade-in duration-300">
+                                                    Mode Essay: Peserta akan diberikan kotak teks untuk mengisi jawaban secara bebas. Nilai tidak dihitung secara otomatis.
+                                                </div>
+                                            )}
                                         </div>
                                      </div>
                                  ))}

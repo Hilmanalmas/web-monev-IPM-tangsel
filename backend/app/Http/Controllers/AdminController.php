@@ -219,9 +219,10 @@ class AdminController extends Controller
         $questionsData = $request->validate([
             'questions' => 'required|array',
             'questions.*.id' => 'nullable|integer|exists:exam_questions,id',
+            'questions.*.type' => 'required|in:pg,essay',
             'questions.*.question_text' => 'required|string',
-            'questions.*.options' => 'required|array',
-            'questions.*.correct_answer' => 'required|string',
+            'questions.*.options' => 'nullable|array',
+            'questions.*.correct_answer' => 'nullable|string',
             'questions.*.points' => 'integer'
         ]);
 
@@ -229,6 +230,17 @@ class AdminController extends Controller
         $sentIds = [];
 
         foreach ($questionsData['questions'] as $qData) {
+            // Additional validation for PG
+            if ($qData['type'] === 'pg') {
+                if (empty($qData['options']) || empty($qData['correct_answer'])) {
+                    return response()->json(['message' => 'Soal Pilihan Ganda wajib memiliki opsi dan kunci jawaban.'], 422);
+                }
+            } else {
+                // Clear options and correct_answer for essay
+                $qData['options'] = null;
+                $qData['correct_answer'] = null;
+            }
+
             if (isset($qData['id'])) {
                 $question = ExamQuestion::where('exam_id', $examId)->findOrFail($qData['id']);
                 $question->update($qData);

@@ -35,8 +35,12 @@ class ExamController extends Controller {
         $score = 0;
         foreach ($exam->questions as $q) {
             $userAns = $data['answers'][$q->id] ?? '';
-            $isCorrect = (strtolower(trim($userAns)) === strtolower(trim($q->correct_answer)));
-            if ($isCorrect) $score += $q->points;
+            
+            $isCorrect = false;
+            if ($q->type === 'pg') {
+                $isCorrect = (strtolower(trim($userAns)) === strtolower(trim($q->correct_answer ?? '')));
+                if ($isCorrect) $score += $q->points;
+            }
 
             ExamAnswer::create([
                 'submission_id' => $submission->id,

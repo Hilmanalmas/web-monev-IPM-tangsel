@@ -9,7 +9,7 @@ class Exam extends Model {
 }
 
 class ExamQuestion extends Model {
-    protected $fillable = ['exam_id', 'question_text', 'options', 'correct_answer', 'points'];
+    protected $fillable = ['exam_id', 'type', 'question_text', 'options', 'correct_answer', 'points'];
     protected $casts = ['options' => 'array'];
     public function exam() { return $this->belongsTo(Exam::class); }
 }
