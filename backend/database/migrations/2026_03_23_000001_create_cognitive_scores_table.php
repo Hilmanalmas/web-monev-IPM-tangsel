@@ -9,7 +9,8 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('observer_id')->constrained('users')->onDelete('cascade');
-            $table->integer('score');
+            $table->foreignId('exam_submission_id')->constrained('exam_submissions')->onDelete('cascade');
+            $table->integer('score'); // 1-100
             $table->text('notes')->nullable();
             $table->timestamps();
         });

@@ -22,25 +22,23 @@ const Layout = ({ children }) => {
 
     if (user.role === 'peserta') {
         navItems.push({ path: '/attendance', label: 'Absensi', icon: <Camera size={22} /> });
+        navItems.push({ path: '/rtl', label: 'RTL', icon: <ClipboardCheck size={22} /> });
         navItems.push({ path: '/surveys', label: 'Manito Master', icon: <ClipboardEdit size={22} /> });
         navItems.push({ path: '/exams', label: 'Test', icon: <BookOpen size={22} /> });
-        navItems.push({ path: '/ibadah', label: 'Ibadah', icon: <ShieldAlert size={22} /> });
     }
 
     if (user.role === 'admin') {
         navItems.push({ path: '/admin', label: 'Statistik', icon: <ShieldAlert size={22} /> });
         navItems.push({ path: '/admin/users', label: 'Pasukan', icon: <Users size={22} /> });
+        navItems.push({ path: '/admin/attendance', label: 'Absensi', icon: <Camera size={22} /> });
         navItems.push({ path: '/admin/surveys', label: 'Manito Master', icon: <ClipboardCheck size={22} /> });
+        navItems.push({ path: '/admin/rtl', label: 'RTL', icon: <ClipboardEdit size={22} /> });
         navItems.push({ path: '/admin/exams', label: 'Test', icon: <BookOpen size={22} /> });
+        navItems.push({ path: '/admin/ibadah', label: 'Lap. Ibadah', icon: <BarChart3 size={22} /> });
     }
 
-    if (user.role === 'observer') {
-        navItems.push({ path: '/observer', label: 'Kognitif', icon: <Eye size={22} /> });
-        navItems.push({ path: '/observer/ibadah', label: 'Ibadah', icon: <BarChart3 size={22} /> });
-    }
-    
-    if (user.role === 'admin') {
-        navItems.push({ path: '/observer', label: 'Nilai Kognitif', icon: <Eye size={22} /> });
+    if (user.role === 'observer' || user.role === 'admin') {
+        navItems.push({ path: '/observer', label: 'Markas Penilaian', icon: <Eye size={22} /> });
     }
 
     return (

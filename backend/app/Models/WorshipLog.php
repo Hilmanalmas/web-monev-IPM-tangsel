@@ -11,8 +11,10 @@ class WorshipLog extends Model
 
     protected $fillable = [
         'user_id',
-        'activity_name',
-        'bonus_points',
+        'observer_id',
+        'slot_id',
+        'score',
+        'notes'
     ];
 
     public function user()

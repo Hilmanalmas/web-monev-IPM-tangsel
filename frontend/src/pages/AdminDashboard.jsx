@@ -36,7 +36,7 @@ const AdminDashboard = () => {
                     <button
                         onClick={() => {
                             const token = localStorage.getItem('token');
-                            window.open(`/api/admin/scores/export?bearer=${token}`, '_blank');
+                            window.open(`/api/admin/reports/export?bearer=${token}`, '_blank');
                         }}
                         className="bg-green-600 hover:bg-green-700 active:scale-95 text-white font-black py-4 px-8 rounded-2xl shadow-xl transition-all flex items-center justify-center gap-3 border-b-4 border-green-800"
                     >
@@ -68,8 +68,8 @@ const AdminDashboard = () => {
                 <h3 className="text-xl font-bold text-amber-800 mb-2">Petunjuk Admin</h3>
                 <ul className="list-disc ml-5 text-amber-700 space-y-2">
                     <li>Gunakan tombol <strong>"Unduh Rekap Nilai"</strong> untuk mengkalkulasi skor akhir secara otomatis.</li>
-                    <li>Mesin akan menghitung Bobot Kognitif (40%), Psikomotorik (40%), dan Afektif (20%).</li>
-                    <li>Buka halaman <strong>Target Manito</strong> di menu sebelah kiri untuk mengatur instruksi siapa mengawasi siapa.</li>
+                    <li>Sistem MONEV V2 menghitung Bobot: Afektif (35%), Psikomotorik (35%), Kognitif (20%) dan Ibadah (10%).</li>
+                    <li>Silakan navigasi menu sisi kiri untuk mengatur slot Absensi, Ibadah, Test, maupun Manito.</li>
                 </ul>
             </div>
         </div>
