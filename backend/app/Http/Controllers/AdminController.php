@@ -171,7 +171,7 @@ class AdminController extends Controller
         return response()->json(['message' => 'Slot deleted']);
     }
 
-    // --- Exam Management ---
+    // --- Exam (Test) Management ---
     public function listExams() { return response()->json(Exam::with('questions')->get()); }
 
     public function storeExam(Request $request) {
@@ -185,6 +185,24 @@ class AdminController extends Controller
         return response()->json(Exam::create($data));
     }
 
+    public function updateExam(Request $request, $id) {
+        $exam = Exam::findOrFail($id);
+        $data = $request->validate([
+            'title' => 'required',
+            'description' => 'nullable',
+            'start_time' => 'required|date',
+            'end_time' => 'required|date',
+            'duration_minutes' => 'required|integer'
+        ]);
+        $exam->update($data);
+        return response()->json($exam);
+    }
+
+    public function destroyExam($id) {
+        Exam::findOrFail($id)->delete();
+        return response()->json(['message' => 'Exam deleted']);
+    }
+
     public function storeExamQuestion(Request $request, $examId) {
         $data = $request->validate([
             'question_text' => 'required',
@@ -194,6 +212,38 @@ class AdminController extends Controller
         ]);
         $data['exam_id'] = $examId;
         return response()->json(ExamQuestion::create($data));
+    }
+
+    public function batchUpdateExamQuestions(Request $request, $examId) {
+        $exam = Exam::findOrFail($examId);
+        $questionsData = $request->validate([
+            'questions' => 'required|array',
+            'questions.*.id' => 'nullable|integer|exists:exam_questions,id',
+            'questions.*.question_text' => 'required|string',
+            'questions.*.options' => 'required|array',
+            'questions.*.correct_answer' => 'required|string',
+            'questions.*.points' => 'integer'
+        ]);
+
+        // Keep track of which question IDs are sent (to handle deletions)
+        $sentIds = [];
+
+        foreach ($questionsData['questions'] as $qData) {
+            if (isset($qData['id'])) {
+                $question = ExamQuestion::where('exam_id', $examId)->findOrFail($qData['id']);
+                $question->update($qData);
+                $sentIds[] = $question->id;
+            } else {
+                $qData['exam_id'] = $examId;
+                $newQuestion = ExamQuestion::create($qData);
+                $sentIds[] = $newQuestion->id;
+            }
+        }
+
+        // Delete questions that were not sent in the batch
+        ExamQuestion::where('exam_id', $examId)->whereNotIn('id', $sentIds)->delete();
+
+        return response()->json(['message' => 'Questions updated successfully', 'exam' => $exam->load('questions')]);
     }
 
     // --- Observer Ibadah Reporting ---

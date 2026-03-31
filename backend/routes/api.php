@@ -43,9 +43,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/admin/surveys/slots', [\App\Http\Controllers\AdminController::class, 'storeSlot']);
         Route::delete('/admin/surveys/slots/{id}', [\App\Http\Controllers\AdminController::class, 'destroySlot']);
         
-        // Admin Exam Management
+        // Admin Exam (Test) Management
+        Route::get('/admin/exams', [\App\Http\Controllers\AdminController::class, 'listExams']);
         Route::post('/admin/exams', [\App\Http\Controllers\AdminController::class, 'storeExam']);
+        Route::put('/admin/exams/{id}', [\App\Http\Controllers\AdminController::class, 'updateExam']);
+        Route::delete('/admin/exams/{id}', [\App\Http\Controllers\AdminController::class, 'destroyExam']);
         Route::post('/admin/exams/{id}/questions', [\App\Http\Controllers\AdminController::class, 'storeExamQuestion']);
+        Route::put('/admin/exams/{id}/questions/batch', [\App\Http\Controllers\AdminController::class, 'batchUpdateExamQuestions']);
         
         // Observer Logging Rekap
         Route::get('/admin/observer/ibadah', [\App\Http\Controllers\AdminController::class, 'observerIbadah']);

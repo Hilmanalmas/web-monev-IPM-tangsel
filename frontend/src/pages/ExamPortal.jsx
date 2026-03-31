@@ -55,7 +55,7 @@ const ExamPortal = () => {
                     <span className="text-4xl font-black">{result.score}</span>
                     <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">POIN</span>
                 </div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">Ujian Selesai!</h2>
+                <h2 className="text-3xl font-bold text-gray-900 mb-2">Test Selesai!</h2>
                 <p className="text-gray-500 mb-8">Hasilmu telah dicatat oleh instruktur.</p>
                 <button onClick={() => setResult(null)} className="bg-gray-900 text-white font-bold py-3 px-10 rounded-2xl hover:bg-black transition-all shadow-lg active:scale-95">Kembali ke Beranda</button>
             </div>
@@ -68,7 +68,7 @@ const ExamPortal = () => {
                 <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md p-6 rounded-2xl flex justify-between items-center shadow-sm border border-gray-100">
                     <div>
                         <h2 className="text-xl font-bold text-gray-900">{activeExam.title}</h2>
-                        <span className="text-xs font-bold text-amber-500 uppercase tracking-widest">Penugasan Aktif</span>
+                        <span className="text-xs font-bold text-amber-500 uppercase tracking-widest">Test Aktif</span>
                     </div>
                     <div className="flex items-center gap-3 px-5 py-2 bg-red-50 text-red-600 rounded-full border border-red-100">
                         <Clock size={20} className="animate-pulse" />
@@ -99,7 +99,7 @@ const ExamPortal = () => {
                     ))}
                     
                     <button onClick={handleSubmit} className="w-full bg-green-600 hover:bg-green-700 text-white py-6 rounded-3xl text-2xl font-black transition-all shadow-xl shadow-green-900/10 active:scale-95 flex items-center justify-center gap-4">
-                        <Send size={28} /> Selesaikan Penugasan
+                        <Send size={28} /> Selesaikan Test
                     </button>
                 </div>
             </div>
@@ -110,7 +110,7 @@ const ExamPortal = () => {
         <div className="max-w-5xl mx-auto p-4 space-y-8 animate-in fade-in duration-500">
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <h1 className="text-5xl font-black text-gray-900 leading-tight">Penugasan & <br/><span className="text-amber-500 italic">Evaluasi Kognitif</span></h1>
+                    <h1 className="text-5xl font-black text-gray-900 leading-tight">Test & <br/><span className="text-amber-500 italic">Evaluasi Kognitif</span></h1>
                     <p className="text-gray-500 text-lg mt-2 font-medium">Selesaikan tugas harianmu untuk mendapatkan poin maksimal.</p>
                 </div>
                 <BookOpen size={80} className="text-gray-100 md:block hidden" />
@@ -120,7 +120,7 @@ const ExamPortal = () => {
                 {exams.length === 0 && (
                     <div className="col-span-full py-20 text-center bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200 text-gray-400">
                         <Clock className="mx-auto mb-4 opacity-10" size={48} />
-                        <p>Belum ada ujian yang dijadwalkan saat ini.</p>
+                        <p>Belum ada test yang dijadwalkan saat ini.</p>
                     </div>
                 )}
                 {exams.map(ex => (
