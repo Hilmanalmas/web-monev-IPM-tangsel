@@ -108,6 +108,13 @@ const AppLayout = () => (
             <Route path="/attendance" element={<ProtectedRoute allowedRoles={['peserta']}><SelfieAttendance /></ProtectedRoute>} />
             <Route path="/evaluation" element={<ProtectedRoute allowedRoles={['peserta']}><EvaluationForm /></ProtectedRoute>} />
             <Route path="/rtl" element={<ProtectedRoute allowedRoles={['peserta']}><RtlPortal /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/admin/users" element={<ProtectedRoute allowedRoles={['admin']}><AdminUsers /></ProtectedRoute>} />
+            <Route path="/admin/surveys" element={<ProtectedRoute allowedRoles={['admin']}><AdminSurveys /></ProtectedRoute>} />
+            <Route path="/admin/exams" element={<ProtectedRoute allowedRoles={['admin']}><AdminExams /></ProtectedRoute>} />
+            <Route path="/admin/attendance" element={<ProtectedRoute allowedRoles={['admin']}><AdminAttendance /></ProtectedRoute>} />
+            <Route path="/admin/rtl" element={<ProtectedRoute allowedRoles={['admin']}><AdminRtl /></ProtectedRoute>} />
+            
             <Route path="/observer" element={<ProtectedRoute allowedRoles={['admin', 'observer']}><ObserverDashboard /></ProtectedRoute>} />
             
             <Route path="/exams" element={<ProtectedRoute allowedRoles={['peserta']}><ExamPortal /></ProtectedRoute>} />
