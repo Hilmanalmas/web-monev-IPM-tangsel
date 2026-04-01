@@ -12,6 +12,9 @@ use App\Models\ExamSubmission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
+use App\Models\RtlResponse;
+use Illuminate\Support\Facades\Storage;
+
 class ObserverController extends Controller {
     public function getPesertaList() {
         $peserta = User::where('role', 'peserta')->get()->map(function($p) {
@@ -21,7 +24,7 @@ class ObserverController extends Controller {
                 'name' => $p->name,
                 'nip' => $p->nip,
                 'instansi' => $p->asal_instansi,
-                'first_selfie' => $firstAttendance ? url($firstAttendance->selfie_url) : null
+                'first_selfie' => $firstAttendance ? url(Storage::url($firstAttendance->selfie_url)) : null
             ];
         });
         return response()->json(['peserta' => $peserta]);
@@ -29,9 +32,22 @@ class ObserverController extends Controller {
 
     public function getPesertaAttendance($id) {
         $attendances = Attendance::where('user_id', $id)->with('slot')->orderBy('recorded_at', 'asc')->get()->map(function($att) {
-            $att->selfie_url = url($att->selfie_url);
+            $att->selfie_url = url(Storage::url($att->selfie_url));
+            $att->type = 'Absensi';
             return $att;
         });
+        
+        $rtlRes = RtlResponse::where('user_id', $id)->whereNotNull('selfie_url')->first();
+        if ($rtlRes) {
+            $attendances->push([
+                'id' => 'rtl-' . $rtlRes->id,
+                'selfie_url' => $rtlRes->selfie_url, // Base64
+                'type' => 'RTL',
+                'recorded_at' => $rtlRes->created_at,
+                'slot' => ['name' => 'Penilaian RTL']
+            ]);
+        }
+
         return response()->json(['attendances' => $attendances]);
     }
 
