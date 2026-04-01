@@ -6,8 +6,10 @@ use App\Models\SurveySlot;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
-class ResponseController extends Controller {
-    public function storeSurvey(Request $request) {
+class ResponseController extends Controller
+{
+    public function storeSurvey(Request $request)
+    {
         $data = $request->validate([
             'target_id' => 'required|exists:users,id',
             'period' => 'required|string', // name of the slot
@@ -20,7 +22,8 @@ class ResponseController extends Controller {
 
         // Verify slot is still open
         $slot = SurveySlot::where('name', $data['period'])->first();
-        if (!$slot) return response()->json(['message' => 'Slot tidak ditemukan'], 404);
+        if (!$slot)
+            return response()->json(['message' => 'Slot tidak ditemukan'], 404);
 
         $now = Carbon::now()->format('H:i:s');
         if ($now < $slot->start_time || $now > $slot->end_time) {
@@ -43,18 +46,19 @@ class ResponseController extends Controller {
         return response()->json(['message' => 'Penilaian Manito berhasil disimpan']);
     }
 
-    public function checkStatus(Request $request) {
+    public function checkStatus(Request $request)
+    {
         $date = Carbon::today()->format('Y-m-d');
         $user = $request->user();
         $now = Carbon::now()->format('H:i:s');
-        
+
         $slots = SurveySlot::all();
         $responses = SurveyResponse::where('user_id', $user->id)
             ->where('date', $date)
             ->get()
             ->groupBy('period');
 
-        $result = $slots->map(function($slot) use ($responses, $now) {
+        $result = $slots->map(function ($slot) use ($responses, $now) {
             return [
                 'name' => $slot->name,
                 'start_time' => $slot->start_time,
@@ -67,7 +71,8 @@ class ResponseController extends Controller {
         return response()->json($result);
     }
 
-    public function activeQuestions() {
+    public function activeQuestions()
+    {
         return response()->json(SurveyQuestion::where('is_active', true)->get());
     }
 }

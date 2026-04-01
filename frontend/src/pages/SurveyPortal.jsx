@@ -119,7 +119,7 @@ const SurveyPortal = () => {
             {/* Dynamic Time Slots */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {slots.map((slot, idx) => (
-                    <button 
+                    <button
                         key={idx}
                         disabled={!slot.is_open || slot.is_filled}
                         onClick={() => setSelectedPeriod(slot.name)}
@@ -129,7 +129,7 @@ const SurveyPortal = () => {
                             <Clock size={24} className={slot.is_open && !slot.is_filled ? 'text-amber-500' : ''} />
                             <div className="text-left">
                                 <p className="text-xs font-black uppercase tracking-widest leading-none mb-1">{slot.name}</p>
-                                <p className="text-[10px] font-bold opacity-60 italic">{slot.start_time.slice(0,5)} - {slot.end_time.slice(0,5)} WIB</p>
+                                <p className="text-[10px] font-bold opacity-60 italic">{slot.start_time.slice(0, 5)} - {slot.end_time.slice(0, 5)} WIB</p>
                             </div>
                         </div>
                         {slot.is_filled && <CheckCircle2 size={24} className="text-green-500/50" />}
@@ -140,7 +140,7 @@ const SurveyPortal = () => {
             {selectedPeriod ? (
                 <form onSubmit={handleSubmit} className="bg-white rounded-[3.5rem] p-10 md:p-16 shadow-2xl border border-gray-50 space-y-20 relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-transparent via-amber-500 to-transparent opacity-20"></div>
-                    
+
                     <div className="text-center space-y-3">
                         <h2 className="text-3xl font-black text-gray-900 uppercase italic tracking-tight">Evaluasi Performa</h2>
                         <p className="text-gray-400 font-bold tracking-widest text-xs uppercase opacity-60">Sesi {selectedPeriod}</p>
@@ -154,25 +154,25 @@ const SurveyPortal = () => {
                                     <p className="text-2xl font-black text-gray-800 leading-tight tracking-tight uppercase italic">{q.question_text}</p>
                                 </div>
 
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto mt-6">
-                                        {(SCALE_OPTIONS[q.category] || SCALE_OPTIONS['afektif']).map(opt => (
-                                            <button
-                                                key={opt.value}
-                                                type="button"
-                                                onClick={() => setResponses({...responses, [q.id]: opt.value})}
-                                                className={`p-5 rounded-[2rem] border-2 flex flex-col items-center justify-center transition-all group ${responses[q.id] === opt.value ? 'bg-amber-500 border-amber-500 text-white shadow-xl shadow-amber-500/20 scale-105' : 'bg-white border-gray-100 text-gray-400 hover:border-amber-300'}`}
-                                            >
-                                                <span className="text-3xl font-black italic mb-2">{opt.value}</span>
-                                                <span className={`font-black uppercase tracking-widest text-sm text-center ${responses[q.id] === opt.value ? 'text-white' : 'text-gray-900 group-hover:text-amber-500'}`}>{opt.label}</span>
-                                                <span className={`text-[10px] font-bold mt-1 uppercase ${responses[q.id] === opt.value ? 'text-white opacity-80' : 'text-gray-400'}`}>({opt.desc})</span>
-                                            </button>
-                                        ))}
-                                    </div>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto mt-6">
+                                    {(SCALE_OPTIONS[q.category] || SCALE_OPTIONS['afektif']).map(opt => (
+                                        <button
+                                            key={opt.value}
+                                            type="button"
+                                            onClick={() => setResponses({ ...responses, [q.id]: opt.value })}
+                                            className={`p-5 rounded-[2rem] border-2 flex flex-col items-center justify-center transition-all group ${responses[q.id] === opt.value ? 'bg-amber-500 border-amber-500 text-white shadow-xl shadow-amber-500/20 scale-105' : 'bg-white border-gray-100 text-gray-400 hover:border-amber-300'}`}
+                                        >
+                                            <span className="text-3xl font-black italic mb-2">{opt.value}</span>
+                                            <span className={`font-black uppercase tracking-widest text-sm text-center ${responses[q.id] === opt.value ? 'text-white' : 'text-gray-900 group-hover:text-amber-500'}`}>{opt.label}</span>
+                                            <span className={`text-[10px] font-bold mt-1 uppercase ${responses[q.id] === opt.value ? 'text-white opacity-80' : 'text-gray-400'}`}>({opt.desc})</span>
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         ))}
                     </div>
 
-                    <button 
+                    <button
                         disabled={submitting}
                         className="w-full bg-gray-950 hover:bg-black text-white py-7 rounded-[2.5rem] text-3xl font-black italic uppercase tracking-widest transition-all flex items-center justify-center gap-5 shadow-2xl shadow-gray-950/40 active:scale-95 disabled:opacity-50"
                     >

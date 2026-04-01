@@ -6,47 +6,56 @@ use App\Models\RtlSlot;
 use App\Models\RtlResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
-class RtlController extends Controller {
-    public function activeQuestions() {
+class RtlController extends Controller
+{
+    public function activeQuestions()
+    {
         return response()->json(RtlQuestion::where('is_active', true)->get());
     }
 
-    public function availableSlots() {
-        $now = now()->format('H:i');
-        $slots = RtlSlot::all()->map(function($slot) use ($now) {
-            $isOpen = $now >= $slot->start_time && $now <= $slot->end_time;
-            $isFilled = RtlResponse::where('user_id', Auth::id())
-                ->where('slot_id', $slot->id)
-                ->whereDate('date', today())
-                ->exists();
-            
-            return [
-                'id' => $slot->id,
-                'name' => $slot->name,
-                'start_time' => $slot->start_time,
-                'end_time' => $slot->end_time,
-                'is_open' => $isOpen,
-                'is_filled' => $isFilled
-            ];
-        });
-        return response()->json($slots);
+    public function rtlStatus()
+    {
+        $isActive = Cache::get('is_rtl_active', false);
+        $isFilled = false;
+        
+        if ($isActive) {
+            $slot = RtlSlot::first();
+            if ($slot) {
+                $isFilled = RtlResponse::where('user_id', Auth::id())
+                    ->where('slot_id', $slot->id)
+                    ->exists();
+            }
+        }
+
+        return response()->json([
+            'is_active' => $isActive,
+            'is_filled' => $isFilled
+        ]);
     }
 
-    public function storeResponse(Request $request) {
+    public function storeResponse(Request $request)
+    {
         $data = $request->validate([
-            'slot_name' => 'required',
-            'selfie_url' => 'nullable|string', // RTL requires selfie basically, but leaving nullable for flexibility
+            'selfie_url' => 'nullable|string', 
             'responses' => 'required|array',
             'responses.*.question_id' => 'required',
-            'responses.*.answer' => 'required|integer|min:1|max:4'
+            'responses.*.response_text' => 'required|string'
         ]);
 
-        $slot = RtlSlot::where('name', $data['slot_name'])->firstOrFail();
+        $isActive = Cache::get('is_rtl_active', false);
+        if (!$isActive) {
+            return response()->json(['message' => 'Laman RTL belum bisa diakses.'], 403);
+        }
 
-        // Ensure not filled today
-        if (RtlResponse::where('user_id', Auth::id())->where('slot_id', $slot->id)->whereDate('date', today())->exists()) {
-            return response()->json(['message' => 'Anda sudah mengisi RTL pada sesi ini hari ini.'], 400);
+        $slot = RtlSlot::first();
+        if (!$slot) {
+            $slot = RtlSlot::create(['name' => 'Penilaian Pasca Kegiatan', 'start_time' => '00:00:00', 'end_time' => '23:59:59']);
+        }
+
+        if (RtlResponse::where('user_id', Auth::id())->where('slot_id', $slot->id)->exists()) {
+            return response()->json(['message' => 'Anda sudah mengisi RTL.'], 400);
         }
 
         foreach ($data['responses'] as $resp) {
@@ -55,7 +64,7 @@ class RtlController extends Controller {
                 'question_id' => $resp['question_id'],
                 'slot_id' => $slot->id,
                 'selfie_url' => $data['selfie_url'],
-                'answer' => $resp['answer'],
+                'answer' => $resp['response_text'],
                 'date' => today()
             ]);
         }

@@ -11,6 +11,7 @@ use App\Models\SurveyResponse;
 use App\Models\ExamSubmission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class PesertaController extends Controller {
     public function dashboard() {
@@ -28,13 +29,19 @@ class PesertaController extends Controller {
                 return ['type' => 'absensi', 'name' => $s->name, 'done' => $done];
             });
 
-        $rtl = RtlSlot::where('start_time', '<=', $now)
-            ->where('end_time', '>=', $now)
-            ->get()->map(function($s) use ($user) {
-                $done = RtlResponse::where('user_id', $user->id)->where('slot_id', $s->id)
-                    ->whereDate('date', today())->exists();
-                return ['type' => 'rtl', 'name' => $s->name, 'done' => $done];
-            });
+        // RTL: only show as task if admin has activated it
+        $rtlTasks = collect();
+        $isRtlActive = Cache::get('is_rtl_active', false);
+        if ($isRtlActive) {
+            $slot = RtlSlot::first();
+            $done = false;
+            if ($slot) {
+                $done = RtlResponse::where('user_id', $user->id)
+                    ->where('slot_id', $slot->id)
+                    ->exists();
+            }
+            $rtlTasks->push(['type' => 'rtl', 'name' => 'Penilaian RTL', 'done' => $done]);
+        }
 
         $manito = SurveySlot::where('start_time', '<=', $now)
             ->where('end_time', '>=', $now)
@@ -45,7 +52,7 @@ class PesertaController extends Controller {
             });
 
         return response()->json([
-            'tasks' => collect()->concat($attendance)->concat($rtl)->concat($manito)
+            'tasks' => collect()->concat($attendance)->concat($rtlTasks)->concat($manito)
         ]);
     }
 
@@ -53,3 +60,4 @@ class PesertaController extends Controller {
         return response()->json(['message' => 'Laporan belum dibuka oleh Admin.']);
     }
 }
+

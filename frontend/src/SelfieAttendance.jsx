@@ -44,7 +44,7 @@ const SelfieAttendance = () => {
         if (!imageSrc || !location) return;
         setStatus('uploading');
         setError(null);
-        
+
         try {
             await axios.post('/api/attendance', {
                 image: imageSrc,
@@ -77,15 +77,15 @@ const SelfieAttendance = () => {
                             <p>{error}</p>
                         </div>
                     )}
-                
+
                     <div className="relative rounded-xl overflow-hidden bg-gray-100 aspect-video flex items-center justify-center shadow-inner border-2 border-dashed border-gray-300">
                         {status === 'location' && (
                             <div className="absolute inset-0 bg-white/80 z-10 flex flex-col items-center justify-center text-amber-600">
-                                <Loader2 className="animate-spin mb-2" size={32}/>
+                                <Loader2 className="animate-spin mb-2" size={32} />
                                 <p className="font-semibold text-sm">Getting Location...</p>
                             </div>
                         )}
-                    
+
                         {!imageSrc ? (
                             <Webcam
                                 audio={false}
@@ -100,14 +100,14 @@ const SelfieAttendance = () => {
                     </div>
 
                     <div className="flex justify-between items-center text-sm font-medium bg-gray-50 p-3 rounded-lg border border-gray-100">
-                         <div className={`flex items-center gap-2 ${location ? 'text-green-600' : 'text-gray-500'}`}>
-                             {location ? <CheckCircle size={18} /> : <MapPin size={18} />}
-                             <span>{location ? `Loc: ${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}` : 'Waiting for capture...'}</span>
-                         </div>
+                        <div className={`flex items-center gap-2 ${location ? 'text-green-600' : 'text-gray-500'}`}>
+                            {location ? <CheckCircle size={18} /> : <MapPin size={18} />}
+                            <span>{location ? `Loc: ${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}` : 'Waiting for capture...'}</span>
+                        </div>
                     </div>
 
                     {!imageSrc ? (
-                        <button 
+                        <button
                             onClick={capture}
                             className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-4 px-4 rounded-xl flex items-center justify-center gap-2 transition-transform transform active:scale-[0.98] shadow-lg"
                         >
@@ -115,19 +115,19 @@ const SelfieAttendance = () => {
                         </button>
                     ) : (
                         <div className="flex gap-4">
-                            <button 
+                            <button
                                 onClick={() => { setImageSrc(null); setError(null); setStatus('idle'); }}
                                 className="w-1/3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-4 px-4 rounded-xl transition-colors outline-none"
                             >
                                 Retake
                             </button>
-                            <button 
+                            <button
                                 onClick={submitAttendance}
                                 disabled={!location || status === 'uploading'}
                                 className={`w-2/3 text-white font-bold py-4 px-4 rounded-xl flex items-center justify-center gap-2 transition-transform shadow-lg
                                     ${(!location || status === 'uploading') ? 'bg-amber-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 active:scale-[0.98]'}`}
                             >
-                                {status === 'uploading' ? <><Loader2 className="animate-spin" size={20}/> Uploading...</> : 'Confirm Attendance'}
+                                {status === 'uploading' ? <><Loader2 className="animate-spin" size={20} /> Uploading...</> : 'Confirm Attendance'}
                             </button>
                         </div>
                     )}
