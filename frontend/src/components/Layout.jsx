@@ -34,7 +34,6 @@ const Layout = ({ children }) => {
         navItems.push({ path: '/admin/surveys', label: 'Manito Master', icon: <ClipboardCheck size={22} /> });
         navItems.push({ path: '/admin/rtl', label: 'RTL', icon: <ClipboardEdit size={22} /> });
         navItems.push({ path: '/admin/exams', label: 'Test', icon: <BookOpen size={22} /> });
-        navItems.push({ path: '/admin/ibadah', label: 'Lap. Ibadah', icon: <BarChart3 size={22} /> });
     }
 
     if (user.role === 'observer' || user.role === 'admin') {

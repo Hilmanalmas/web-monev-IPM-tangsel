@@ -10,7 +10,8 @@ class ExamController extends Controller {
     public function availableExams() {
         $now = Carbon::now();
         return response()->json(
-            Exam::where('start_time', '<=', $now)
+            Exam::with('questions')
+                ->where('start_time', '<=', $now)
                 ->where('end_time', '>=', $now)
                 ->get()
         );

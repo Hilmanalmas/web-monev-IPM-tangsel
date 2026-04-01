@@ -21,14 +21,17 @@ class ObserverController extends Controller {
                 'name' => $p->name,
                 'nip' => $p->nip,
                 'instansi' => $p->asal_instansi,
-                'first_selfie' => $firstAttendance ? $firstAttendance->selfie_url : null
+                'first_selfie' => $firstAttendance ? url($firstAttendance->selfie_url) : null
             ];
         });
         return response()->json(['peserta' => $peserta]);
     }
 
     public function getPesertaAttendance($id) {
-        $attendances = Attendance::where('user_id', $id)->with('slot')->orderBy('recorded_at', 'asc')->get();
+        $attendances = Attendance::where('user_id', $id)->with('slot')->orderBy('recorded_at', 'asc')->get()->map(function($att) {
+            $att->selfie_url = url($att->selfie_url);
+            return $att;
+        });
         return response()->json(['attendances' => $attendances]);
     }
 
@@ -65,7 +68,8 @@ class ObserverController extends Controller {
     public function getGamesPractice($id) {
         $games = GameScore::where('user_id', $id)->get();
         $practice = PracticeScore::where('user_id', $id)->get();
-        return response()->json(['games' => $games, 'practice' => $practice]);
+        $ibadah = WorshipLog::where('user_id', $id)->get();
+        return response()->json(['games' => $games, 'practice' => $practice, 'ibadah' => $ibadah]);
     }
 
     public function storeGameScore(Request $request) {
@@ -95,17 +99,17 @@ class ObserverController extends Controller {
     }
 
     public function getWorshipSlots() {
-        return response()->json(WorshipSlot::all());
+        return response()->json([]); // No longer used as requested
     }
 
     public function storeWorshipScore(Request $request) {
         $data = $request->validate([
             'user_id' => 'required',
-            'slot_id' => 'required',
-            'score' => 'required|integer|min:0|max:100'
+            'score' => 'required|integer|min:0|max:100',
+            'notes' => 'required|string'
         ]);
         $score = WorshipLog::updateOrCreate(
-            ['user_id' => $data['user_id'], 'slot_id' => $data['slot_id']],
+            ['user_id' => $data['user_id'], 'notes' => $data['notes']],
             ['observer_id' => Auth::id(), 'score' => $data['score']]
         );
         return response()->json($score);

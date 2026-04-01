@@ -57,8 +57,21 @@ class PesertaController extends Controller {
                 return ['type' => 'manito', 'name' => $s->name, 'done' => $done];
             });
 
+        $exams = Exam::where('start_time', '<=', $now)
+            ->where('end_time', '>=', $now)
+            ->get()->map(function($ex) use ($user) {
+                $done = ExamSubmission::where('user_id', $user->id)
+                    ->where('exam_id', $ex->id)
+                    ->exists();
+                return ['type' => 'test', 'name' => $ex->title, 'done' => $done];
+            });
+
         return response()->json([
-            'tasks' => collect()->concat($attendance)->concat($rtlTasks)->concat($manito)
+            'tasks' => collect()
+                ->concat($attendance)
+                ->concat($rtlTasks)
+                ->concat($manito)
+                ->concat($exams)
         ]);
     }
 

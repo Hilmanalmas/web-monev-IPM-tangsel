@@ -120,7 +120,6 @@ const ObserverDashboard = () => {
             if (type === 'ibadah') {
                 await axios.post(url, {
                     user_id: selectedUser.id,
-                    slot_id: scoringId, // For ibadah, we need a select dropdown for slots, but we can pass text as notes for now if no slot id
                     score: formScore,
                     notes: formNotes
                 });
@@ -294,7 +293,7 @@ const ObserverDashboard = () => {
                                             <div className="grid grid-cols-2 gap-4">
                                                 {(activeTab === 'games' ? gamesData : activeTab === 'practice' ? practiceData : ibadahData).map(g => (
                                                     <div key={g.id} className="bg-white p-4 rounded-xl border flex justify-between items-center shadow-sm">
-                                                        <span className="font-bold text-gray-700">{activeTab === 'ibadah' ? g.slot?.name : g.notes}</span>
+                                                        <span className="font-bold text-gray-700">{g.notes}</span>
                                                         <span className="flex items-center justify-center w-12 h-12 bg-indigo-100 text-indigo-700 font-black rounded-lg text-xl">{g.score}</span>
                                                     </div>
                                                 ))}
