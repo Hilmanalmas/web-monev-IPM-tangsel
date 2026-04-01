@@ -25,8 +25,12 @@ class ResponseController extends Controller
         if (!$slot)
             return response()->json(['message' => 'Slot tidak ditemukan'], 404);
 
-        $now = Carbon::now()->format('H:i:s');
-        if ($now < $slot->start_time || $now > $slot->end_time) {
+        $now = \Carbon\Carbon::now();
+        $start = \Carbon\Carbon::createFromFormat('H:i:s', $slot->start_time);
+        $end = \Carbon\Carbon::createFromFormat('H:i:s', $slot->end_time);
+        if ($end->lessThanOrEqualTo($start)) { $end->addDay(); }
+
+        if (!$now->between($start, $end)) {
             return response()->json(['message' => 'Waktu evaluasi sudah ditutup'], 403);
         }
 
@@ -48,9 +52,9 @@ class ResponseController extends Controller
 
     public function checkStatus(Request $request)
     {
-        $date = Carbon::today()->format('Y-m-d');
+        $date = \Carbon\Carbon::today()->format('Y-m-d');
         $user = $request->user();
-        $now = Carbon::now()->format('H:i:s');
+        $now = \Carbon\Carbon::now();
 
         $slots = SurveySlot::all();
         $responses = SurveyResponse::where('user_id', $user->id)
@@ -59,12 +63,16 @@ class ResponseController extends Controller
             ->groupBy('period');
 
         $result = $slots->map(function ($slot) use ($responses, $now) {
+            $start = \Carbon\Carbon::createFromFormat('H:i:s', $slot->start_time);
+            $end = \Carbon\Carbon::createFromFormat('H:i:s', $slot->end_time);
+            if ($end->lessThanOrEqualTo($start)) { $end->addDay(); }
+
             return [
                 'name' => $slot->name,
                 'start_time' => $slot->start_time,
                 'end_time' => $slot->end_time,
                 'is_filled' => isset($responses[$slot->name]),
-                'is_open' => $now >= $slot->start_time && $now <= $slot->end_time
+                'is_open' => $now->between($start, $end)
             ];
         });
 

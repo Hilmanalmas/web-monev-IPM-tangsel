@@ -19,13 +19,16 @@ class PesertaController extends Controller {
         if ($user->role !== 'peserta') return response()->json(['error' => 'Unauthorized'], 403);
 
         // Check active tasks
-        $now = now()->format('H:i');
+        $now = \Carbon\Carbon::now();
         
-        $attendance = AttendanceSlot::where('start_time', '<=', $now)
-            ->where('end_time', '>=', $now)
-            ->get()->map(function($s) use ($user) {
+        $attendance = AttendanceSlot::all()->filter(function($slot) use ($now) {
+                $start = \Carbon\Carbon::createFromFormat('H:i:s', $slot->start_time);
+                $end = \Carbon\Carbon::createFromFormat('H:i:s', $slot->end_time);
+                if ($end->lessThanOrEqualTo($start)) { $end->addDay(); }
+                return $now->between($start, $end);
+            })->map(function($s) use ($user) {
                 $done = Attendance::where('user_id', $user->id)->where('slot_id', $s->id)
-                    ->whereDate('recorded_at', today())->exists();
+                    ->whereDate('recorded_at', \Carbon\Carbon::today())->exists();
                 return ['type' => 'absensi', 'name' => $s->name, 'done' => $done];
             });
 
@@ -43,9 +46,12 @@ class PesertaController extends Controller {
             $rtlTasks->push(['type' => 'rtl', 'name' => 'Penilaian RTL', 'done' => $done]);
         }
 
-        $manito = SurveySlot::where('start_time', '<=', $now)
-            ->where('end_time', '>=', $now)
-            ->get()->map(function($s) use ($user) {
+        $manito = SurveySlot::all()->filter(function($slot) use ($now) {
+                $start = \Carbon\Carbon::createFromFormat('H:i:s', $slot->start_time);
+                $end = \Carbon\Carbon::createFromFormat('H:i:s', $slot->end_time);
+                if ($end->lessThanOrEqualTo($start)) { $end->addDay(); }
+                return $now->between($start, $end);
+            })->map(function($s) use ($user) {
                 // Approximate done check
                 $done = false; // We use simplified survey so we don't fully block here.
                 return ['type' => 'manito', 'name' => $s->name, 'done' => $done];

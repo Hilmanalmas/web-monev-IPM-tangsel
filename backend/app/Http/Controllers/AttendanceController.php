@@ -12,9 +12,16 @@ use Illuminate\Support\Facades\Auth;
 class AttendanceController extends Controller
 {
     public function availableSlots() {
-        $now = now()->setTimezone('Asia/Jakarta')->format('H:i');
+        $now = now();
         $slots = AttendanceSlot::all()->map(function($slot) use ($now) {
-            $isOpen = $now >= $slot->start_time && $now <= $slot->end_time;
+            $start = \Carbon\Carbon::createFromFormat('H:i:s', $slot->start_time);
+            $end = \Carbon\Carbon::createFromFormat('H:i:s', $slot->end_time);
+            
+            if ($end->lessThanOrEqualTo($start)) {
+                $end->addDay();
+            }
+            
+            $isOpen = $now->between($start, $end);
             $isFilled = Attendance::where('user_id', Auth::id())
                 ->where('slot_id', $slot->id)
                 ->whereDate('recorded_at', today())
