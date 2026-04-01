@@ -19,12 +19,20 @@ class ObserverController extends Controller {
     public function getPesertaList() {
         $peserta = User::where('role', 'peserta')->get()->map(function($p) {
             $firstAttendance = Attendance::where('user_id', $p->id)->orderBy('recorded_at', 'asc')->first();
+            $selfie = $firstAttendance ? asset(Storage::url($firstAttendance->selfie_url)) : null;
+            
+            // If no attendance selfie, check RTL selfie (which is base64)
+            if (!$selfie) {
+                $rtl = RtlResponse::where('user_id', $p->id)->whereNotNull('selfie_url')->first();
+                if ($rtl) $selfie = $rtl->selfie_url;
+            }
+
             return [
                 'id' => $p->id,
                 'name' => $p->name,
                 'nip' => $p->nip,
                 'instansi' => $p->asal_instansi,
-                'first_selfie' => $firstAttendance ? url(Storage::url($firstAttendance->selfie_url)) : null
+                'first_selfie' => $selfie
             ];
         });
         return response()->json(['peserta' => $peserta]);
@@ -32,13 +40,13 @@ class ObserverController extends Controller {
 
     public function getPesertaAttendance($id) {
         $attendances = Attendance::where('user_id', $id)->with('slot')->orderBy('recorded_at', 'asc')->get()->map(function($att) {
-            $att->selfie_url = url(Storage::url($att->selfie_url));
+            $att->selfie_url = asset(Storage::url($att->selfie_url));
             $att->type = 'Absensi';
             return $att;
         });
         
-        $rtlRes = RtlResponse::where('user_id', $id)->whereNotNull('selfie_url')->first();
-        if ($rtlRes) {
+        $rtlResponses = RtlResponse::where('user_id', $id)->whereNotNull('selfie_url')->get();
+        foreach ($rtlResponses as $rtlRes) {
             $attendances->push([
                 'id' => 'rtl-' . $rtlRes->id,
                 'selfie_url' => $rtlRes->selfie_url, // Base64
