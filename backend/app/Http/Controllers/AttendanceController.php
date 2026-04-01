@@ -77,15 +77,13 @@ class AttendanceController extends Controller
                  return response()->json(['message' => 'Gagal membaca data gambar.'], 400);
             }
             
-            $fileName = Str::uuid() . '.' . $type;
-            $path = 'public/selfies/' . $fileName;
-            
-            Storage::put($path, $imageData);
+            $fileName = 'selfies/' . Str::uuid() . '.' . $type;
+            Storage::disk('public')->put($fileName, $imageData);
             
             $attendance = Attendance::create([
                 'user_id' => $user->id,
                 'slot_id' => $slot->id,
-                'selfie_url' => str_replace('public/', 'storage/', $path),
+                'selfie_url' => $fileName,
                 'latitude' => $request->latitude,
                 'longitude' => $request->longitude,
                 'recorded_at' => $request->timestamp ? Carbon::parse($request->timestamp)->setTimezone(config('app.timezone')) : now(),
