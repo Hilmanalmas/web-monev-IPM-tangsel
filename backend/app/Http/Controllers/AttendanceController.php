@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Auth;
 class AttendanceController extends Controller
 {
     public function availableSlots() {
-        $now = now()->format('H:i');
+        $now = now()->setTimezone('Asia/Jakarta')->format('H:i');
         $slots = AttendanceSlot::all()->map(function($slot) use ($now) {
             $isOpen = $now >= $slot->start_time && $now <= $slot->end_time;
             $isFilled = Attendance::where('user_id', Auth::id())
