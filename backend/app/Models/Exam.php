@@ -9,21 +9,3 @@ class Exam extends Model {
     public function submissions() { return $this->hasMany(ExamSubmission::class); }
 }
 
-class ExamQuestion extends Model {
-    protected $fillable = ['exam_id', 'type', 'question_text', 'options', 'weights', 'correct_answer', 'points'];
-    protected $casts = ['options' => 'array', 'weights' => 'array'];
-    public function exam() { return $this->belongsTo(Exam::class); }
-}
-
-class ExamSubmission extends Model {
-    protected $fillable = ['day', 'user_id', 'exam_id', 'score', 'archetype', 'submitted_at'];
-    public function answers() { return $this->hasMany(ExamAnswer::class, 'submission_id'); }
-    public function user() { return $this->belongsTo(User::class); }
-    public function exam() { return $this->belongsTo(Exam::class); }
-}
-
-class ExamAnswer extends Model {
-    protected $fillable = ['submission_id', 'question_id', 'user_answer', 'is_correct'];
-    public function submission() { return $this->belongsTo(ExamSubmission::class); }
-    public function question() { return $this->belongsTo(ExamQuestion::class); }
-}
