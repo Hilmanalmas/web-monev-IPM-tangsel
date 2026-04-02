@@ -125,6 +125,7 @@ class ObserverController extends Controller {
                 'exam_title' => $sub->exam->title,
                 'submitted_at' => $sub->submitted_at,
                 'answers' => $sub->answers,
+                'archetype' => $sub->archetype,
                 'observer_score' => isset($submissionScores[$sub->id]) ? $submissionScores[$sub->id]->score : null
             ];
         });
@@ -136,6 +137,7 @@ class ObserverController extends Controller {
                 'exam_title' => $ms->notes ?: 'Hasil Tes Kognitif Manual',
                 'submitted_at' => $ms->created_at,
                 'answers' => [],
+                'archetype' => null,
                 'observer_score' => $ms->score
             ]);
         }
