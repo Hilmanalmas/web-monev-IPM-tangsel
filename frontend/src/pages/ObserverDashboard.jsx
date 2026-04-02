@@ -76,6 +76,18 @@ const ObserverDashboard = () => {
                 const res = await axios.get(`/api/observer/peserta/${userId}/attendance`);
                 const attendances = res.data.attendances || [];
                 console.log('[DEBUG] Attendance data:', attendances);
+                // Debug each selfie_url
+                attendances.forEach((att, i) => {
+                    const url = att.selfie_url;
+                    console.log(`[DEBUG] att[${i}] selfie_url:`, 
+                        url === null ? 'NULL' :
+                        url === undefined ? 'UNDEFINED' :
+                        url === '' ? 'EMPTY STRING' :
+                        url.startsWith('data:') ? `BASE64(${url.length} chars, mime=${url.substring(5, url.indexOf(';'))})` :
+                        url.startsWith('http') ? `URL: ${url}` :
+                        `OTHER: ${url.substring(0, 80)}`
+                    );
+                });
                 setAttendanceData(attendances);
             }
         } catch(error) {
