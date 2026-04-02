@@ -177,9 +177,16 @@ const ExamPortal = () => {
                     </div>
                 )}
                 {exams.map(ex => (
-                    <div key={ex.id} className="bg-white p-8 rounded-[2.5rem] shadow-xl shadow-gray-200/50 border border-gray-100 flex flex-col hover:shadow-2xl hover:scale-[1.02] transition-all">
+                    <div key={ex.id} className={`bg-white p-8 rounded-[2.5rem] shadow-xl shadow-gray-200/50 border border-gray-100 flex flex-col hover:shadow-2xl hover:scale-[1.02] transition-all ${ex.has_submitted ? 'opacity-80' : ''}`}>
                         <div className="mb-6 flex-1">
-                            <h2 className="text-2xl font-bold text-gray-900 mb-2 leading-tight">{ex.title}</h2>
+                            <div className="flex justify-between items-start mb-2">
+                                <h2 className="text-2xl font-bold text-gray-900 leading-tight flex-1">{ex.title}</h2>
+                                {ex.has_submitted && (
+                                    <span className="bg-green-100 text-green-600 px-3 py-1 rounded-full text-[10px] font-black flex items-center gap-1 uppercase tracking-wider border border-green-200">
+                                        <CheckCircle size={10} /> Selesai
+                                    </span>
+                                )}
+                            </div>
                             <p className="text-gray-500 text-sm line-clamp-2 mb-4">{ex.description || 'Tidak ada deskripsi tambahan untuk tugas ini.'}</p>
                             
                             <div className="flex items-center gap-2 text-xs font-bold text-amber-600 bg-amber-50 w-fit px-3 py-1 rounded-full border border-amber-100">
@@ -189,12 +196,19 @@ const ExamPortal = () => {
                         
                         <div className="pt-6 border-t border-gray-50 flex justify-between items-center">
                             <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-                                <span className="block opacity-50">Berakhir pada:</span>
-                                {new Date(ex.end_time).toLocaleDateString()} • {new Date(ex.end_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                {ex.has_submitted ? (
+                                    <span className="text-green-600">Sudah Dikerjakan</span>
+                                ) : (
+                                    <>
+                                        <span className="block opacity-50">Berakhir pada:</span>
+                                        {new Date(ex.end_time).toLocaleDateString()} • {new Date(ex.end_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                    </>
+                                )}
                             </div>
                             <button 
-                                onClick={() => startExam(ex)}
-                                className="bg-amber-500 hover:bg-amber-600 text-white p-3 rounded-2xl shadow-lg shadow-amber-500/20 active:scale-90 transition-all"
+                                onClick={() => !ex.has_submitted && startExam(ex)}
+                                disabled={ex.has_submitted}
+                                className={`p-3 rounded-2xl shadow-lg transition-all ${ex.has_submitted ? 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none' : 'bg-amber-500 hover:bg-amber-600 text-white shadow-amber-500/20 active:scale-90'}`}
                             >
                                 <Play size={20} fill="currentColor" />
                             </button>

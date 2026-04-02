@@ -7,19 +7,39 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 
 class ExamController extends Controller {
-    public function availableExams() {
+    public function availableExams(Request $request) {
         $now = Carbon::now();
-        return response()->json(
-            Exam::with('questions')
-                ->where('start_time', '<=', $now)
-                ->where('end_time', '>=', $now)
-                ->get()
-        );
+        $userId = $request->user()->id;
+        
+        $exams = Exam::with('questions')
+            ->where('start_time', '<=', $now)
+            ->where('end_time', '>=', $now)
+            ->get();
+            
+        // Map to include submission status for the frontend
+        $mappedExams = $exams->map(function($exam) use ($userId) {
+            $submission = ExamSubmission::where('exam_id', $exam->id)
+                ->where('user_id', $userId)
+                ->first();
+            $exam->has_submitted = $submission ? true : false;
+            return $exam;
+        });
+
+        return response()->json($mappedExams);
     }
 
     public function submit(Request $request, $examId) {
         $exam = Exam::with('questions')->findOrFail($examId);
+        $userId = $request->user()->id;
         $now = Carbon::now();
+
+        // Check if already submitted (Safety First!)
+        $existing = ExamSubmission::where('exam_id', $examId)
+            ->where('user_id', $userId)
+            ->first();
+        if ($existing) {
+            return response()->json(['message' => 'Anda telah menyelesaikan tes ini sebelumnya.'], 403);
+        }
 
         if ($now->gt($exam->end_time)) {
             return response()->json(['message' => 'Waktu ujian telah berakhir'], 403);
@@ -30,7 +50,7 @@ class ExamController extends Controller {
         $currentDay = \App\Models\AppSetting::get('current_day', 1);
 
         $submission = ExamSubmission::create([
-            'user_id' => $request->user()->id,
+            'user_id' => $userId,
             'exam_id' => $examId,
             'day' => $currentDay,
             'submitted_at' => $now
