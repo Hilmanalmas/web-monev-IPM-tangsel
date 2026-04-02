@@ -16,17 +16,26 @@ use App\Models\RtlResponse;
 use Illuminate\Support\Facades\Storage;
 
 class ObserverController extends Controller {
+    private function buildSelfieUrl(string $rawPath): string {
+        // Normalize: strip 'storage/' or 'public/' prefix safely (ltrim is wrong!)
+        if (str_starts_with($rawPath, 'storage/')) {
+            $rawPath = substr($rawPath, strlen('storage/'));
+        } elseif (str_starts_with($rawPath, 'public/')) {
+            $rawPath = substr($rawPath, strlen('public/'));
+        }
+        // Storage::url() will produce /storage/selfies/xxx.jpg
+        return Storage::url($rawPath);
+    }
+
     public function getPesertaList() {
         $peserta = User::where('role', 'peserta')->get()->map(function($p) {
             $firstAttendance = Attendance::where('user_id', $p->id)->orderBy('recorded_at', 'asc')->first();
             $selfie = null;
-            
+
             if ($firstAttendance) {
-                // Strip 'storage/' prefix if it exists in the database to avoid duplicates
-                $path = ltrim($firstAttendance->selfie_url, 'storage/');
-                $selfie = Storage::url($path);
+                $selfie = $this->buildSelfieUrl($firstAttendance->selfie_url);
             }
-            
+
             // If no attendance selfie, check RTL selfie (which is base64)
             if (!$selfie) {
                 $rtl = RtlResponse::where('user_id', $p->id)->whereNotNull('selfie_url')->first();
@@ -46,12 +55,11 @@ class ObserverController extends Controller {
 
     public function getPesertaAttendance($id) {
         $attendances = Attendance::where('user_id', $id)->with('slot')->orderBy('recorded_at', 'asc')->get()->map(function($att) {
-            // Strip 'storage/' prefix if it exists in the database
-            $path = ltrim($att->selfie_url, 'storage/');
-            $att->selfie_url = Storage::url($path);
+            $att->selfie_url = $this->buildSelfieUrl($att->selfie_url);
             $att->type = 'Absensi';
             return $att;
         });
+
         
         $rtlResponses = RtlResponse::where('user_id', $id)->whereNotNull('selfie_url')->get();
         foreach ($rtlResponses as $rtlRes) {

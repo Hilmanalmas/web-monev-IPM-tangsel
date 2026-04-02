@@ -79,7 +79,11 @@ class AttendanceController extends Controller
             
             $fileName = 'selfies/' . Str::uuid() . '.' . $type;
             Storage::disk('public')->put($fileName, $imageData);
-            
+
+            // Ensure web server can read the file (fix 403 in Docker environments)
+            $fullPath = storage_path('app/public/' . $fileName);
+            @chmod($fullPath, 0644);
+
             $attendance = Attendance::create([
                 'user_id' => $user->id,
                 'slot_id' => $slot->id,
