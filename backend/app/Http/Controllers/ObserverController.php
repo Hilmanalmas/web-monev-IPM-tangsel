@@ -71,12 +71,13 @@ class ObserverController extends Controller {
 
     public function getPesertaAttendance($id) {
         $attendances = Attendance::where('user_id', $id)->with('slot')->orderBy('recorded_at', 'asc')->get()->map(function($att) {
-            $att->selfie_url = $this->selfieToBase64($att->selfie_url);
-            $att->type = 'Absensi';
-            return $att;
+            // Convert to plain array first — avoids Eloquent re-casting selfie_url on serialization
+            $item = $att->toArray();
+            $item['selfie_url'] = $this->selfieToBase64($att->selfie_url); // use original model value for rawPath
+            $item['type'] = 'Absensi';
+            return $item;
         });
 
-        
         $rtlResponses = RtlResponse::where('user_id', $id)->whereNotNull('selfie_url')->get();
         foreach ($rtlResponses as $rtlRes) {
             $attendances->push([
