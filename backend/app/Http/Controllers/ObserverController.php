@@ -18,14 +18,9 @@ use Illuminate\Support\Facades\Storage;
 class ObserverController extends Controller {
     /**
      * Read a selfie from disk and return as base64 data URI.
-     * This completely bypasses Nginx/proxy routing and permission issues.
      */
     private function selfieToBase64(?string $rawPath): ?string {
-        if (!$rawPath) {
-            \Log::warning('[selfieToBase64] rawPath is null/empty');
-            return null;
-        }
-        // If it's already base64, return directly
+        if (!$rawPath) return null;
         if (str_starts_with($rawPath, 'data:')) return $rawPath;
 
         // Normalize: strip 'storage/' or 'public/' prefix
@@ -35,25 +30,16 @@ class ObserverController extends Controller {
             $rawPath = substr($rawPath, strlen('public/'));
         }
 
-        // Read file directly from disk
-        $fullPath = storage_path('app/public/' . $rawPath);
-        \Log::info('[selfieToBase64] checking path: ' . $fullPath);
-
-        if (!file_exists($fullPath)) {
-            \Log::warning('[selfieToBase64] file NOT FOUND: ' . $fullPath);
+        try {
+            if (!Storage::disk('public')->exists($rawPath)) return null;
+            
+            $data = Storage::disk('public')->get($rawPath);
+            $mime = Storage::disk('public')->mimeType($rawPath) ?: 'image/jpeg';
+            
+            return 'data:' . $mime . ';base64,' . base64_encode($data);
+        } catch (\Exception $e) {
             return null;
         }
-
-        $data = @file_get_contents($fullPath);
-        if ($data === false) {
-            \Log::warning('[selfieToBase64] file_get_contents FAILED: ' . $fullPath);
-            return null;
-        }
-
-        $mime = @mime_content_type($fullPath) ?: 'image/jpeg';
-        $b64 = 'data:' . $mime . ';base64,' . base64_encode($data);
-        \Log::info('[selfieToBase64] success, length: ' . strlen($b64));
-        return $b64;
     }
 
     public function getPesertaList() {
