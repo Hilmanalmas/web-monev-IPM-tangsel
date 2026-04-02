@@ -16,15 +16,20 @@ use App\Models\RtlResponse;
 use Illuminate\Support\Facades\Storage;
 
 class ObserverController extends Controller {
-    private function buildSelfieUrl(string $rawPath): string {
-        // Normalize: strip 'storage/' or 'public/' prefix safely (ltrim is wrong!)
+    private function buildSelfieUrl(?string $rawPath): ?string {
+        if (!$rawPath) return null;
+        // If it's base64, return directly
+        if (str_starts_with($rawPath, 'data:')) return $rawPath;
+
+        // Normalize: strip 'storage/' or 'public/' prefix safely
         if (str_starts_with($rawPath, 'storage/')) {
             $rawPath = substr($rawPath, strlen('storage/'));
         } elseif (str_starts_with($rawPath, 'public/')) {
             $rawPath = substr($rawPath, strlen('public/'));
         }
-        // Storage::url() will produce /storage/selfies/xxx.jpg
-        return Storage::url($rawPath);
+
+        // Use PHP-served endpoint to bypass Nginx 403 cross-container permission issues
+        return '/api/selfie/' . $rawPath;
     }
 
     public function getPesertaList() {

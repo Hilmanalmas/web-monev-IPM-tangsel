@@ -8,6 +8,21 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [\App\Http\Controllers\AuthController::class, 'me']);
     Route::post('/logout', [\App\Http\Controllers\AuthController::class, 'logout']);
 
+    // Serve selfie images through PHP to bypass Nginx 403 cross-container permission issues
+    Route::get('/selfie/{path}', function ($path) {
+        $path = ltrim($path, '/');
+        // Security: only allow files within selfies/ directory
+        if (!str_starts_with($path, 'selfies/') || str_contains($path, '..')) {
+            abort(403);
+        }
+        $fullPath = storage_path('app/public/' . $path);
+        if (!file_exists($fullPath)) {
+            abort(404);
+        }
+        $mimeType = mime_content_type($fullPath) ?: 'image/jpeg';
+        return response()->file($fullPath, ['Content-Type' => $mimeType, 'Cache-Control' => 'public, max-age=86400']);
+    })->where('path', '.*');
+
     // --- PESERTA ROUTES ---
     Route::get('/peserta/dashboard', [\App\Http\Controllers\PesertaController::class, 'dashboard']);
     Route::get('/manito/target', [\App\Http\Controllers\ManitoController::class, 'getTarget']);
