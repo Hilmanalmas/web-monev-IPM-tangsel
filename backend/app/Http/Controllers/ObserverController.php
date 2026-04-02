@@ -16,20 +16,31 @@ use App\Models\RtlResponse;
 use Illuminate\Support\Facades\Storage;
 
 class ObserverController extends Controller {
-    private function buildSelfieUrl(?string $rawPath): ?string {
+    /**
+     * Read a selfie from disk and return as base64 data URI.
+     * This completely bypasses Nginx/proxy routing and permission issues.
+     */
+    private function selfieToBase64(?string $rawPath): ?string {
         if (!$rawPath) return null;
-        // If it's base64, return directly
+        // If it's already base64, return directly
         if (str_starts_with($rawPath, 'data:')) return $rawPath;
 
-        // Normalize: strip 'storage/' or 'public/' prefix safely
+        // Normalize: strip 'storage/' or 'public/' prefix
         if (str_starts_with($rawPath, 'storage/')) {
             $rawPath = substr($rawPath, strlen('storage/'));
         } elseif (str_starts_with($rawPath, 'public/')) {
             $rawPath = substr($rawPath, strlen('public/'));
         }
 
-        // Use query-param-based endpoint to bypass Nginx static file intercept
-        return '/api/media?path=' . urlencode($rawPath);
+        // Read file directly from disk
+        $fullPath = storage_path('app/public/' . $rawPath);
+        if (!file_exists($fullPath)) return null;
+
+        $data = file_get_contents($fullPath);
+        if ($data === false) return null;
+
+        $mime = mime_content_type($fullPath) ?: 'image/jpeg';
+        return 'data:' . $mime . ';base64,' . base64_encode($data);
     }
 
     public function getPesertaList() {
@@ -38,7 +49,7 @@ class ObserverController extends Controller {
             $selfie = null;
 
             if ($firstAttendance) {
-                $selfie = $this->buildSelfieUrl($firstAttendance->selfie_url);
+                $selfie = $this->selfieToBase64($firstAttendance->selfie_url);
             }
 
             // If no attendance selfie, check RTL selfie (which is base64)
@@ -60,7 +71,7 @@ class ObserverController extends Controller {
 
     public function getPesertaAttendance($id) {
         $attendances = Attendance::where('user_id', $id)->with('slot')->orderBy('recorded_at', 'asc')->get()->map(function($att) {
-            $att->selfie_url = $this->buildSelfieUrl($att->selfie_url);
+            $att->selfie_url = $this->selfieToBase64($att->selfie_url);
             $att->type = 'Absensi';
             return $att;
         });
@@ -70,7 +81,7 @@ class ObserverController extends Controller {
         foreach ($rtlResponses as $rtlRes) {
             $attendances->push([
                 'id' => 'rtl-' . $rtlRes->id,
-                'selfie_url' => $rtlRes->selfie_url, // Base64
+                'selfie_url' => $rtlRes->selfie_url, // Already base64
                 'type' => 'RTL',
                 'recorded_at' => $rtlRes->created_at,
                 'slot' => ['name' => 'Penilaian RTL']
