@@ -19,7 +19,13 @@ class ObserverController extends Controller {
     public function getPesertaList() {
         $peserta = User::where('role', 'peserta')->get()->map(function($p) {
             $firstAttendance = Attendance::where('user_id', $p->id)->orderBy('recorded_at', 'asc')->first();
-            $selfie = $firstAttendance ? asset(Storage::url($firstAttendance->selfie_url)) : null;
+            $selfie = null;
+            
+            if ($firstAttendance) {
+                // Strip 'storage/' prefix if it exists in the database to avoid duplicates
+                $path = ltrim($firstAttendance->selfie_url, 'storage/');
+                $selfie = Storage::url($path);
+            }
             
             // If no attendance selfie, check RTL selfie (which is base64)
             if (!$selfie) {
@@ -40,7 +46,9 @@ class ObserverController extends Controller {
 
     public function getPesertaAttendance($id) {
         $attendances = Attendance::where('user_id', $id)->with('slot')->orderBy('recorded_at', 'asc')->get()->map(function($att) {
-            $att->selfie_url = asset(Storage::url($att->selfie_url));
+            // Strip 'storage/' prefix if it exists in the database
+            $path = ltrim($att->selfie_url, 'storage/');
+            $att->selfie_url = Storage::url($path);
             $att->type = 'Absensi';
             return $att;
         });
