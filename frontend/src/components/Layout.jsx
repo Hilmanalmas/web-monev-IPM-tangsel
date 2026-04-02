@@ -97,21 +97,21 @@ const Layout = ({ children }) => {
                 <footer className="bg-[#0f172a] text-gray-300 pt-16 pb-8 px-8">
                     <div className="max-w-7xl mx-auto">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16 px-4">
-                            
+
                             {/* Left Column: Mission */}
                             <div className="space-y-8">
                                 <div className="flex gap-4 items-center">
-                                     <img src={pdIpmLogo} alt="PD IPM" className="h-14 w-auto object-contain" />
-                                     <img src={logo} alt="MONEV" className="h-14 w-auto object-contain" />
+                                    <img src={pdIpmLogo} alt="PD IPM" className="h-14 w-auto object-contain" />
+                                    <img src={logo} alt="MONEV" className="h-14 w-auto object-contain" />
                                 </div>
                                 <p className="text-sm leading-relaxed text-gray-400 font-medium max-w-sm">
                                     Ikatan Pelajar Muhammadiyah (IPM) Tangerang Selatan adalah organisasi pergerakan, dakwah amal makruf nahi mungkar yang beraqidah Islam, bersumber pada Al-Qur'an dan As-Sunnah di kalangan pelajar.
                                 </p>
                                 <div className="flex gap-4">
                                     {[
-                                        { icon: <Instagram size={18}/>, link: '#' },
-                                        { icon: <Youtube size={18}/>, link: '#' },
-                                        { icon: <Twitter size={18}/>, link: '#' }
+                                        { icon: <Instagram size={18} />, link: '#' },
+                                        { icon: <Youtube size={18} />, link: '#' },
+                                        { icon: <Twitter size={18} />, link: '#' }
                                     ].map((s, i) => (
                                         <a key={i} href={s.link} className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-amber-500 hover:text-white transition-all">
                                             {s.icon}
@@ -127,9 +127,9 @@ const Layout = ({ children }) => {
                                     <span className="absolute -bottom-2 left-0 w-12 h-1 bg-amber-500 rounded-full"></span>
                                 </h4>
                                 <ul className="space-y-4 font-bold text-gray-400">
-                                    {['Pendaftaran Kegiatan', 'Galeri Kegiatan', 'E-Voting'].map(link => (
+                                    {['IPM Tangsel'].map(link => (
                                         <li key={link}>
-                                            <a href="#" className="hover:text-amber-500 flex items-center gap-2 transition-colors">
+                                            <a href="https://ipmtangsel.or.id" target="_blank" rel="noopener noreferrer" className="hover:text-amber-500 flex items-center gap-2 transition-colors">
                                                 <span className="text-amber-500">→</span> {link}
                                             </a>
                                         </li>
@@ -147,7 +147,7 @@ const Layout = ({ children }) => {
                                     <div className="flex gap-4">
                                         <MapPin className="text-amber-500 shrink-0" size={24} />
                                         <p className="text-sm leading-relaxed font-medium">
-                                            Gedung Muhammadiyah Tangerang Selatan<br/>
+                                            Gedung Muhammadiyah Tangerang Selatan<br />
                                             Sekretariat: Jl. Desa Setu, Setu, Kec. Setu, Kota Tangerang Selatan, Banten 15314
                                         </p>
                                     </div>
