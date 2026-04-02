@@ -11,21 +11,34 @@ const AdminGames = () => {
     }, []);
 
     const fetchSlots = async () => {
-        const res = await axios.get('/api/admin/game/slots');
-        setSlots(res.data);
+        try {
+            const res = await axios.get('/api/admin/game/slots');
+            setSlots(res.data);
+        } catch (error) {
+            console.error("Gagal memuat data game:", error);
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        await axios.post('/api/admin/game/slots', form);
-        setForm({ ...form, name: '' });
-        fetchSlots();
+        try {
+            await axios.post('/api/admin/game/slots', form);
+            setForm({ ...form, name: '' });
+            fetchSlots();
+            alert("Sesi Game berhasil disimpan!");
+        } catch (error) {
+            alert(error.response?.data?.message || "Gagal menyimpan sesi game. Pastikan database sudah terupdate.");
+        }
     };
 
     const handleDelete = async (id) => {
         if (confirm('Yakin menghapus slot game ini?')) {
-            await axios.delete(`/api/admin/game/slots/${id}`);
-            fetchSlots();
+            try {
+                await axios.delete(`/api/admin/game/slots/${id}`);
+                fetchSlots();
+            } catch (error) {
+                alert("Gagal menghapus slot game.");
+            }
         }
     };
 

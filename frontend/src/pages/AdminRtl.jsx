@@ -30,15 +30,24 @@ const AdminRtl = () => {
 
     const handleQSubmit = async (e) => {
         e.preventDefault();
-        await axios.post('/api/admin/rtl/questions', { ...qForm, is_active: true });
-        setQForm({ question_text: '' });
-        fetchQuestions();
+        try {
+            await axios.post('/api/admin/rtl/questions', { ...qForm, is_active: true });
+            setQForm({ question_text: '' });
+            fetchQuestions();
+            alert("Pertanyaan RTL berhasil disimpan!");
+        } catch (error) {
+            alert(error.response?.data?.message || "Gagal menyimpan pertanyaan RTL.");
+        }
     };
 
     const deleteQ = async (id) => {
         if (confirm('Yakin?')) {
-             await axios.delete(`/api/admin/rtl/questions/${id}`);
-             fetchQuestions();
+            try {
+                await axios.delete(`/api/admin/rtl/questions/${id}`);
+                fetchQuestions();
+            } catch (error) {
+                alert("Gagal menghapus pertanyaan RTL.");
+            }
         }
     };
 
@@ -48,7 +57,7 @@ const AdminRtl = () => {
             const res = await axios.post('/api/admin/rtl/toggle', { is_active: !rtlActive });
             setRtlActive(res.data.is_active);
         } catch (e) { 
-            alert('Gagal mengubah status RTL');
+            alert('Gagal mengubah status akses RTL peserta.');
             console.error(e); 
         }
         setToggling(false);

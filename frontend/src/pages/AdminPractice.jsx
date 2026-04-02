@@ -11,21 +11,34 @@ const AdminPractice = () => {
     }, []);
 
     const fetchSlots = async () => {
-        const res = await axios.get('/api/admin/practice/slots');
-        setSlots(res.data);
+        try {
+            const res = await axios.get('/api/admin/practice/slots');
+            setSlots(res.data);
+        } catch (error) {
+            console.error(error);
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        await axios.post('/api/admin/practice/slots', form);
-        setForm({ ...form, name: '' });
-        fetchSlots();
+        try {
+            await axios.post('/api/admin/practice/slots', form);
+            setForm({ ...form, name: '' });
+            fetchSlots();
+            alert("Sesi Praktek berhasil disimpan!");
+        } catch (error) {
+            alert(error.response?.data?.message || "Gagal menyimpan sesi praktek.");
+        }
     };
 
     const handleDelete = async (id) => {
         if (confirm('Yakin menghapus slot praktek ini?')) {
-            await axios.delete(`/api/admin/practice/slots/${id}`);
-            fetchSlots();
+            try {
+                await axios.delete(`/api/admin/practice/slots/${id}`);
+                fetchSlots();
+            } catch (error) {
+                alert("Gagal menghapus sesi praktek.");
+            }
         }
     };
 

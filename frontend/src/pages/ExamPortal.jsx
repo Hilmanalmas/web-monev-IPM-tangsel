@@ -25,8 +25,12 @@ const ExamPortal = () => {
     }, [timeLeft]);
 
     const fetchExams = async () => {
-        const res = await axios.get('/api/exams');
-        setExams(res.data);
+        try {
+            const res = await axios.get('/api/exams');
+            setExams(res.data);
+        } catch (error) {
+            console.error("Gagal memuat daftar tes:", error);
+        }
     };
 
     const startExam = (exam) => {
@@ -36,9 +40,13 @@ const ExamPortal = () => {
 
     const handleSubmit = async () => {
         if (result) return;
-        const res = await axios.post(`/api/exams/${activeExam.id}/submit`, { answers });
-        setResult(res.data);
-        setActiveExam(null);
+        try {
+            const res = await axios.post(`/api/exams/${activeExam.id}/submit`, { answers });
+            setResult(res.data);
+            setActiveExam(null);
+        } catch (error) {
+            alert(error.response?.data?.message || "Gagal mengirim jawaban tes. Silakan coba lagi.");
+        }
     };
 
     const formatTime = (seconds) => {

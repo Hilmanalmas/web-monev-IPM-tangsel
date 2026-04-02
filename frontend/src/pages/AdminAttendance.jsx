@@ -11,21 +11,34 @@ const AdminAttendance = () => {
     }, []);
 
     const fetchSlots = async () => {
-        const res = await axios.get('/api/admin/attendance/slots');
-        setSlots(res.data);
+        try {
+            const res = await axios.get('/api/admin/attendance/slots');
+            setSlots(res.data);
+        } catch (err) {
+            console.error(err);
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        await axios.post('/api/admin/attendance/slots', form);
-        setForm({ ...form, name: '' });
-        fetchSlots();
+        try {
+            await axios.post('/api/admin/attendance/slots', form);
+            setForm({ ...form, name: '' });
+            fetchSlots();
+            alert("Jadwal absensi berhasil disimpan!");
+        } catch (err) {
+            alert("Gagal menyimpan jadwal absensi.");
+        }
     };
 
     const handleDelete = async (id) => {
         if (confirm('Yakin ingin menghapus slot ini?')) {
-            await axios.delete(`/api/admin/attendance/slots/${id}`);
-            fetchSlots();
+            try {
+                await axios.delete(`/api/admin/attendance/slots/${id}`);
+                fetchSlots();
+            } catch (err) {
+                alert("Gagal menghapus slot.");
+            }
         }
     };
 

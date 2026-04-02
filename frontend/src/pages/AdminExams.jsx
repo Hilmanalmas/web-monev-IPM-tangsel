@@ -53,13 +53,19 @@ const AdminExams = () => {
 
     const handleSaveExam = async (e) => {
         e.preventDefault();
-        if (editingExamId) {
-            await axios.put(`/api/admin/exams/${editingExamId}`, examForm);
-        } else {
-            await axios.post('/api/admin/exams', examForm);
+        try {
+            if (editingExamId) {
+                await axios.put(`/api/admin/exams/${editingExamId}`, examForm);
+            } else {
+                await axios.post('/api/admin/exams', examForm);
+            }
+            setIsCreatingOrEditing(false);
+            fetchExams();
+            alert("Pengaturan tes berhasil disimpan!");
+        } catch (error) {
+            console.error("Gagal menyimpan tes:", error);
+            alert(error.response?.data?.message || "Internal Server Error: Gagal menyimpan pengaturan tes. Pastikan database sudah terupdate.");
         }
-        setIsCreatingOrEditing(false);
-        fetchExams();
     };
 
     const handleDeleteExam = async (id) => {

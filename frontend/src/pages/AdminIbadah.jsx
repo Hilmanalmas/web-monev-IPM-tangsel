@@ -11,21 +11,34 @@ const AdminIbadah = () => {
     }, []);
 
     const fetchSlots = async () => {
-        const res = await axios.get('/api/admin/worship/slots');
-        setSlots(res.data);
+        try {
+            const res = await axios.get('/api/admin/worship/slots');
+            setSlots(res.data);
+        } catch (error) {
+            console.error(error);
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        await axios.post('/api/admin/worship/slots', form);
-        setForm({ ...form, name: '' });
-        fetchSlots();
+        try {
+            await axios.post('/api/admin/worship/slots', form);
+            setForm({ ...form, name: '' });
+            fetchSlots();
+            alert("Sesi Ibadah berhasil disimpan!");
+        } catch (error) {
+            alert(error.response?.data?.message || "Gagal menyimpan sesi ibadah.");
+        }
     };
 
     const handleDelete = async (id) => {
         if (confirm('Yakin menghapus slot ibadah ini?')) {
-            await axios.delete(`/api/admin/worship/slots/${id}`);
-            fetchSlots();
+            try {
+                await axios.delete(`/api/admin/worship/slots/${id}`);
+                fetchSlots();
+            } catch (error) {
+                alert("Gagal menghapus sesi ibadah.");
+            }
         }
     };
 

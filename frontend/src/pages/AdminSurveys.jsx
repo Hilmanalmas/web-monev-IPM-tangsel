@@ -13,36 +13,48 @@ const AdminSurveys = () => {
     }, []);
 
     const fetchData = async () => {
-        const slotsRes = await axios.get('/api/admin/manito/slots');
-        const questionsRes = await axios.get('/api/admin/manito/questions');
-        setSlots(slotsRes.data);
-        setQuestions(questionsRes.data);
+        try {
+            const slotsRes = await axios.get('/api/admin/surveys/slots');
+            const questionsRes = await axios.get('/api/admin/surveys/questions');
+            setSlots(slotsRes.data);
+            setQuestions(questionsRes.data);
+        } catch (err) {
+            console.error("Gagal mengambil data survey:", err);
+        }
     };
 
     const handleSlotSubmit = async (e) => {
         e.preventDefault();
-        await axios.post('/api/admin/manito/slots', form);
-        setForm({ ...form, name: '' });
-        fetchData();
+        try {
+            await axios.post('/api/admin/surveys/slots', form);
+            setForm({ ...form, name: '' });
+            fetchData();
+        } catch (err) {
+            alert("Gagal menyimpan sesi survey.");
+        }
     };
 
     const handleQuestionSubmit = async (e) => {
         e.preventDefault();
-        await axios.post('/api/admin/manito/questions', qForm);
-        setQForm({ question_text: '' });
-        fetchData();
+        try {
+            await axios.post('/api/admin/surveys/questions', qForm);
+            setQForm({ question_text: '' });
+            fetchData();
+        } catch (err) {
+            alert("Gagal menyimpan pertanyaan.");
+        }
     };
 
     const handleDeleteSlot = async (id) => {
         if (confirm('Hapus sesi ini?')) {
-            await axios.delete(`/api/admin/manito/slots/${id}`);
+            await axios.delete(`/api/admin/surveys/slots/${id}`);
             fetchData();
         }
     };
 
     const handleDeleteQuestion = async (id) => {
         if (confirm('Hapus pertanyaan ini?')) {
-            await axios.delete(`/api/admin/manito/questions/${id}`);
+            await axios.delete(`/api/admin/surveys/questions/${id}`);
             fetchData();
         }
     };
