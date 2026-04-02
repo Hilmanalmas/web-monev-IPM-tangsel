@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 use App\Models\SurveyResponse;
 use App\Models\SurveyQuestion;
 use App\Models\SurveySlot;
+use App\Models\AppSetting;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -19,6 +20,7 @@ class ResponseController extends Controller
         ]);
 
         $date = Carbon::today()->format('Y-m-d');
+        $currentDay = AppSetting::get('current_day', 1);
 
         // Verify slot is still open
         $slot = SurveySlot::where('name', $data['period'])->first();
@@ -41,7 +43,8 @@ class ResponseController extends Controller
                     'target_id' => $data['target_id'],
                     'question_id' => $resp['question_id'],
                     'period' => $data['period'],
-                    'date' => $date
+                    'date' => $date,
+                    'day' => $currentDay
                 ],
                 ['answer' => $resp['answer']]
             );
@@ -56,9 +59,9 @@ class ResponseController extends Controller
         $user = $request->user();
         $now = \Carbon\Carbon::now();
 
-        $slots = SurveySlot::all();
+        $currentDay = AppSetting::get('current_day', 1);
         $responses = SurveyResponse::where('user_id', $user->id)
-            ->where('date', $date)
+            ->where('day', $currentDay)
             ->get()
             ->groupBy('period');
 

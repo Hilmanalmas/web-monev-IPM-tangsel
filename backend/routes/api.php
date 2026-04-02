@@ -62,6 +62,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/observer/peserta/{id}/exams', [\App\Http\Controllers\ObserverController::class, 'getPesertaExams']);
         Route::post('/observer/score/cognitive', [\App\Http\Controllers\ObserverController::class, 'storeCognitiveScore']);
         
+        // Settings & Filtering
+        Route::get('/observer/settings', [\App\Http\Controllers\AdminStatsController::class, 'getSettings']);
+        
         // Games & Practice
         Route::get('/observer/peserta/{id}/games-practice', [\App\Http\Controllers\ObserverController::class, 'getGamesPractice']);
         Route::post('/observer/score/games', [\App\Http\Controllers\ObserverController::class, 'storeGameScore']);
@@ -119,5 +122,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/admin/reports', [\App\Http\Controllers\AdminReportController::class, 'index']);
         Route::post('/admin/reports/publish', [\App\Http\Controllers\AdminReportController::class, 'publish']); // Publish scores
         Route::get('/admin/reports/export', [\App\Http\Controllers\AdminReportController::class, 'exportScores']);
+
+        // Global Settings (Days, etc)
+        Route::get('/admin/settings', [\App\Http\Controllers\AdminStatsController::class, 'getSettings']);
+        Route::post('/admin/settings', [\App\Http\Controllers\AdminStatsController::class, 'updateSettings']);
     });
 });

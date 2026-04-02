@@ -8,6 +8,7 @@ use App\Models\WorshipLog;
 use App\Models\Attendance;
 use App\Models\GameScore;
 use App\Models\PracticeScore;
+use App\Models\AppSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 
@@ -54,11 +55,17 @@ class AdminReportController extends Controller {
         $manitoAfektif = $sumAfeSlots / $slotCount;
         $manitoPsiko = $sumPsiSlots / $slotCount;
 
-        // Absensi (assuming 100 if present all slots? We just use count for now or manual mapping, 
-        // Let's assume absolute count vs total slots)
-        $totalSlots = \App\Models\AttendanceSlot::count();
-        $userAtt = Attendance::where('user_id', $user->id)->count();
-        $absensiScore = $totalSlots > 0 ? ($userAtt / $totalSlots) * 100 : 0;
+        // Absensi (normalized by slots per day * current_day)
+        $currentDay = AppSetting::get('current_day', 1);
+        $slotsPerDay = \App\Models\AttendanceSlot::count();
+        $totalExpectedSlots = $slotsPerDay * $currentDay;
+        
+        $userAtt = Attendance::where('user_id', $user->id)
+            ->where('day', '<=', $currentDay)
+            ->count();
+            
+        $absensiScore = $totalExpectedSlots > 0 ? ($userAtt / $totalExpectedSlots) * 100 : 0;
+        if ($absensiScore > 100) $absensiScore = 100; // Cap at 100 if extra entries
 
         // Games & Practice
         $gameAvg = GameScore::where('user_id', $user->id)->avg('score') ?? 0;

@@ -11,9 +11,9 @@ use App\Models\WorshipLog;
 use App\Models\ExamSubmission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-
-use App\Models\RtlResponse;
 use Illuminate\Support\Facades\Storage;
+use App\Models\AppSetting;
+use App\Models\RtlResponse;
 
 class ObserverController extends Controller {
     /**
@@ -68,8 +68,15 @@ class ObserverController extends Controller {
         return response()->json(['peserta' => $peserta]);
     }
 
-    public function getPesertaAttendance($id) {
-        $attendances = Attendance::where('user_id', $id)->with('slot')->orderBy('recorded_at', 'asc')->get()->map(function($att) {
+    public function getPesertaAttendance(Request $request, $id) {
+        $day = $request->query('day');
+        $query = Attendance::where('user_id', $id);
+        
+        if ($day) {
+            $query->where('day', $day);
+        }
+
+        $attendances = $query->with('slot')->orderBy('recorded_at', 'asc')->get()->map(function($att) {
             // Convert to plain array first — avoids Eloquent re-casting selfie_url on serialization
             $item = $att->toArray();
             $item['selfie_url'] = $this->selfieToBase64($att->selfie_url); // use original model value for rawPath
@@ -77,7 +84,14 @@ class ObserverController extends Controller {
             return $item;
         });
 
-        $rtlResponses = RtlResponse::where('user_id', $id)->whereNotNull('selfie_url')->get();
+        $rtlQuery = RtlResponse::where('user_id', $id)->whereNotNull('selfie_url');
+        if ($day) {
+            // Mapping for RTL Day? For now just show all if day is not matched or add day to RTL too
+            // Assuming RTL also has day if we added it in migration
+            $rtlQuery->where('day', $day);
+        }
+        
+        $rtlResponses = $rtlQuery->get();
         foreach ($rtlResponses as $rtlRes) {
             $attendances->push([
                 'id' => 'rtl-' . $rtlRes->id,
@@ -121,11 +135,24 @@ class ObserverController extends Controller {
         return response()->json($score);
     }
 
-    public function getGamesPractice($id) {
-        $games = GameScore::where('user_id', $id)->get();
-        $practice = PracticeScore::where('user_id', $id)->get();
-        $ibadah = WorshipLog::where('user_id', $id)->get();
-        return response()->json(['games' => $games, 'practice' => $practice, 'ibadah' => $ibadah]);
+    public function getGamesPractice(Request $request, $id) {
+        $day = $request->query('day');
+        
+        $gamesQuery = GameScore::where('user_id', $id);
+        $practiceQuery = PracticeScore::where('user_id', $id);
+        $ibadahQuery = WorshipLog::where('user_id', $id);
+
+        if ($day) {
+            $gamesQuery->where('day', $day);
+            $practiceQuery->where('day', $day);
+            $ibadahQuery->where('day', $day);
+        }
+
+        return response()->json([
+            'games' => $gamesQuery->get(), 
+            'practice' => $practiceQuery->get(), 
+            'ibadah' => $ibadahQuery->get()
+        ]);
     }
 
     public function storeGameScore(Request $request) {
@@ -134,8 +161,11 @@ class ObserverController extends Controller {
             'score' => 'required|integer|min:0|max:100',
             'notes' => 'required|string'
         ]);
+
+        $currentDay = AppSetting::get('current_day', 1);
+
         $score = GameScore::updateOrCreate(
-            ['user_id' => $data['user_id'], 'notes' => $data['notes']],
+            ['user_id' => $data['user_id'], 'notes' => $data['notes'], 'day' => $currentDay],
             ['observer_id' => Auth::id(), 'score' => $data['score']]
         );
         return response()->json($score);
@@ -147,8 +177,11 @@ class ObserverController extends Controller {
             'score' => 'required|integer|min:0|max:100',
             'notes' => 'required|string'
         ]);
+
+        $currentDay = AppSetting::get('current_day', 1);
+
         $score = PracticeScore::updateOrCreate(
-            ['user_id' => $data['user_id'], 'notes' => $data['notes']],
+            ['user_id' => $data['user_id'], 'notes' => $data['notes'], 'day' => $currentDay],
             ['observer_id' => Auth::id(), 'score' => $data['score']]
         );
         return response()->json($score);
@@ -164,8 +197,11 @@ class ObserverController extends Controller {
             'score' => 'required|integer|min:0|max:100',
             'notes' => 'required|string'
         ]);
+
+        $currentDay = AppSetting::get('current_day', 1);
+
         $score = WorshipLog::updateOrCreate(
-            ['user_id' => $data['user_id'], 'notes' => $data['notes']],
+            ['user_id' => $data['user_id'], 'notes' => $data['notes'], 'day' => $currentDay],
             ['observer_id' => Auth::id(), 'score' => $data['score']]
         );
         return response()->json($score);

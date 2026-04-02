@@ -6,6 +6,8 @@ const ObserverDashboard = () => {
     const [pesertaList, setPesertaList] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [currentDay, setCurrentDay] = useState(1);
+    const [selectedDay, setSelectedDay] = useState(1);
     
     // Detail Modal State
     const [selectedUser, setSelectedUser] = useState(null);
@@ -26,7 +28,15 @@ const ObserverDashboard = () => {
     const [submitStatus, setSubmitStatus] = useState('idle');
 
     useEffect(() => {
-        fetchPeserta();
+        const init = async () => {
+            try {
+                const res = await axios.get('/api/admin/settings');
+                setCurrentDay(res.data.current_day);
+                setSelectedDay(res.data.current_day);
+            } catch (e) { console.error(e); }
+            fetchPeserta();
+        };
+        init();
     }, []);
 
     const fetchPeserta = async () => {
@@ -65,29 +75,16 @@ const ObserverDashboard = () => {
 
         try {
             if (tab === 'kognitif') {
-                const res = await axios.get(`/api/observer/peserta/${userId}/exams`);
+                const res = await axios.get(`/api/observer/peserta/${userId}/exams?day=${selectedDay}`);
                 setExamsData(res.data.exams || []);
             } else if (tab === 'games' || tab === 'practice' || tab === 'ibadah') {
-                const res = await axios.get(`/api/observer/peserta/${userId}/games-practice`);
+                const res = await axios.get(`/api/observer/peserta/${userId}/games-practice?day=${selectedDay}`);
                 setGamesData(res.data.games || []);
                 setPracticeData(res.data.practice || []);
                 setIbadahData(res.data.ibadah || []);
             } else if (tab === 'absensi') {
-                const res = await axios.get(`/api/observer/peserta/${userId}/attendance`);
+                const res = await axios.get(`/api/observer/peserta/${userId}/attendance?day=${selectedDay}`);
                 const attendances = res.data.attendances || [];
-                console.log('[DEBUG] Attendance data:', attendances);
-                // Debug each selfie_url
-                attendances.forEach((att, i) => {
-                    const url = att.selfie_url;
-                    console.log(`[DEBUG] att[${i}] selfie_url:`, 
-                        url === null ? 'NULL' :
-                        url === undefined ? 'UNDEFINED' :
-                        url === '' ? 'EMPTY STRING' :
-                        url.startsWith('data:') ? `BASE64(${url.length} chars, mime=${url.substring(5, url.indexOf(';'))})` :
-                        url.startsWith('http') ? `URL: ${url}` :
-                        `OTHER: ${url.substring(0, 80)}`
-                    );
-                });
                 setAttendanceData(attendances);
             }
         } catch(error) {
@@ -171,12 +168,26 @@ const ObserverDashboard = () => {
 
             {/* List Target */}
             <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
-                <div className="p-6 bg-gray-50 border-b border-gray-100 flex flex-col sm:flex-row justify-between gap-4">
-                    <h2 className="text-xl font-bold text-gray-800">Daftar Pasukan (Target)</h2>
+                <div className="p-6 bg-gray-50 border-b border-gray-100 flex flex-col sm:flex-row justify-between gap-4 items-center">
+                    <div className="flex items-center gap-4">
+                        <h2 className="text-xl font-bold text-gray-800">Daftar Pasukan (Target)</h2>
+                        <div className="flex bg-gray-200 p-1 rounded-xl items-center border border-gray-300">
+                             <span className="px-3 text-xs font-bold text-gray-500 uppercase tracking-tighter">HARI:</span>
+                             {[1, 2, 3, 4, 5].map(d => (
+                                 <button
+                                     key={d}
+                                     onClick={() => setSelectedDay(d)}
+                                     className={`w-8 h-8 rounded-lg text-sm font-black transition-all ${selectedDay === d ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-400 hover:text-indigo-600'}`}
+                                 >
+                                     {d}
+                                 </button>
+                             ))}
+                        </div>
+                    </div>
                     <div className="relative max-w-sm w-full">
                         <Search className="absolute left-3 top-3 text-gray-400" size={20} />
                         <input type="text" placeholder="Cari nama/instansi..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-300 outline-none focus:border-indigo-500" />
+                            className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-300 outline-none focus:border-indigo-500 shadow-inner" />
                     </div>
                 </div>
 

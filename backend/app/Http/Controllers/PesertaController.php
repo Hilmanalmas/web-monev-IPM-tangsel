@@ -9,6 +9,7 @@ use App\Models\Attendance;
 use App\Models\RtlResponse;
 use App\Models\SurveyResponse;
 use App\Models\ExamSubmission;
+use App\Models\AppSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -20,15 +21,18 @@ class PesertaController extends Controller {
 
         // Check active tasks
         $now = \Carbon\Carbon::now();
+        $currentDay = AppSetting::get('current_day', 1);
         
         $attendance = AttendanceSlot::all()->filter(function($slot) use ($now) {
                 $start = \Carbon\Carbon::createFromFormat('H:i:s', $slot->start_time);
                 $end = \Carbon\Carbon::createFromFormat('H:i:s', $slot->end_time);
                 if ($end->lessThanOrEqualTo($start)) { $end->addDay(); }
                 return $now->between($start, $end);
-            })->map(function($s) use ($user) {
-                $done = Attendance::where('user_id', $user->id)->where('slot_id', $s->id)
-                    ->whereDate('recorded_at', \Carbon\Carbon::today())->exists();
+            })->map(function($s) use ($user, $currentDay) {
+                $done = Attendance::where('user_id', $user->id)
+                    ->where('slot_id', $s->id)
+                    ->where('day', $currentDay)
+                    ->exists();
                 return ['type' => 'absensi', 'name' => $s->name, 'done' => $done];
             });
 
@@ -51,9 +55,11 @@ class PesertaController extends Controller {
                 $end = \Carbon\Carbon::createFromFormat('H:i:s', $slot->end_time);
                 if ($end->lessThanOrEqualTo($start)) { $end->addDay(); }
                 return $now->between($start, $end);
-            })->map(function($s) use ($user) {
-                // Approximate done check
-                $done = false; // We use simplified survey so we don't fully block here.
+            })->map(function($s) use ($user, $currentDay) {
+                // Check if already responded today
+                $done = SurveyResponse::where('user_id', $user->id)
+                    ->where('day', $currentDay)
+                    ->exists();
                 return ['type' => 'manito', 'name' => $s->name, 'done' => $done];
             });
 

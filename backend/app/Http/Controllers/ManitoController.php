@@ -17,7 +17,8 @@ class ManitoController extends Controller
 
     public function shuffle(Request $request)
     {
-        $result = $this->manitoService->shuffleAll();
+        $day = $request->input('day');
+        $result = $this->manitoService->shuffleAll($day);
         
         if ($result['success']) {
             return response()->json($result, 200);
@@ -29,8 +30,10 @@ class ManitoController extends Controller
     public function getTarget(Request $request)
     {
         $user = $request->user();
+        $currentDay = \App\Models\AppSetting::get('current_day', 1);
         
         $mapping = ManitoMapping::where('assessor_id', $user->id)
+            ->where('day', $currentDay)
             ->where('is_active', true)
             ->with(['target' => function($query) {
                 $query->select('id', 'name', 'email', 'nip', 'asal_instansi');
@@ -38,7 +41,7 @@ class ManitoController extends Controller
             ->first();
 
         if (!$mapping || !$mapping->target) {
-            return response()->json(['message' => 'No target assigned yet.'], 404);
+            return response()->json(['message' => 'No target assigned for today.'], 404);
         }
 
         return response()->json(['target' => $mapping->target], 200);

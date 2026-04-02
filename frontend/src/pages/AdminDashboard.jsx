@@ -64,13 +64,54 @@ const AdminDashboard = () => {
                 ))}
             </div>
             
-            <div className="bg-amber-50 rounded-3xl p-8 border border-amber-200 mt-8">
-                <h3 className="text-xl font-bold text-amber-800 mb-2">Petunjuk Admin</h3>
-                <ul className="list-disc ml-5 text-amber-700 space-y-2">
-                    <li>Gunakan tombol <strong>"Unduh Rekap Nilai"</strong> untuk mengkalkulasi skor akhir secara otomatis.</li>
-                    <li>Sistem MONEV V2 menghitung Bobot: Afektif (35%), Psikomotorik (35%), Kognitif (20%) dan Ibadah (10%).</li>
-                    <li>Silakan navigasi menu sisi kiri untuk mengatur slot Absensi, Ibadah, Test, maupun Manito.</li>
-                </ul>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 bg-white rounded-3xl p-8 shadow-xl border border-gray-100 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-8 opacity-5 text-amber-600"><Activity size={120} /></div>
+                    <h2 className="text-2xl font-black mb-6 flex items-center gap-3 text-gray-800">
+                        <Activity className="text-amber-500" /> Kontrol Hari Operasional
+                    </h2>
+                    <div className="flex flex-col md:flex-row items-center gap-8">
+                        <div className="text-center md:text-left bg-amber-50 p-6 rounded-2xl border border-amber-100 flex-1 w-full">
+                            <p className="text-amber-800 font-bold uppercase tracking-widest text-xs mb-1">Hari Saat Ini</p>
+                            <div className="text-7xl font-black text-amber-600 leading-none">H-{stats?.current_day || 1}</div>
+                            <p className="text-amber-700/60 text-sm mt-3 italic">Seluruh absensi & manito mengikuti hari ini.</p>
+                        </div>
+                        <div className="flex-1 space-y-4 w-full">
+                            <label className="block text-sm font-bold text-gray-500 uppercase">Ganti Hari Operasional</label>
+                            <div className="flex gap-2">
+                                {[1, 2, 3, 4, 5].map(d => (
+                                    <button
+                                        key={d}
+                                        onClick={async () => {
+                                            if (!window.confirm(`Pindah ke HARI ${d}? Data absensi & manito akan difilter untuk hari ini.`)) return;
+                                            try {
+                                                await axios.post('/api/admin/settings', { current_day: d });
+                                                window.location.reload();
+                                            } catch (e) {
+                                                alert("Gagal update hari");
+                                            }
+                                        }}
+                                        className={`flex-1 py-4 font-black rounded-xl border-2 transition-all ${stats?.current_day === d ? 'bg-amber-500 border-amber-600 text-white shadow-lg' : 'bg-white border-gray-200 text-gray-400 hover:border-amber-300 hover:text-amber-500'}`}
+                                    >
+                                        {d}
+                                    </button>
+                                ))}
+                            </div>
+                            <p className="text-xs text-gray-400">Pilih angka di atas untuk berpindah sesi hari. Sistem akan otomatis menyesuaikan filter dashboard.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-amber-50 rounded-3xl p-8 border border-amber-200 flex flex-col justify-center">
+                    <h3 className="text-xl font-bold text-amber-800 mb-2 flex items-center gap-2">
+                        <CheckCircle size={20} /> Petunjuk Admin
+                    </h3>
+                    <ul className="list-disc ml-5 text-amber-700 space-y-2 text-sm">
+                        <li>Gunakan tombol <strong>"Unduh Rekap Nilai"</strong> untuk mengkalkulasi skor akhir secara otomatis.</li>
+                        <li>Sistem MONEV V2 menghitung Bobot: Afektif (35%), Psikomotorik (35%), Kognitif (20%) dan Ibadah (10%).</li>
+                        <li><strong>Kontrol Hari:</strong> Pastikan Anda mengganti hari operasional setiap hari baru dimulai agar data tidak bercampur.</li>
+                    </ul>
+                </div>
             </div>
         </div>
     );

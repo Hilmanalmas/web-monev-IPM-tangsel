@@ -8,6 +8,8 @@ const AdminUsers = () => {
     const [shuffling, setShuffling] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [message, setMessage] = useState('');
+    const [currentDay, setCurrentDay] = useState(1);
+    const [shuffleDay, setShuffleDay] = useState(1);
     const [showAddForm, setShowAddForm] = useState(false);
     const [newUser, setNewUser] = useState({
         name: '',
@@ -23,6 +25,9 @@ const AdminUsers = () => {
         try {
             const res = await axios.get('/api/admin/users');
             setUsers(res.data.users);
+            const setRes = await axios.get('/api/admin/settings');
+            setCurrentDay(setRes.data.current_day);
+            setShuffleDay(setRes.data.current_day);
         } catch (error) {
             console.error(error);
             setMessage("Koneksi bermasalah saat memuat data.");
@@ -64,13 +69,13 @@ const AdminUsers = () => {
     };
 
     const handleShuffle = async () => {
-        if (!window.confirm('Yakin nih mau kocok ulang target Manito? Target sebelumnya bakal ketimpa lho!')) return;
+        if (!window.confirm(`Yakin nih mau kocok ulang target Manito untuk HARI ${shuffleDay}? Target sebelumnya pada hari tersebut bakal ketimpa!`)) return;
         
         setShuffling(true);
         setMessage('');
         try {
-            await axios.post('/api/admin/manito/shuffle', { event_id: 1 });
-            setMessage('Mantap! Seluruh target Manito sudah berhasil dikocok ulang secara rahasia! 🎉');
+            await axios.post('/api/admin/manito/shuffle', { day: shuffleDay });
+            setMessage(`Mantap! Seluruh target Manito HARI ${shuffleDay} sudah berhasil dikocok ulang secara rahasia! 🎉`);
             fetchUsers(); 
             setTimeout(() => setMessage(''), 5000);
         } catch (error) {
@@ -102,21 +107,33 @@ const AdminUsers = () => {
                          <h2 className="text-2xl font-black flex items-center gap-3"><Users className="text-amber-400"/> Daftar Pasukan & Misi Target</h2>
                          <p className="text-gray-300 mt-1">Pantau instruksi rahasia siapa mengawasi siapa.</p>
                      </div>
-                     <div className="flex gap-3">
-                        <button
-                            onClick={() => setShowAddForm(!showAddForm)}
-                            className="bg-white/10 hover:bg-white/20 text-white font-bold py-3 px-6 rounded-xl border border-white/20 transition-all flex items-center gap-2"
-                        >
-                            <Users size={20} />
-                            {showAddForm ? 'BATAL TAMBAH' : 'TAMBAH PASUKAN'}
-                        </button>
+                     <div className="flex flex-col md:flex-row gap-3 items-center">
+                        <div className="bg-white/10 p-1 rounded-xl border border-white/20 flex items-center">
+                            <span className="px-3 text-xs font-bold text-amber-400 uppercase tracking-tighter">Hari Kocok:</span>
+                            {[1, 2, 3, 4, 5].map(d => (
+                                <button
+                                    key={d}
+                                    onClick={() => setShuffleDay(d)}
+                                    className={`w-8 h-8 rounded-lg text-xs font-black transition-all ${shuffleDay === d ? 'bg-amber-500 text-gray-900 shadow-lg' : 'text-gray-400 hover:text-white'}`}
+                                >
+                                    {d}
+                                </button>
+                            ))}
+                        </div>
                         <button
                             onClick={handleShuffle}
                             disabled={shuffling}
-                            className="bg-amber-500 hover:bg-amber-600 active:scale-95 text-gray-900 font-black py-3 px-6 rounded-xl shadow-lg transition-all flex items-center gap-2"
+                            className="bg-amber-500 hover:bg-amber-600 active:scale-95 text-gray-900 font-black py-3 px-6 rounded-xl shadow-lg transition-all flex items-center gap-2 whitespace-nowrap"
                         >
                             <RefreshCcw size={20} className={shuffling ? "animate-spin" : ""} />
-                            {shuffling ? 'MENGACAK TARGET...' : 'KOCOK TARGET MANITO!'}
+                            {shuffling ? 'MENGACAK...' : `KOCOK MANITO H-${shuffleDay}!`}
+                        </button>
+                        <button
+                            onClick={() => setShowAddForm(!showAddForm)}
+                            className="bg-white/10 hover:bg-white/20 text-white font-bold py-3 px-6 rounded-xl border border-white/20 transition-all flex items-center gap-2 whitespace-nowrap"
+                        >
+                            <Users size={20} />
+                            {showAddForm ? 'BATAL' : 'TAMBAH'}
                         </button>
                      </div>
                  </div>

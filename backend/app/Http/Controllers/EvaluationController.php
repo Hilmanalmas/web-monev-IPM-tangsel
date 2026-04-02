@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Evaluation;
 use App\Models\ManitoMapping;
+use App\Models\AppSetting;
 use Illuminate\Http\Request;
 
 class EvaluationController extends Controller
@@ -12,8 +13,11 @@ class EvaluationController extends Controller
     {
         $user = $request->user();
 
-        // 1. Dapatkan target_id dari mapping yang aktif untuk assessor ini
+        $currentDay = AppSetting::get('current_day', 1);
+
+        // 1. Dapatkan target_id dari mapping yang aktif untuk assessor ini pada hari ini
         $mapping = ManitoMapping::where('assessor_id', $user->id)
+            ->where('day', $currentDay)
             ->where('is_active', true)
             ->first();
 
@@ -34,10 +38,10 @@ class EvaluationController extends Controller
             'evidence_notes' => 'required|string|min:10',
         ]);
 
-        // Cek jika sudah mengevaluasi di sesi/event ini (simple check for now)
+        // Cek jika sudah mengevaluasi target ini pada hari ini
         $alreadyEvaluated = Evaluation::where('assessor_id', $user->id)
             ->where('target_id', $mapping->target_id)
-            ->whereDate('created_at', today())
+            ->where('day', $currentDay)
             ->exists();
 
         if ($alreadyEvaluated) {
@@ -57,7 +61,8 @@ class EvaluationController extends Controller
             'affective_ethics' => $validated['affective_ethics'],
             'affective_collaboration' => $validated['affective_collaboration'],
             'evidence_notes' => $validated['evidence_notes'],
-            'status' => 'pending', // Menunggu persetujuan admin untuk validasi log
+            'status' => 'pending', 
+            'day' => $currentDay,
         ]);
 
         return response()->json([

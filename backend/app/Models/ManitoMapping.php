@@ -3,7 +3,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
 class ManitoMapping extends Model {
-    protected $fillable = ['assessor_id', 'target_id', 'is_active'];
+    protected $fillable = ['assessor_id', 'target_id', 'is_active', 'day'];
 
     public function assessor() {
         return $this->belongsTo(User::class, 'assessor_id');

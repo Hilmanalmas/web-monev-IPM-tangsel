@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Attendance;
 use App\Models\AttendanceSlot;
+use App\Models\AppSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -22,9 +23,10 @@ class AttendanceController extends Controller
             }
             
             $isOpen = $now->between($start, $end);
+            $currentDay = AppSetting::get('current_day', 1);
             $isFilled = Attendance::where('user_id', Auth::id())
                 ->where('slot_id', $slot->id)
-                ->whereDate('recorded_at', today())
+                ->where('day', $currentDay)
                 ->exists();
             
             return [
@@ -52,10 +54,11 @@ class AttendanceController extends Controller
         $user = Auth::user();
         $slot = AttendanceSlot::where('name', $request->slot_name)->firstOrFail();
 
-        // Check if already checked in today for this slot
+        // Check if already checked in for this slot on the current operational day
+        $currentDay = AppSetting::get('current_day', 1);
         $alreadyAttended = Attendance::where('user_id', $user->id)
             ->where('slot_id', $slot->id)
-            ->whereDate('recorded_at', Carbon::today())
+            ->where('day', $currentDay)
             ->exists();
 
         if ($alreadyAttended) {
@@ -91,6 +94,7 @@ class AttendanceController extends Controller
                 'latitude' => $request->latitude,
                 'longitude' => $request->longitude,
                 'recorded_at' => $request->timestamp ? Carbon::parse($request->timestamp)->setTimezone(config('app.timezone')) : now(),
+                'day' => $currentDay,
             ]);
 
             return response()->json([
@@ -105,11 +109,15 @@ class AttendanceController extends Controller
 
     public function index(Request $request)
     {
-        // For admin/observer monitoring or personal history
-        $attendances = Attendance::with('user:id,name,role,asal_instansi')
-            ->orderBy('recorded_at', 'desc')
-            ->get();
+        $day = $request->query('day', AppSetting::get('current_day', 1));
+        
+        $query = Attendance::with('user:id,name,role,asal_instansi')
+            ->orderBy('recorded_at', 'desc');
+
+        if ($day) {
+            $query->where('day', $day);
+        }
             
-        return response()->json(['attendances' => $attendances]);
+        return response()->json(['attendances' => $query->get()]);
     }
 }
