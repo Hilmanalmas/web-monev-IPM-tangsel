@@ -21,7 +21,10 @@ class ObserverController extends Controller {
      * This completely bypasses Nginx/proxy routing and permission issues.
      */
     private function selfieToBase64(?string $rawPath): ?string {
-        if (!$rawPath) return null;
+        if (!$rawPath) {
+            \Log::warning('[selfieToBase64] rawPath is null/empty');
+            return null;
+        }
         // If it's already base64, return directly
         if (str_starts_with($rawPath, 'data:')) return $rawPath;
 
@@ -34,13 +37,23 @@ class ObserverController extends Controller {
 
         // Read file directly from disk
         $fullPath = storage_path('app/public/' . $rawPath);
-        if (!file_exists($fullPath)) return null;
+        \Log::info('[selfieToBase64] checking path: ' . $fullPath);
 
-        $data = file_get_contents($fullPath);
-        if ($data === false) return null;
+        if (!file_exists($fullPath)) {
+            \Log::warning('[selfieToBase64] file NOT FOUND: ' . $fullPath);
+            return null;
+        }
 
-        $mime = mime_content_type($fullPath) ?: 'image/jpeg';
-        return 'data:' . $mime . ';base64,' . base64_encode($data);
+        $data = @file_get_contents($fullPath);
+        if ($data === false) {
+            \Log::warning('[selfieToBase64] file_get_contents FAILED: ' . $fullPath);
+            return null;
+        }
+
+        $mime = @mime_content_type($fullPath) ?: 'image/jpeg';
+        $b64 = 'data:' . $mime . ';base64,' . base64_encode($data);
+        \Log::info('[selfieToBase64] success, length: ' . strlen($b64));
+        return $b64;
     }
 
     public function getPesertaList() {
