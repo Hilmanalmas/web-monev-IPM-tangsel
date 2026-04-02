@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Home, Camera, ClipboardEdit, BookOpen, ShieldAlert, Users, Eye, ClipboardCheck, BarChart3 } from 'lucide-react';
-import logo from '../assets/logo.png';
+import { LogOut, Home, Camera, ClipboardEdit, BookOpen, ShieldAlert, Users, Eye, ClipboardCheck, BarChart3, Gamepad2, Activity, Star, Instagram, Phone, Mail } from 'lucide-react';
+import logo from '../assets/logo-monev.png';
+import pdIpmLogo from '../assets/logo.png';
 
 const Layout = ({ children }) => {
     const { user, logout } = useAuth();
@@ -34,6 +35,9 @@ const Layout = ({ children }) => {
         navItems.push({ path: '/admin/surveys', label: 'Manito Master', icon: <ClipboardCheck size={22} /> });
         navItems.push({ path: '/admin/rtl', label: 'RTL', icon: <ClipboardEdit size={22} /> });
         navItems.push({ path: '/admin/exams', label: 'Test', icon: <BookOpen size={22} /> });
+        navItems.push({ path: '/admin/games', label: 'Set Games', icon: <Gamepad2 size={22} /> });
+        navItems.push({ path: '/admin/practice', label: 'Set Praktek', icon: <Activity size={22} /> });
+        navItems.push({ path: '/admin/ibadah', label: 'Set Ibadah', icon: <Star size={22} /> });
     }
 
     if (user.role === 'observer' || user.role === 'admin') {
@@ -88,6 +92,41 @@ const Layout = ({ children }) => {
                 <div className="p-4 md:p-8 w-full transition-all flex-1">
                     {children}
                 </div>
+
+                {/* Footer Section */}
+                <footer className="bg-amber-500 text-white p-8 mt-auto">
+                    <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+                        {/* Social & Logos */}
+                        <div className="flex items-center gap-6">
+                            <div className="flex gap-4 items-center">
+                                <img src={pdIpmLogo} alt="PD IPM" className="h-12 w-12 object-contain" />
+                                <img src={logo} alt="MONEV" className="h-12 w-12 object-contain" />
+                            </div>
+                            <div className="flex items-center gap-2 font-bold group">
+                                <Instagram className="group-hover:text-amber-200 transition-colors" size={20} />
+                                <span className="tracking-tight">@ipmtangsel</span>
+                            </div>
+                        </div>
+
+                        {/* Copyright Central */}
+                        <div className="text-center md:text-left space-y-1">
+                            <p className="font-black text-sm uppercase tracking-widest">© 2026 PD IPM Tangerang Selatan</p>
+                            <p className="text-[10px] text-amber-100 font-medium">Dikelola oleh Lembaga Media dan Komunikasi PD IPM Tangerang Selatan</p>
+                        </div>
+
+                        {/* Contact Info */}
+                        <div className="space-y-2 text-sm">
+                            <div className="flex items-center gap-3 font-bold justify-center md:justify-end">
+                                <Phone size={16} className="text-amber-100" />
+                                <span>Contact Person: 0857-1192-1089</span>
+                            </div>
+                            <div className="flex items-center gap-3 font-medium justify-center md:justify-end text-amber-50">
+                                <Mail size={16} />
+                                <span>pdipmtangsel@gmail.com</span>
+                            </div>
+                        </div>
+                    </div>
+                </footer>
             </main>
 
             {/* Bottom Nav (Mobile) */}
