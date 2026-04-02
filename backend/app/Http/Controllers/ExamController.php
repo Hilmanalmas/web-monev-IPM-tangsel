@@ -27,9 +27,12 @@ class ExamController extends Controller {
 
         $data = $request->validate(['answers' => 'required|array']);
 
+        $currentDay = \App\Models\AppSetting::get('current_day', 1);
+
         $submission = ExamSubmission::create([
             'user_id' => $request->user()->id,
             'exam_id' => $examId,
+            'day' => $currentDay,
             'submitted_at' => $now
         ]);
 
@@ -38,9 +41,16 @@ class ExamController extends Controller {
             $userAns = $data['answers'][$q->id] ?? '';
             
             $isCorrect = false;
-            if ($q->type === 'pg') {
+            // Standard Test Logic
+            if ($exam->type !== 'archetype' && $q->type === 'pg') {
                 $isCorrect = (strtolower(trim($userAns)) === strtolower(trim($q->correct_answer ?? '')));
                 if ($isCorrect) $score += $q->points;
+            }
+            
+            // Archetype Scaling Logic
+            if ($exam->type === 'archetype') {
+                $weights = $q->weights ?? [];
+                $score += (int)($weights[$userAns] ?? 0);
             }
 
             ExamAnswer::create([
@@ -51,7 +61,23 @@ class ExamController extends Controller {
             ]);
         }
 
-        $submission->update(['score' => $score]);
-        return response()->json(['message' => 'Ujian berhasil dikumpulkan', 'score' => $score]);
+        $archetype = null;
+        if ($exam->type === 'archetype') {
+            if ($score >= 31) $archetype = 'The Visionary';
+            else if ($score >= 21) $archetype = 'The Executor';
+            else $archetype = 'The Observer';
+        }
+
+        $submission->update([
+            'score' => $score,
+            'archetype' => $archetype
+        ]);
+
+        return response()->json([
+            'message' => 'Ujian berhasil dikumpulkan',
+            'score' => $exam->show_result ? $score : null,
+            'archetype' => $exam->show_result ? $archetype : null,
+            'show_result' => $exam->show_result
+        ]);
     }
 }

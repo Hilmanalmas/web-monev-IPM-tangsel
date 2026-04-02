@@ -49,15 +49,56 @@ const ExamPortal = () => {
     };
 
     if (result) {
+        const archetypeData = {
+            'The Visionary': {
+                color: 'text-purple-600 bg-purple-50 border-purple-200',
+                desc: 'Kader Transformatif dengan Growth Mindset tinggi.'
+            },
+            'The Executor': {
+                color: 'text-blue-600 bg-blue-50 border-blue-200',
+                desc: 'Kader yang aktif namun perlu lebih banyak refleksi dan inovasi.'
+            },
+            'The Observer': {
+                color: 'text-gray-600 bg-gray-50 border-gray-200',
+                desc: 'Kader yang masih dalam tahap awal belajar atau masih terjebak dalam Fixed Mindset.'
+            }
+        };
+
+        const currentArchetype = result.archetype ? archetypeData[result.archetype] : null;
+
         return (
-            <div className="flex flex-col items-center justify-center p-12 bg-white rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100 max-w-xl mx-auto mt-10 animate-in zoom-in-95 duration-500">
-                <div className="w-32 h-32 bg-amber-500/10 text-amber-600 rounded-full flex flex-col items-center justify-center mb-6">
-                    <span className="text-4xl font-black">{result.score}</span>
-                    <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">POIN</span>
-                </div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">Test Selesai!</h2>
-                <p className="text-gray-500 mb-8">Hasilmu telah dicatat oleh instruktur.</p>
-                <button onClick={() => setResult(null)} className="bg-gray-900 text-white font-bold py-3 px-10 rounded-2xl hover:bg-black transition-all shadow-lg active:scale-95">Kembali ke Beranda</button>
+            <div className="flex flex-col items-center justify-center p-8 md:p-12 bg-white rounded-[3rem] shadow-2xl shadow-gray-200/50 border border-gray-100 max-w-2xl mx-auto mt-10 animate-in zoom-in-95 duration-500 text-center">
+                {!result.show_result ? (
+                    <>
+                        <div className="w-24 h-24 bg-green-500/10 text-green-600 rounded-full flex items-center justify-center mb-6">
+                            <CheckCircle size={48} />
+                        </div>
+                        <h2 className="text-3xl font-black text-gray-900 mb-2">Test Telah Selesai!</h2>
+                        <p className="text-gray-500 mb-8 text-lg font-medium">Terima kasih telah berpartisipasi. Hasil evaluasi Anda sedang diproses dan akan diumumkan secara resmi melalui instruktur.</p>
+                    </>
+                ) : (
+                    <>
+                        {result.archetype ? (
+                            <div className={`p-8 rounded-[2.5rem] border-2 w-full mb-8 ${currentArchetype?.color}`}>
+                                <h4 className="text-sm font-black uppercase tracking-widest opacity-60 mb-2">Archetype Anda:</h4>
+                                <h1 className="text-4xl md:text-5xl font-black mb-4 drop-shadow-sm">{result.archetype}</h1>
+                                <p className="text-lg font-medium opacity-80 italic">"{currentArchetype?.desc}"</p>
+                                <div className="mt-6 pt-6 border-t border-current/10 flex justify-center items-center gap-2">
+                                    <span className="text-sm font-bold uppercase">Total Skor:</span>
+                                    <span className="text-2xl font-black">{result.score}</span>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="w-32 h-32 bg-amber-500/10 text-amber-600 rounded-full flex flex-col items-center justify-center mb-6">
+                                <span className="text-4xl font-black">{result.score}</span>
+                                <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">POIN</span>
+                            </div>
+                        )}
+                        <h2 className="text-3xl font-black text-gray-900 mb-2">Luar Biasa!</h2>
+                        <p className="text-gray-500 mb-8 text-lg font-medium">Evaluasi kognitif Anda telah berhasil dicatat ke dalam database pusat.</p>
+                    </>
+                )}
+                <button onClick={() => setResult(null)} className="bg-gray-900 text-white font-black py-4 px-12 rounded-2xl hover:bg-black transition-all shadow-xl active:scale-95 text-lg">Kembali ke Beranda</button>
             </div>
         );
     }

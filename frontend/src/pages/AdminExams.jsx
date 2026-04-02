@@ -8,7 +8,7 @@ const AdminExams = () => {
     // Forms and Visibility
     const [isCreatingOrEditing, setIsCreatingOrEditing] = useState(false);
     const [editingExamId, setEditingExamId] = useState(null);
-    const [examForm, setExamForm] = useState({ title: '', description: '', start_time: '', end_time: '', duration_minutes: 60 });
+    const [examForm, setExamForm] = useState({ title: '', description: '', start_time: '', end_time: '', duration_minutes: 60, type: 'test', show_result: true, day: 1 });
     
     // Questions Editor
     const [editingQuestionsExam, setEditingQuestionsExam] = useState(null);
@@ -32,7 +32,7 @@ const AdminExams = () => {
 
     const openCreateExam = () => {
         setEditingExamId(null);
-        setExamForm({ title: '', description: '', start_time: '', end_time: '', duration_minutes: 60 });
+        setExamForm({ title: '', description: '', start_time: '', end_time: '', duration_minutes: 60, type: 'test', show_result: true, day: 1 });
         setIsCreatingOrEditing(true);
     };
 
@@ -43,7 +43,10 @@ const AdminExams = () => {
             description: exam.description || '', 
             start_time: formatForInput(exam.start_time), 
             end_time: formatForInput(exam.end_time), 
-            duration_minutes: exam.duration_minutes 
+            duration_minutes: exam.duration_minutes,
+            type: exam.type || 'test',
+            show_result: exam.show_result ?? true,
+            day: exam.day || 1
         });
         setIsCreatingOrEditing(true);
     };
@@ -72,9 +75,10 @@ const AdminExams = () => {
             id: q.id,
             type: q.type || 'pg',
             question_text: q.question_text,
-            options: q.options ? JSON.parse(JSON.stringify(q.options)) : [{ key: 'A', val: '' }, { key: 'B', val: '' }, { key: 'C', val: '' }, { key: 'D', val: '' }],
+            options: q.options ? (Array.isArray(q.options) ? q.options : Object.keys(q.options).map(k => ({key: k, val: q.options[k]}))) : [{ key: 'A', val: '' }, { key: 'B', val: '' }, { key: 'C', val: '' }, { key: 'D', val: '' }],
+            weights: q.weights || { A: 4, B: 3, C: 2, D: 1 },
             correct_answer: q.correct_answer || 'A',
-            points: q.points
+            points: q.points || 0
         }));
         setQuestionsForm(loadedQuestions);
     };
@@ -84,6 +88,7 @@ const AdminExams = () => {
             type: 'pg',
             question_text: '', 
             options: [{ key: 'A', val: '' }, { key: 'B', val: '' }, { key: 'C', val: '' }, { key: 'D', val: '' }], 
+            weights: { A: 4, B: 3, C: 2, D: 1 },
             correct_answer: 'A', 
             points: 10 
         }]);
@@ -121,6 +126,13 @@ const AdminExams = () => {
     const handleCorrectAnswerChange = (qIndex, value) => {
         const newQ = [...questionsForm];
         newQ[qIndex].correct_answer = value;
+        setQuestionsForm(newQ);
+    };
+
+    const handleWeightChange = (qIndex, key, value) => {
+        const newQ = [...questionsForm];
+        if (!newQ[qIndex].weights) newQ[qIndex].weights = {};
+        newQ[qIndex].weights[key] = parseInt(value) || 0;
         setQuestionsForm(newQ);
     };
 
@@ -165,8 +177,10 @@ const AdminExams = () => {
                                 <div className="flex items-center gap-2 text-[10px] text-gray-500 mt-1">
                                     <Clock size={12} /> {new Date(ex.start_time).toLocaleString()}
                                 </div>
-                                <div className="text-[10px] text-gray-400 mt-1">
-                                    {ex.duration_minutes} Menit • {ex.questions?.length || 0} Soal
+                                <div className="text-[10px] text-gray-400 mt-1 flex gap-2">
+                                    <span>{ex.duration_minutes} Menit</span>
+                                    <span>• {ex.questions?.length || 0} Soal</span>
+                                    <span className={`px-1 rounded ${ex.type === 'archetype' ? 'bg-purple-900/40 text-purple-400' : 'bg-blue-900/40 text-blue-400'}`}>{ex.type?.toUpperCase()}</span>
                                 </div>
 
                                 {/* Hover Actions */}
@@ -210,9 +224,25 @@ const AdminExams = () => {
                                         <input type="datetime-local" className="w-full mt-1 bg-black/50 border border-gray-700 rounded-xl p-3 text-white focus:border-amber-500 outline-none" value={examForm.end_time} onChange={e => setExamForm({...examForm, end_time: e.target.value})} required />
                                     </div>
                                 </div>
-                                <div>
-                                    <label className="text-xs uppercase font-bold text-gray-500">Durasi Pengerjaan (Menit)</label>
-                                    <input type="number" className="w-full mt-1 bg-black/50 border border-gray-700 rounded-xl p-3 text-white focus:border-amber-500 outline-none" value={examForm.duration_minutes} onChange={e => setExamForm({...examForm, duration_minutes: e.target.value})} required />
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-xs uppercase font-bold text-gray-500">Tipe Tes</label>
+                                        <select className="w-full mt-1 bg-black/50 border border-gray-700 rounded-xl p-3 text-white focus:border-amber-500 outline-none" value={examForm.type} onChange={e => setExamForm({...examForm, type: e.target.value})}>
+                                            <option value="test">Test Standar (Benar/Salah)</option>
+                                            <option value="archetype">Archetype (Skala 1-4)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs uppercase font-bold text-gray-500">Durasi (Menit)</label>
+                                        <input type="number" className="w-full mt-1 bg-black/50 border border-gray-700 rounded-xl p-3 text-white focus:border-amber-500 outline-none" value={examForm.duration_minutes} onChange={e => setExamForm({...examForm, duration_minutes: e.target.value})} required />
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-4 bg-gray-800/50 p-4 rounded-xl border border-gray-700">
+                                    <input type="checkbox" className="w-5 h-5 accent-amber-500" checked={examForm.show_result} onChange={e => setExamForm({...examForm, show_result: e.target.checked})} />
+                                    <div>
+                                        <p className="text-sm font-bold text-white">Tampilkan Hasil Ke Peserta</p>
+                                        <p className="text-[10px] text-gray-400">Jika dicentang, peserta dapat melihat skor/archetype mereka segera setelah selesai.</p>
+                                    </div>
                                 </div>
                                 <div className="pt-4 flex gap-4">
                                     <button type="submit" className="flex-1 bg-amber-600 hover:bg-amber-500 text-white font-bold py-3 rounded-xl transition-all">Simpan Pengaturan</button>
@@ -267,21 +297,32 @@ const AdminExams = () => {
                                             {q.type === 'pg' && (
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
                                                     {q.options.map((opt, optIndex) => (
-                                                        <div key={optIndex} className={`flex items-center gap-3 bg-gray-900 border p-2 rounded-xl transition-all ${q.correct_answer === opt.key ? 'border-green-500/50 shadow-[0_0_10px_rgba(34,197,94,0.1)]' : 'border-gray-800'}`}>
+                                                        <div key={optIndex} className={`flex items-center gap-3 bg-gray-900 border p-2 rounded-xl transition-all ${editingQuestionsExam.type !== 'archetype' && q.correct_answer === opt.key ? 'border-green-500/50 shadow-[0_0_10px_rgba(34,197,94,0.1)]' : 'border-gray-800'}`}>
                                                             <div className="flex flex-col items-center pl-2">
-                                                                <span className={`text-xs font-black ${q.correct_answer === opt.key ? 'text-green-500' : 'text-gray-500'}`}>{opt.key}</span>
-                                                                <input 
-                                                                    type="radio" name={`correct_${qIndex}`} 
-                                                                    checked={q.correct_answer === opt.key} 
-                                                                    onChange={() => handleCorrectAnswerChange(qIndex, opt.key)}
-                                                                    className="mt-1 cursor-pointer accent-green-500"
-                                                                />
+                                                                <span className={`text-xs font-black ${(editingQuestionsExam.type !== 'archetype' && q.correct_answer === opt.key) ? 'text-green-500' : 'text-gray-500'}`}>{opt.key}</span>
+                                                                {editingQuestionsExam.type !== 'archetype' && (
+                                                                    <input 
+                                                                        type="radio" name={`correct_${qIndex}`} 
+                                                                        checked={q.correct_answer === opt.key} 
+                                                                        onChange={() => handleCorrectAnswerChange(qIndex, opt.key)}
+                                                                        className="mt-1 cursor-pointer accent-green-500"
+                                                                    />
+                                                                )}
                                                             </div>
-                                                            <input 
-                                                                type="text" placeholder={`Opsi ${opt.key}`}
-                                                                className="bg-transparent border-none text-white w-full outline-none text-sm p-2"
-                                                                value={opt.val} onChange={(e) => handleOptionChange(qIndex, optIndex, e.target.value)}
-                                                            />
+                                                            <div className="flex-1 flex gap-2 items-center">
+                                                                <input 
+                                                                    type="text" placeholder={`Opsi ${opt.key}`}
+                                                                    className="bg-transparent border-none text-white w-full outline-none text-sm p-2"
+                                                                    value={opt.val} onChange={(e) => handleOptionChange(qIndex, optIndex, e.target.value)}
+                                                                />
+                                                                {editingQuestionsExam.type === 'archetype' && (
+                                                                    <div className="flex items-center gap-1 bg-black/40 px-2 py-1 rounded-lg border border-gray-700">
+                                                                        <span className="text-[10px] font-black text-amber-500">SKOR:</span>
+                                                                        <input type="number" className="w-10 bg-transparent text-white text-xs font-black text-center outline-none" value={q.weights?.[opt.key] || 0} 
+                                                                               onChange={(e) => handleWeightChange(qIndex, opt.key, e.target.value)}/>
+                                                                    </div>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     ))}
                                                 </div>

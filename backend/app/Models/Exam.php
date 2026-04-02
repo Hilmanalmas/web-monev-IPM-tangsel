@@ -3,19 +3,20 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
 class Exam extends Model {
-    protected $fillable = ['title', 'description', 'start_time', 'end_time', 'duration_minutes'];
+    protected $fillable = ['day', 'type', 'title', 'description', 'start_time', 'end_time', 'duration_minutes', 'show_result'];
+    protected $casts = ['show_result' => 'boolean'];
     public function questions() { return $this->hasMany(ExamQuestion::class); }
     public function submissions() { return $this->hasMany(ExamSubmission::class); }
 }
 
 class ExamQuestion extends Model {
-    protected $fillable = ['exam_id', 'type', 'question_text', 'options', 'correct_answer', 'points'];
-    protected $casts = ['options' => 'array'];
+    protected $fillable = ['exam_id', 'type', 'question_text', 'options', 'weights', 'correct_answer', 'points'];
+    protected $casts = ['options' => 'array', 'weights' => 'array'];
     public function exam() { return $this->belongsTo(Exam::class); }
 }
 
 class ExamSubmission extends Model {
-    protected $fillable = ['user_id', 'exam_id', 'score', 'submitted_at'];
+    protected $fillable = ['day', 'user_id', 'exam_id', 'score', 'archetype', 'submitted_at'];
     public function answers() { return $this->hasMany(ExamAnswer::class, 'submission_id'); }
     public function user() { return $this->belongsTo(User::class); }
     public function exam() { return $this->belongsTo(Exam::class); }

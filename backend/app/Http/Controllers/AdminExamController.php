@@ -10,11 +10,14 @@ class AdminExamController extends Controller {
 
     public function storeExam(Request $request) {
         $data = $request->validate([
+            'day' => 'integer',
+            'type' => 'required|in:test,archetype',
             'title' => 'required',
             'description' => 'nullable',
             'start_time' => 'required|date',
             'end_time' => 'required|date',
-            'duration_minutes' => 'required|integer'
+            'duration_minutes' => 'required|integer',
+            'show_result' => 'boolean'
         ]);
         return response()->json(Exam::create($data));
     }
@@ -22,11 +25,14 @@ class AdminExamController extends Controller {
     public function updateExam(Request $request, $id) {
         $exam = Exam::findOrFail($id);
         $data = $request->validate([
+            'day' => 'integer',
+            'type' => 'required|in:test,archetype',
             'title' => 'required',
             'description' => 'nullable',
             'start_time' => 'required|date',
             'end_time' => 'required|date',
-            'duration_minutes' => 'required|integer'
+            'duration_minutes' => 'required|integer',
+            'show_result' => 'boolean'
         ]);
         $exam->update($data);
         return response()->json($exam);
@@ -53,10 +59,11 @@ class AdminExamController extends Controller {
         $exam = Exam::findOrFail($examId);
         $questionsData = $request->validate([
             'questions' => 'required|array',
-            'questions.*.id' => 'nullable|integer|exists:exam_questions,id',
+            'questions.*.id' => 'nullable|integer',
             'questions.*.type' => 'required|in:pg,essay',
             'questions.*.question_text' => 'required|string',
             'questions.*.options' => 'nullable|array',
+            'questions.*.weights' => 'nullable|array',
             'questions.*.correct_answer' => 'nullable|string',
             'questions.*.points' => 'integer'
         ]);
@@ -64,18 +71,26 @@ class AdminExamController extends Controller {
         $sentIds = [];
 
         foreach ($questionsData['questions'] as $qData) {
-            if ($qData['type'] === 'pg' && (empty($qData['options']) || empty($qData['correct_answer']))) {
-                return response()->json(['message' => 'Soal PG wajib memiliki opsi dan kunci jawaban.'], 422);
+            // Validation logic based on exam type
+            if ($exam->type === 'test' && $qData['type'] === 'pg' && (empty($qData['options']) || empty($qData['correct_answer']))) {
+                return response()->json(['message' => 'Soal PG untuk tipe Test wajib memiliki opsi dan kunci jawaban.'], 422);
             }
+            if ($exam->type === 'archetype' && $qData['type'] === 'pg' && (empty($qData['options']) || empty($qData['weights']))) {
+                return response()->json(['message' => 'Soal untuk tipe Archetype wajib memiliki opsi dan bobot (weights).'], 422);
+            }
+
             if ($qData['type'] === 'essay') {
                 $qData['options'] = null;
                 $qData['correct_answer'] = null;
+                $qData['weights'] = null;
             }
 
             if (isset($qData['id'])) {
-                $question = ExamQuestion::where('exam_id', $examId)->findOrFail($qData['id']);
-                $question->update($qData);
-                $sentIds[] = $question->id;
+                $question = ExamQuestion::where('exam_id', $examId)->find($qData['id']);
+                if ($question) {
+                    $question->update($qData);
+                    $sentIds[] = $question->id;
+                }
             } else {
                 $qData['exam_id'] = $examId;
                 $newQuestion = ExamQuestion::create($qData);
