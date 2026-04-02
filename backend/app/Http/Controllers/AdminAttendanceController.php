@@ -11,7 +11,8 @@ class AdminAttendanceController extends Controller {
         $data = $request->validate([
             'name' => 'required|string',
             'start_time' => 'required',
-            'end_time' => 'required'
+            'end_time' => 'required',
+            'day' => 'required|integer'
         ]);
         return response()->json(AttendanceSlot::create($data));
     }

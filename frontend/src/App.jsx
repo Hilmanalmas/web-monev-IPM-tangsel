@@ -15,6 +15,8 @@ import AdminExams from './pages/AdminExams';
 import AdminAttendance from './pages/AdminAttendance';
 import AdminIbadah from './pages/AdminIbadah';
 import AdminRtl from './pages/AdminRtl';
+import AdminGames from './pages/AdminGames';
+import AdminPractice from './pages/AdminPractice';
 import ExamPortal from './pages/ExamPortal';
 import SurveyPortal from './pages/SurveyPortal';
 import RtlPortal from './pages/RtlPortal';
@@ -113,7 +115,10 @@ const AppLayout = () => (
             <Route path="/admin/surveys" element={<ProtectedRoute allowedRoles={['admin']}><AdminSurveys /></ProtectedRoute>} />
             <Route path="/admin/exams" element={<ProtectedRoute allowedRoles={['admin']}><AdminExams /></ProtectedRoute>} />
             <Route path="/admin/attendance" element={<ProtectedRoute allowedRoles={['admin']}><AdminAttendance /></ProtectedRoute>} />
+            <Route path="/admin/ibadah" element={<ProtectedRoute allowedRoles={['admin']}><AdminIbadah /></ProtectedRoute>} />
             <Route path="/admin/rtl" element={<ProtectedRoute allowedRoles={['admin']}><AdminRtl /></ProtectedRoute>} />
+            <Route path="/admin/games" element={<ProtectedRoute allowedRoles={['admin']}><AdminGames /></ProtectedRoute>} />
+            <Route path="/admin/practice" element={<ProtectedRoute allowedRoles={['admin']}><AdminPractice /></ProtectedRoute>} />
             
             <Route path="/observer" element={<ProtectedRoute allowedRoles={['admin', 'observer']}><ObserverDashboard /></ProtectedRoute>} />
             

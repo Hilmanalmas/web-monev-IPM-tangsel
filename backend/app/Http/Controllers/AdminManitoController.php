@@ -27,7 +27,8 @@ class AdminManitoController extends Controller {
         $data = $request->validate([
             'name' => 'required|string',
             'start_time' => 'required',
-            'end_time' => 'required'
+            'end_time' => 'required',
+            'day' => 'required|integer'
         ]);
         return response()->json(SurveySlot::create($data));
     }

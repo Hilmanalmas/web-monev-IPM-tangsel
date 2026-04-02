@@ -24,6 +24,8 @@ const ObserverDashboard = () => {
     // Form states for adding scores inline
     const [formScore, setFormScore] = useState('');
     const [formNotes, setFormNotes] = useState('');
+    const [formSlotId, setFormSlotId] = useState('');
+    const [availableSlots, setAvailableSlots] = useState({ games: [], practice: [], ibadah: [] });
     const [scoringId, setScoringId] = useState(null); // to track which item is being scored
     const [submitStatus, setSubmitStatus] = useState('idle');
 
@@ -39,6 +41,10 @@ const ObserverDashboard = () => {
         init();
     }, []);
 
+    useEffect(() => {
+        fetchAvailableSlots();
+    }, [selectedDay]);
+
     const fetchPeserta = async () => {
         setLoading(true);
         try {
@@ -49,6 +55,15 @@ const ObserverDashboard = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const fetchAvailableSlots = async () => {
+        try {
+            const res = await axios.get(`/api/observer/available-slots?day=${selectedDay}`);
+            setAvailableSlots(res.data);
+            // Default select the first slot if available
+            setFormSlotId(''); 
+        } catch (e) { console.error(e); }
     };
 
     const openDetail = async (user) => {
@@ -70,6 +85,7 @@ const ObserverDashboard = () => {
         setTabLoading(true);
         setFormScore('');
         setFormNotes('');
+        setFormSlotId('');
         setScoringId(null);
         setSubmitStatus('idle');
 
@@ -118,7 +134,7 @@ const ObserverDashboard = () => {
     };
 
     const submitGamePractice = async (type) => {
-        if (!formNotes || !formScore) return alert('Nama/Keterangan dan nilai wajib diisi (0-100)');
+        if (!formSlotId || !formScore) return alert('Sesi/Slot dan nilai wajib diisi (0-100)');
         setSubmitStatus('submitting');
         let url = '';
         if (type === 'games') url = '/api/observer/score/games';
@@ -126,19 +142,12 @@ const ObserverDashboard = () => {
         if (type === 'ibadah') url = '/api/observer/score/worship';
 
         try {
-            if (type === 'ibadah') {
-                await axios.post(url, {
-                    user_id: selectedUser.id,
-                    score: formScore,
-                    notes: formNotes
-                });
-            } else {
-                await axios.post(url, {
-                    user_id: selectedUser.id,
-                    score: formScore,
-                    notes: formNotes
-                });
-            }
+            await axios.post(url, {
+                user_id: selectedUser.id,
+                slot_id: formSlotId,
+                score: formScore,
+                notes: formNotes
+            });
             setSubmitStatus('success');
             setTimeout(() => fetchTabData(selectedUser.id, activeTab), 1000);
         } catch(e) {
@@ -154,6 +163,8 @@ const ObserverDashboard = () => {
 
     if (loading) return <div className="p-20 text-center font-bold text-indigo-600"><RefreshCcw className="animate-spin mx-auto mb-4" size={40}/> Memuat Daftar Target...</div>;
 
+    const currentTypeSlots = availableSlots[activeTab] || [];
+
     return (
         <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-300">
             <div className="bg-gradient-to-r from-indigo-900 to-indigo-700 rounded-3xl p-8 text-white shadow-2xl relative overflow-hidden">
@@ -162,7 +173,7 @@ const ObserverDashboard = () => {
                     <h1 className="text-4xl font-black mb-2 flex items-center gap-3">
                         <Target className="text-amber-400" /> Markas Penilaian Pengawas
                     </h1>
-                    <p className="text-indigo-100 text-lg max-w-2xl">Lakukan identifikasi target melalui foto selfie absensi mereka. Berikan nilai secara manual (0-100) untuk Test Kognitif, Games, dan Praktek.</p>
+                    <p className="text-indigo-100 text-lg max-w-2xl">Identifikasi target melalui selfie absensi & berikan penilaian tertarget sesuai jadwal yang telah diatur Admin.</p>
                 </div>
             </div>
 
@@ -223,10 +234,10 @@ const ObserverDashboard = () => {
                                 )}
                                 <div>
                                     <h3 className="text-xl font-bold">{selectedUser.name}</h3>
-                                    <p className="text-indigo-200 text-sm">Target yang sedang diinvestigasi</p>
+                                    <p className="text-indigo-200 text-sm">Target yang sedang diinvestigasi (Hari {selectedDay})</p>
                                 </div>
                             </div>
-                            <button onClick={closeDetail} className="bg-indigo-800 hover:bg-indigo-900 p-2 rounded-xl font-bold">X Tutup</button>
+                            <button onClick={closeDetail} className="bg-indigo-800 hover:bg-indigo-900 p-2 rounded-xl font-bold transition-colors">X TUTUP</button>
                         </div>
                         
                         {/* Tabs */}
@@ -257,39 +268,41 @@ const ObserverDashboard = () => {
                                     {/* KOGNITIF */}
                                     {activeTab === 'kognitif' && (
                                         <>
-                                            <p className="text-gray-500 mb-4">Daftar test yang telah dikerjakan target. Berikan nilai manual (0-100) setelah membaca jawaban mereka.</p>
-                                            {examsData.length === 0 ? <p className="p-8 text-center bg-white rounded-xl border">Belum ada ujian yang dikerjakan.</p> : 
+                                            <p className="text-gray-500 mb-4 font-medium italic">Menampilkan hasil ujian target pada Hari {selectedDay}.</p>
+                                            {examsData.length === 0 ? <div className="p-12 text-center bg-white rounded-2xl border-2 border-dashed border-gray-200 text-gray-400 font-bold">Belum ada ujian yang dikerjakan hari ini.</div> : 
                                                 examsData.map(ex => (
-                                                    <div key={ex.submission_id} className="bg-white p-6 rounded-2xl border shadow-sm space-y-4">
+                                                    <div key={ex.submission_id} className="bg-white p-6 rounded-2xl border shadow-sm space-y-4 hover:border-indigo-200 transition-colors">
                                                         <div className="flex justify-between items-start">
                                                             <div>
-                                                                <h4 className="font-bold text-lg text-gray-800">{ex.exam_title}</h4>
-                                                                <p className="text-xs text-gray-400">Disubmit: {new Date(ex.submitted_at).toLocaleString()}</p>
+                                                                <h4 className="font-black text-xl text-gray-800 uppercase tracking-tight">{ex.exam_title}</h4>
+                                                                <p className="text-xs text-gray-400 font-mono mt-1">Disubmit: {new Date(ex.submitted_at).toLocaleString('id-ID')}</p>
                                                             </div>
-                                                            <div className="bg-indigo-50 px-4 py-2 rounded-xl border border-indigo-100 flex items-center gap-3">
-                                                                <span className="font-bold text-indigo-800">NILAI KOGNITIF:</span>
+                                                            <div className="bg-indigo-50 px-4 py-3 rounded-2xl border-2 border-indigo-100 flex items-center gap-4">
+                                                                <span className="font-black text-indigo-800 text-xs">NILAI KOGNITIF:</span>
                                                                 {ex.observer_score !== null ? (
-                                                                     <span className="text-2xl font-black text-indigo-600">{ex.observer_score}</span>
+                                                                     <span className="text-3xl font-black text-indigo-600">{ex.observer_score}</span>
                                                                 ) : (
                                                                     scoringId === ex.submission_id ? (
                                                                         <div className="flex items-center gap-2">
-                                                                            <input type="number" min="0" max="100" className="w-20 p-2 border rounded-lg text-center font-bold" value={formScore} onChange={e=>setFormScore(e.target.value)}/>
-                                                                            <button disabled={submitStatus === 'submitting'} onClick={() => submitCognitive(ex.submission_id)} className="bg-green-500 text-white p-2 rounded-lg"><CheckCircle size={18}/></button>
+                                                                            <input type="number" min="0" max="100" className="w-20 p-2 border-2 border-indigo-300 rounded-xl text-center font-black text-lg focus:ring-0" value={formScore} onChange={e=>setFormScore(e.target.value)}/>
+                                                                            <button disabled={submitStatus === 'submitting'} onClick={() => submitCognitive(ex.submission_id)} className="bg-green-500 text-white p-2 rounded-xl hover:bg-green-600 transition-colors"><CheckCircle size={24}/></button>
                                                                         </div>
                                                                     ) : (
-                                                                        <button onClick={() => { setScoringId(ex.submission_id); setFormScore(''); }} className="bg-indigo-600 text-white px-3 py-1 rounded-lg font-bold hover:bg-indigo-700">Skor (0-100)</button>
+                                                                        <button onClick={() => { setScoringId(ex.submission_id); setFormScore(''); }} className="bg-indigo-600 text-white px-5 py-2 rounded-xl font-black hover:bg-indigo-700 transition-all active:scale-95 shadow-md shadow-indigo-100">INPUT NILAI</button>
                                                                     )
                                                                 )}
                                                             </div>
                                                         </div>
                                                         
                                                         {/* Answers Spoilers */}
-                                                        <div className="mt-4 border-t pt-4 space-y-3">
-                                                            <h5 className="font-bold text-gray-600 text-sm uppercase tracking-wider">Rekaman Jawaban Target:</h5>
+                                                        <div className="mt-4 border-t-2 border-gray-50 pt-4 space-y-4">
+                                                            <h5 className="font-black text-gray-400 text-[10px] uppercase tracking-widest pl-1">Rekaman Jawaban Target:</h5>
                                                             {ex.answers?.map((ans, i) => (
-                                                                <div key={ans.id} className="bg-gray-50 p-3 rounded-lg border text-sm">
-                                                                    <p className="font-medium text-gray-800">{i+1}. {ans.question?.question_text}</p>
-                                                                    <p className="text-indigo-700 font-bold mt-1 bg-indigo-50 px-2 py-1 rounded inline-block">&gt; {ans.user_answer}</p>
+                                                                <div key={ans.id} className="bg-gray-50/50 p-4 rounded-xl border border-gray-100 text-sm hover:bg-white transition-colors">
+                                                                    <p className="font-bold text-gray-800 mb-2 leading-tight"><span className="text-indigo-300 mr-2">Q{i+1}</span>{ans.question?.question_text}</p>
+                                                                    <div className="text-indigo-700 font-medium pl-6 border-l-2 border-indigo-200 italic">
+                                                                         {ans.user_answer}
+                                                                    </div>
                                                                 </div>
                                                             ))}
                                                         </div>
@@ -302,52 +315,81 @@ const ObserverDashboard = () => {
                                     {/* GAMES, PRACTICE, IBADAH */}
                                     {(activeTab === 'games' || activeTab === 'practice' || activeTab === 'ibadah') && (
                                         <>
-                                            <div className="bg-white p-6 rounded-2xl border shadow-sm mb-6">
-                                                <h4 className="font-bold mb-4">Tambahkan Penilaian {activeTab.toUpperCase()} Baru</h4>
-                                                <div className="flex gap-4 items-center">
-                                                    <input type="text" placeholder={`Nama ${activeTab}...`} required className="flex-1 p-3 border rounded-xl outline-none focus:border-indigo-500" value={formNotes} onChange={e=>setFormNotes(e.target.value)}/>
-                                                    <input type="number" min="0" max="100" placeholder="Skor 0-100" required className="w-32 p-3 border rounded-xl outline-none focus:border-indigo-500 font-bold text-center" value={formScore} onChange={e=>setFormScore(e.target.value)}/>
-                                                    <button onClick={() => submitGamePractice(activeTab)} className="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-700 whitespace-nowrap">
-                                                        {submitStatus === 'submitting' ? 'Menyimpan...' : 'Simpan Nilai'}
+                                            <div className="bg-white p-8 rounded-3xl border-2 border-indigo-50 shadow-xl mb-8">
+                                                <h4 className="font-black text-gray-800 uppercase tracking-tight mb-6">Tambahkan Penilaian {activeTab.toUpperCase()} (Hari {selectedDay})</h4>
+                                                <div className="flex flex-col md:flex-row gap-6 items-start md:items-end">
+                                                    <div className="w-full md:flex-1">
+                                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Pilih Sesi/Program</label>
+                                                        <select className="w-full p-4 border-2 border-gray-100 rounded-2xl outline-none focus:border-indigo-500 font-bold appearance-none bg-white" 
+                                                                value={formSlotId} onChange={e=>setFormSlotId(e.target.value)}>
+                                                            <option value="">-- Pilih Sesi Terdaftar --</option>
+                                                            {currentTypeSlots.map(s => (
+                                                                <option key={s.id} value={s.id}>{s.name} ({s.start_time?.substring(0,5)} - {s.end_time?.substring(0,5)})</option>
+                                                            ))}
+                                                        </select>
+                                                        {currentTypeSlots.length === 0 && <p className="text-[10px] text-red-500 mt-2 font-bold px-1">Belum ada sesi yang dibuat Admin untuk hari ini!</p>}
+                                                    </div>
+                                                    <div className="w-full md:w-32">
+                                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Skor 0-100</label>
+                                                        <input type="number" min="0" max="100" placeholder="0" className="w-full p-4 border-2 border-gray-100 rounded-2xl outline-none focus:border-indigo-500 font-black text-center text-xl" 
+                                                               value={formScore} onChange={e=>setFormScore(e.target.value)}/>
+                                                    </div>
+                                                    <div className="w-full md:flex-1">
+                                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Catatan/Keterangan</label>
+                                                        <input type="text" placeholder="Catatan tambahan (opsional)..." className="w-full p-4 border-2 border-gray-100 rounded-2xl outline-none focus:border-indigo-500 font-medium" 
+                                                               value={formNotes} onChange={e=>setFormNotes(e.target.value)}/>
+                                                    </div>
+                                                    <button onClick={() => submitGamePractice(activeTab)} 
+                                                            disabled={!formSlotId || submitStatus === 'submitting'}
+                                                            className="w-full md:w-auto h-[60px] bg-indigo-600 text-white px-8 rounded-2xl font-black hover:bg-indigo-700 disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-lg shadow-indigo-100">
+                                                        {submitStatus === 'submitting' ? 'PROSES...' : 'SIMPAN'}
                                                     </button>
                                                 </div>
                                             </div>
 
-                                            <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                                 {(activeTab === 'games' ? gamesData : activeTab === 'practice' ? practiceData : ibadahData).map(g => (
-                                                    <div key={g.id} className="bg-white p-4 rounded-xl border flex justify-between items-center shadow-sm">
-                                                        <span className="font-bold text-gray-700">{g.notes}</span>
-                                                        <span className="flex items-center justify-center w-12 h-12 bg-indigo-100 text-indigo-700 font-black rounded-lg text-xl">{g.score}</span>
+                                                    <div key={g.id} className="bg-white p-5 rounded-3xl border border-gray-100 flex justify-between items-center shadow-md relative overflow-hidden group hover:border-indigo-200 transition-all">
+                                                        <div className="absolute top-0 left-0 w-1.5 h-full bg-indigo-500 opacity-20 group-hover:opacity-100 transition-all"></div>
+                                                        <div className="pl-3">
+                                                            <span className="font-black text-gray-800 text-lg uppercase tracking-tighter leading-none block">{g.slot?.name || g.notes}</span>
+                                                            <span className="text-[10px] text-gray-400 font-mono mt-1 block italic">{g.notes !== g.slot?.name ? g.notes : 'Penilaian Sesuai Sesi'}</span>
+                                                        </div>
+                                                        <span className="flex items-center justify-center w-14 h-14 bg-indigo-600 text-white font-black rounded-2xl text-2xl shadow-lg shadow-indigo-100">{g.score}</span>
                                                     </div>
                                                 ))}
-                                                {(activeTab === 'games' ? gamesData : activeTab === 'practice' ? practiceData : ibadahData).length === 0 && <p className="col-span-2 text-center p-8 text-gray-400">Belum ada riwayat penilaian.</p>}
+                                                {(activeTab === 'games' ? gamesData : activeTab === 'practice' ? practiceData : ibadahData).length === 0 && (
+                                                    <div className="col-span-full py-20 text-center bg-white rounded-3xl border-2 border-dashed border-gray-100 text-gray-300 font-black uppercase tracking-widest">
+                                                        Belum ada rekam jejak penilaian.
+                                                    </div>
+                                                )}
                                             </div>
                                         </>
                                     )}
 
                                     {/* ABSENSI (JEJAK WAJAH) */}
                                     {activeTab === 'absensi' && (
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
                                             {attendanceData.length === 0 ? (
-                                                <div className="col-span-full text-center p-8 bg-white border rounded space-y-2">
-                                                    <p className="text-gray-400">Tidak ada rekaman selfie.</p>
-                                                    <p className="text-xs text-gray-300">Pastikan peserta sudah melakukan absensi.</p>
+                                                <div className="col-span-full py-20 text-center bg-white rounded-3xl border-2 border-dashed border-gray-100 text-gray-300 font-black uppercase tracking-widest">
+                                                    Tidak ada bukti visual absensi.
                                                 </div>
                                             ) : (
                                                 attendanceData.map(att => (
-                                                        <div key={att.id} className="bg-white border rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition">
-                                                            <div className="w-full h-48 bg-gray-100 relative">
+                                                        <div key={att.id} className="bg-white border-2 border-gray-50 rounded-3xl overflow-hidden shadow-xl hover:scale-[1.02] transition-transform">
+                                                            <div className="w-full h-56 bg-gray-100 relative group">
                                                                 <img
                                                                     src={att.selfie_url}
                                                                     alt="selfie"
-                                                                    className="w-full h-48 object-cover"
+                                                                    className="w-full h-full object-cover"
                                                                     onError={(e) => { e.target.style.display='none'; }}
                                                                 />
-                                                                <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-xs -z-0">Foto tidak tersedia</div>
+                                                                <div className="absolute inset-0 bg-indigo-600/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                                                <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-xs font-bold pointer-events-none -z-10">Gambar Rusak/Hilang</div>
                                                             </div>
-                                                            <div className="p-3 bg-gray-900 text-white text-center">
-                                                                <p className="font-bold text-sm tracking-widest text-amber-400 uppercase">{att.slot?.name || att.type || 'Absen'}</p>
-                                                                <p className="text-xs text-gray-400 mt-1">{att.recorded_at ? new Date(att.recorded_at).toLocaleString('id-ID') : ''}</p>
+                                                            <div className="p-4 bg-gray-900 text-white">
+                                                                <p className="font-black text-sm tracking-widest text-amber-400 uppercase text-center">{att.slot?.name || att.type || 'Sesi Umum'}</p>
+                                                                <p className="text-[10px] text-gray-500 font-mono mt-2 text-center border-t border-gray-800 pt-2">{att.recorded_at ? new Date(att.recorded_at).toLocaleString('id-ID', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'}) : ''}</p>
                                                             </div>
                                                         </div>
                                                     ))

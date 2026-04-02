@@ -57,6 +57,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware([\App\Http\Middleware\ObserverMiddleware::class])->group(function () {
         Route::get('/observer/peserta', [\App\Http\Controllers\ObserverController::class, 'getPesertaList']);
         Route::get('/observer/peserta/{id}/attendance', [\App\Http\Controllers\ObserverController::class, 'getPesertaAttendance']);
+        Route::get('/observer/available-slots', [\App\Http\Controllers\ObserverController::class, 'getAvailableSlots']);
         
         // Cognitive
         Route::get('/observer/peserta/{id}/exams', [\App\Http\Controllers\ObserverController::class, 'getPesertaExams']);
@@ -71,8 +72,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/observer/score/practice', [\App\Http\Controllers\ObserverController::class, 'storePracticeScore']);
 
         // Ibadah
-        Route::get('/observer/worship-slots', [\App\Http\Controllers\ObserverController::class, 'getWorshipSlots']);
-        Route::post('/observer/score/ibadah', [\App\Http\Controllers\ObserverController::class, 'storeWorshipScore']);
+        Route::post('/observer/score/worship', [\App\Http\Controllers\ObserverController::class, 'storeWorshipScore']);
     });
 
     // --- ADMIN ROUTES ---
@@ -109,6 +109,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/admin/worship/slots', [\App\Http\Controllers\AdminIbadahController::class, 'listSlots']);
         Route::post('/admin/worship/slots', [\App\Http\Controllers\AdminIbadahController::class, 'storeSlot']);
         Route::delete('/admin/worship/slots/{id}', [\App\Http\Controllers\AdminIbadahController::class, 'destroySlot']);
+
+        // Settings Game & Practice
+        Route::get('/admin/game/slots', [\App\Http\Controllers\AdminGameController::class, 'listSlots']);
+        Route::post('/admin/game/slots', [\App\Http\Controllers\AdminGameController::class, 'storeSlot']);
+        Route::delete('/admin/game/slots/{id}', [\App\Http\Controllers\AdminGameController::class, 'destroySlot']);
+        Route::get('/admin/practice/slots', [\App\Http\Controllers\AdminPracticeController::class, 'listSlots']);
+        Route::post('/admin/practice/slots', [\App\Http\Controllers\AdminPracticeController::class, 'storeSlot']);
+        Route::delete('/admin/practice/slots/{id}', [\App\Http\Controllers\AdminPracticeController::class, 'destroySlot']);
 
         // Settings Exams
         Route::get('/admin/exams', [\App\Http\Controllers\AdminExamController::class, 'listExams']);

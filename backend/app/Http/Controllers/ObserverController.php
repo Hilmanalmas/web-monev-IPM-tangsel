@@ -138,9 +138,9 @@ class ObserverController extends Controller {
     public function getGamesPractice(Request $request, $id) {
         $day = $request->query('day');
         
-        $gamesQuery = GameScore::where('user_id', $id);
-        $practiceQuery = PracticeScore::where('user_id', $id);
-        $ibadahQuery = WorshipLog::where('user_id', $id);
+        $gamesQuery = GameScore::where('user_id', $id)->with('slot');
+        $practiceQuery = PracticeScore::where('user_id', $id)->with('slot');
+        $ibadahQuery = WorshipLog::where('user_id', $id)->with('slot');
 
         if ($day) {
             $gamesQuery->where('day', $day);
@@ -155,18 +155,28 @@ class ObserverController extends Controller {
         ]);
     }
 
+    public function getAvailableSlots(Request $request) {
+        $day = $request->query('day', AppSetting::get('current_day', 1));
+        return response()->json([
+            'games' => \App\Models\GameSlot::where('day', $day)->get(),
+            'practice' => \App\Models\PracticeSlot::where('day', $day)->get(),
+            'ibadah' => \App\Models\WorshipSlot::where('day', $day)->get()
+        ]);
+    }
+
     public function storeGameScore(Request $request) {
         $data = $request->validate([
             'user_id' => 'required',
             'score' => 'required|integer|min:0|max:100',
-            'notes' => 'required|string'
+            'notes' => 'nullable|string',
+            'slot_id' => 'required'
         ]);
 
-        $currentDay = AppSetting::get('current_day', 1);
+        $slot = \App\Models\GameSlot::findOrFail($data['slot_id']);
 
         $score = GameScore::updateOrCreate(
-            ['user_id' => $data['user_id'], 'notes' => $data['notes'], 'day' => $currentDay],
-            ['observer_id' => Auth::id(), 'score' => $data['score']]
+            ['user_id' => $data['user_id'], 'slot_id' => $data['slot_id'], 'day' => $slot->day],
+            ['observer_id' => Auth::id(), 'score' => $data['score'], 'notes' => $data['notes'] ?? $slot->name]
         );
         return response()->json($score);
     }
@@ -175,34 +185,32 @@ class ObserverController extends Controller {
         $data = $request->validate([
             'user_id' => 'required',
             'score' => 'required|integer|min:0|max:100',
-            'notes' => 'required|string'
+            'notes' => 'nullable|string',
+            'slot_id' => 'required'
         ]);
 
-        $currentDay = AppSetting::get('current_day', 1);
+        $slot = \App\Models\PracticeSlot::findOrFail($data['slot_id']);
 
         $score = PracticeScore::updateOrCreate(
-            ['user_id' => $data['user_id'], 'notes' => $data['notes'], 'day' => $currentDay],
-            ['observer_id' => Auth::id(), 'score' => $data['score']]
+            ['user_id' => $data['user_id'], 'slot_id' => $data['slot_id'], 'day' => $slot->day],
+            ['observer_id' => Auth::id(), 'score' => $data['score'], 'notes' => $data['notes'] ?? $slot->name]
         );
         return response()->json($score);
-    }
-
-    public function getWorshipSlots() {
-        return response()->json([]); // No longer used as requested
     }
 
     public function storeWorshipScore(Request $request) {
         $data = $request->validate([
             'user_id' => 'required',
             'score' => 'required|integer|min:0|max:100',
-            'notes' => 'required|string'
+            'notes' => 'nullable|string',
+            'slot_id' => 'required'
         ]);
 
-        $currentDay = AppSetting::get('current_day', 1);
+        $slot = \App\Models\WorshipSlot::findOrFail($data['slot_id']);
 
         $score = WorshipLog::updateOrCreate(
-            ['user_id' => $data['user_id'], 'notes' => $data['notes'], 'day' => $currentDay],
-            ['observer_id' => Auth::id(), 'score' => $data['score']]
+            ['user_id' => $data['user_id'], 'slot_id' => $data['slot_id'], 'day' => $slot->day],
+            ['observer_id' => Auth::id(), 'score' => $data['score'], 'notes' => $data['notes'] ?? $slot->name]
         );
         return response()->json($score);
     }

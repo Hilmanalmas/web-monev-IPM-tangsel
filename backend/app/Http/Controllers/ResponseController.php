@@ -55,26 +55,37 @@ class ResponseController extends Controller
 
     public function checkStatus(Request $request)
     {
-        $date = \Carbon\Carbon::today()->format('Y-m-d');
         $user = $request->user();
         $now = \Carbon\Carbon::now();
-
         $currentDay = AppSetting::get('current_day', 1);
+
+        $slots = SurveySlot::where('day', $currentDay)->get();
         $responses = SurveyResponse::where('user_id', $user->id)
             ->where('day', $currentDay)
             ->get()
             ->groupBy('period');
 
-        $result = $slots->map(function ($slot) use ($responses, $now) {
+        $activeQuestionsCount = SurveyQuestion::where('is_active', true)->count();
+
+        $result = $slots->map(function ($slot) use ($responses, $now, $activeQuestionsCount) {
             $start = \Carbon\Carbon::createFromFormat('H:i:s', $slot->start_time);
             $end = \Carbon\Carbon::createFromFormat('H:i:s', $slot->end_time);
-            if ($end->lessThanOrEqualTo($start)) { $end->addDay(); }
+            
+            // Handle cross-over midnight
+            if ($end->lessThanOrEqualTo($start)) {
+                $end->addDay();
+            }
+
+            // A slot is filled if the user has responded to all active questions for that period/day
+            $userResponsesForPeriod = $responses->get($slot->name, collect());
+            $isFilled = $userResponsesForPeriod->count() >= $activeQuestionsCount && $activeQuestionsCount > 0;
 
             return [
+                'id' => $slot->id,
                 'name' => $slot->name,
                 'start_time' => $slot->start_time,
                 'end_time' => $slot->end_time,
-                'is_filled' => isset($responses[$slot->name]),
+                'is_filled' => $isFilled,
                 'is_open' => $now->between($start, $end)
             ];
         });

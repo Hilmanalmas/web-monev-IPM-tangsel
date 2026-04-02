@@ -1,11 +1,11 @@
 <?php
 namespace App\Http\Controllers;
 
-use App\Models\WorshipSlot;
+use App\Models\GameSlot;
 use Illuminate\Http\Request;
 
-class AdminIbadahController extends Controller {
-    public function listSlots() { return response()->json(WorshipSlot::all()); }
+class AdminGameController extends Controller {
+    public function listSlots() { return response()->json(GameSlot::all()); }
     
     public function storeSlot(Request $request) {
         $data = $request->validate([
@@ -14,11 +14,11 @@ class AdminIbadahController extends Controller {
             'start_time' => 'required',
             'end_time' => 'required'
         ]);
-        return response()->json(WorshipSlot::create($data));
+        return response()->json(GameSlot::create($data));
     }
 
     public function destroySlot($id) {
-        WorshipSlot::findOrFail($id)->delete();
+        GameSlot::findOrFail($id)->delete();
         return response()->json(['message' => 'Slot deleted']);
     }
 }
