@@ -66,20 +66,20 @@ const ObserverDashboard = () => {
         try {
             if (tab === 'kognitif') {
                 const res = await axios.get(`/api/observer/peserta/${userId}/exams`);
-                setExamsData(res.data.exams);
-            } else if (tab === 'games' || tab === 'practice') {
+                setExamsData(res.data.exams || []);
+            } else if (tab === 'games' || tab === 'practice' || tab === 'ibadah') {
                 const res = await axios.get(`/api/observer/peserta/${userId}/games-practice`);
-                setGamesData(res.data.games);
-                setPracticeData(res.data.practice);
+                setGamesData(res.data.games || []);
+                setPracticeData(res.data.practice || []);
+                setIbadahData(res.data.ibadah || []);
             } else if (tab === 'absensi') {
                 const res = await axios.get(`/api/observer/peserta/${userId}/attendance`);
-                setAttendanceData(res.data.attendances);
-            } else if (tab === 'ibadah') {
-                const res = await axios.get(`/api/observer/peserta/${userId}/ibadah`);
-                setIbadahData(res.data.ibadah);
+                const attendances = res.data.attendances || [];
+                console.log('[DEBUG] Attendance data:', attendances);
+                setAttendanceData(attendances);
             }
         } catch(error) {
-            console.error(error);
+            console.error('[DEBUG] Tab fetch error:', error.response || error);
         } finally {
             setTabLoading(false);
         }
@@ -112,7 +112,7 @@ const ObserverDashboard = () => {
         if (!formNotes || !formScore) return alert('Nama/Keterangan dan nilai wajib diisi (0-100)');
         setSubmitStatus('submitting');
         let url = '';
-        if (type === 'game') url = '/api/observer/score/games';
+        if (type === 'games') url = '/api/observer/score/games';
         if (type === 'practice') url = '/api/observer/score/practice';
         if (type === 'ibadah') url = '/api/observer/score/worship';
 
@@ -305,17 +305,36 @@ const ObserverDashboard = () => {
                                     {/* ABSENSI (JEJAK WAJAH) */}
                                     {activeTab === 'absensi' && (
                                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                                            {attendanceData.length === 0 ? <p className="col-span-full text-center p-8 bg-white border rounded">Tidak ada rekaman selfie.</p> : 
-                                                attendanceData.map(att => (
-                                                    <div key={att.id} className="bg-white border rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition">
-                                                        <img src={att.selfie_url} className="w-full h-48 object-cover bg-gray-100" loading="lazy" />
-                                                        <div className="p-3 bg-gray-900 text-white text-center">
-                                                            <p className="font-bold text-sm tracking-widest text-amber-400 uppercase">{att.slot?.name || 'Absen'}</p>
-                                                            <p className="text-xs text-gray-400 mt-1">{new Date(att.recorded_at).toLocaleTimeString()}</p>
+                                            {attendanceData.length === 0 ? (
+                                                <div className="col-span-full text-center p-8 bg-white border rounded space-y-2">
+                                                    <p className="text-gray-400">Tidak ada rekaman selfie.</p>
+                                                    <p className="text-xs text-gray-300">Pastikan peserta sudah melakukan absensi.</p>
+                                                </div>
+                                            ) : (
+                                                attendanceData.map(att => {
+                                                    // Build correct image URL: handle base64, absolute URL, and relative paths
+                                                    let imgSrc = att.selfie_url || '';
+                                                    if (!imgSrc.startsWith('data:') && !imgSrc.startsWith('http')) {
+                                                        // It's a relative path like /storage/selfies/... or selfies/...
+                                                        imgSrc = imgSrc.startsWith('/') ? imgSrc : '/' + imgSrc;
+                                                    }
+                                                    return (
+                                                        <div key={att.id} className="bg-white border rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition">
+                                                            <img
+                                                                src={imgSrc}
+                                                                className="w-full h-48 object-cover bg-gray-100"
+                                                                loading="lazy"
+                                                                onError={(e) => { e.target.style.display='none'; e.target.parentNode.querySelector('.img-fallback').style.display='flex'; }}
+                                                            />
+                                                            <div className="img-fallback w-full h-48 bg-gray-100 items-center justify-center text-gray-400 text-xs" style={{display:'none'}}>Foto tidak tersedia</div>
+                                                            <div className="p-3 bg-gray-900 text-white text-center">
+                                                                <p className="font-bold text-sm tracking-widest text-amber-400 uppercase">{att.slot?.name || att.type || 'Absen'}</p>
+                                                                <p className="text-xs text-gray-400 mt-1">{att.recorded_at ? new Date(att.recorded_at).toLocaleString('id-ID') : ''}</p>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                ))
-                                            }
+                                                    );
+                                                })
+                                            )}
                                         </div>
                                     )}
 
