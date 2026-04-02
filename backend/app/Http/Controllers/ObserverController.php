@@ -124,6 +124,7 @@ class ObserverController extends Controller {
                 'submission_id' => $sub->id,
                 'exam_title' => $sub->exam->title,
                 'submitted_at' => $sub->submitted_at,
+                'participant_score' => $sub->score,
                 'answers' => $sub->answers,
                 'archetype' => $sub->archetype,
                 'observer_score' => isset($submissionScores[$sub->id]) ? $submissionScores[$sub->id]->score : null

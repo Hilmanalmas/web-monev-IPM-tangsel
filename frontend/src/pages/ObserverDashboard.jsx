@@ -311,7 +311,7 @@ const ObserverDashboard = () => {
                                                                  onClick={() => setExpandedExam(expandedExam === ex.submission_id ? null : ex.submission_id)}>
                                                                 <div>
                                                                     <div className="flex items-center gap-3">
-                                                                        <h4 className="font-black text-gray-800 uppercase tracking-tight">{ex.exam_title}</h4>
+                                                                        <h4 className="font-black text-gray-800 uppercase tracking-tight">{ex.exam_title} {ex.submission_id && <span className="text-indigo-600 ml-1">(Skor: {ex.participant_score})</span>}</h4>
                                                                         {ex.submission_id && (
                                                                             <span className={`text-[10px] px-2 py-0.5 rounded-full font-black text-white ${ex.archetype ? 'bg-purple-600' : 'bg-gray-400'}`}>
                                                                                 {ex.archetype || 'Hasil Skor'}
