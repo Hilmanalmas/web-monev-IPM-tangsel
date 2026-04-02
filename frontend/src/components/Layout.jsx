@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Home, Camera, ClipboardEdit, BookOpen, ShieldAlert, Users, Eye, ClipboardCheck, BarChart3, Gamepad2, Activity, Star, Instagram, Phone, Mail } from 'lucide-react';
+import { LogOut, Home, Camera, ClipboardEdit, BookOpen, ShieldAlert, Users, Eye, ClipboardCheck, BarChart3, Gamepad2, Activity, Star, Instagram, Phone, Mail, Youtube, Twitter, MapPin, Heart } from 'lucide-react';
 import logo from '../assets/logo-monev.png';
 import pdIpmLogo from '../assets/logo.png';
 
@@ -49,18 +49,18 @@ const Layout = ({ children }) => {
             {/* Sidebar (Desktop) */}
             <aside className="hidden md:flex flex-col w-64 bg-white border-r border-gray-100 fixed h-full shadow-sm z-10">
                 <div className="p-6 border-b border-gray-100 flex items-center gap-3">
-                    <img src={logo} alt="PD IPM Logo" className="h-10 w-10 object-contain"/>
+                    <img src={logo} alt="PD IPM Logo" className="h-10 w-10 object-contain" />
                     <div>
                         <span className="font-black text-gray-800 tracking-tight block leading-none">MONEV</span>
                         <span className="text-[10px] uppercase font-bold text-amber-500 tracking-wider">Pelajar Anggrek</span>
                     </div>
                 </div>
-                
+
                 <div className="p-4 flex-1 space-y-2 overflow-y-auto">
                     {navItems.map(item => (
-                        <Link 
-                            key={item.path} 
-                            to={item.path} 
+                        <Link
+                            key={item.path}
+                            to={item.path}
                             className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold transition-all ${location.pathname === item.path ? 'bg-amber-100 text-amber-600 shadow-sm transform scale-[1.02]' : 'text-gray-500 hover:bg-gray-50 hover:text-amber-500'}`}
                         >
                             {item.icon} {item.label}
@@ -83,47 +83,94 @@ const Layout = ({ children }) => {
             <main className="flex-1 md:ml-64 pb-24 md:pb-0 w-full min-h-screen flex flex-col">
                 <div className="md:hidden bg-white p-4 border-b border-gray-100 flex justify-between items-center shadow-sm sticky top-0 z-20">
                     <div className="flex items-center gap-2">
-                        <img src={logo} alt="PD IPM Logo" className="h-8 w-8 object-contain"/>
+                        <img src={logo} alt="PD IPM Logo" className="h-8 w-8 object-contain" />
                         <span className="font-black text-gray-800 tracking-tight">MONEV</span>
                     </div>
-                     <button onClick={handleLogout} className="text-red-500 p-2 bg-red-50 rounded-lg"><LogOut size={18}/></button>
+                    <button onClick={handleLogout} className="text-red-500 p-2 bg-red-50 rounded-lg"><LogOut size={18} /></button>
                 </div>
-                
+
                 <div className="p-4 md:p-8 w-full transition-all flex-1">
                     {children}
                 </div>
 
-                {/* Footer Section */}
-                <footer className="bg-amber-500 text-white p-8 mt-auto">
-                    <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-                        {/* Social & Logos */}
-                        <div className="flex items-center gap-6">
-                            <div className="flex gap-4 items-center">
-                                <img src={pdIpmLogo} alt="PD IPM" className="h-12 w-12 object-contain" />
-                                <img src={logo} alt="MONEV" className="h-12 w-12 object-contain" />
+                {/* Footer Section - New Professional Design */}
+                <footer className="bg-[#0f172a] text-gray-300 pt-16 pb-8 px-8">
+                    <div className="max-w-7xl mx-auto">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16 px-4">
+                            
+                            {/* Left Column: Mission */}
+                            <div className="space-y-8">
+                                <div className="flex gap-4 items-center">
+                                     <img src={pdIpmLogo} alt="PD IPM" className="h-14 w-auto object-contain" />
+                                     <img src={logo} alt="MONEV" className="h-14 w-auto object-contain" />
+                                </div>
+                                <p className="text-sm leading-relaxed text-gray-400 font-medium max-w-sm">
+                                    Ikatan Pelajar Muhammadiyah (IPM) Tangerang Selatan adalah organisasi pergerakan, dakwah amal makruf nahi mungkar yang beraqidah Islam, bersumber pada Al-Qur'an dan As-Sunnah di kalangan pelajar.
+                                </p>
+                                <div className="flex gap-4">
+                                    {[
+                                        { icon: <Instagram size={18}/>, link: '#' },
+                                        { icon: <Youtube size={18}/>, link: '#' },
+                                        { icon: <Twitter size={18}/>, link: '#' }
+                                    ].map((s, i) => (
+                                        <a key={i} href={s.link} className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-amber-500 hover:text-white transition-all">
+                                            {s.icon}
+                                        </a>
+                                    ))}
+                                </div>
                             </div>
-                            <div className="flex items-center gap-2 font-bold group">
-                                <Instagram className="group-hover:text-amber-200 transition-colors" size={20} />
-                                <span className="tracking-tight">@ipmtangsel</span>
+
+                            {/* Middle Column: Links */}
+                            <div className="md:pl-12">
+                                <h4 className="text-white font-black uppercase tracking-widest text-lg mb-8 relative inline-block">
+                                    Lainnya
+                                    <span className="absolute -bottom-2 left-0 w-12 h-1 bg-amber-500 rounded-full"></span>
+                                </h4>
+                                <ul className="space-y-4 font-bold text-gray-400">
+                                    {['Pendaftaran Kegiatan', 'Galeri Kegiatan', 'E-Voting'].map(link => (
+                                        <li key={link}>
+                                            <a href="#" className="hover:text-amber-500 flex items-center gap-2 transition-colors">
+                                                <span className="text-amber-500">→</span> {link}
+                                            </a>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+
+                            {/* Right Column: Contact */}
+                            <div>
+                                <h4 className="text-white font-black uppercase tracking-widest text-lg mb-8 relative inline-block">
+                                    Hubungi Kami
+                                    <span className="absolute -bottom-2 left-0 w-12 h-1 bg-amber-500 rounded-full"></span>
+                                </h4>
+                                <div className="space-y-6">
+                                    <div className="flex gap-4">
+                                        <MapPin className="text-amber-500 shrink-0" size={24} />
+                                        <p className="text-sm leading-relaxed font-medium">
+                                            Gedung Muhammadiyah Tangerang Selatan<br/>
+                                            Sekretariat: Jl. Desa Setu, Setu, Kec. Setu, Kota Tangerang Selatan, Banten 15314
+                                        </p>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <Phone className="text-amber-500 shrink-0" size={20} />
+                                        <span className="font-bold">+62 857 1192 1089</span>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <Mail className="text-amber-500 shrink-0" size={20} />
+                                        <span className="font-bold underline decoration-amber-500/30 underline-offset-4">pdipmtangsel@gmail.com</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        {/* Copyright Central */}
-                        <div className="text-center md:text-left space-y-1">
-                            <p className="font-black text-sm uppercase tracking-widest">© 2026 PD IPM Tangerang Selatan</p>
-                            <p className="text-[10px] text-amber-100 font-medium">Dikelola oleh Lembaga Media dan Komunikasi PD IPM Tangerang Selatan</p>
-                        </div>
-
-                        {/* Contact Info */}
-                        <div className="space-y-2 text-sm">
-                            <div className="flex items-center gap-3 font-bold justify-center md:justify-end">
-                                <Phone size={16} className="text-amber-100" />
-                                <span>Contact Person: 0857-1192-1089</span>
-                            </div>
-                            <div className="flex items-center gap-3 font-medium justify-center md:justify-end text-amber-50">
-                                <Mail size={16} />
-                                <span>pdipmtangsel@gmail.com</span>
-                            </div>
+                        {/* Bottom Copyright */}
+                        <div className="pt-8 border-t border-gray-800 text-center space-y-4 px-4">
+                            <p className="text-xs font-bold text-gray-500 tracking-wide">
+                                © 2026 Pimpinan Daerah IPM Tangerang Selatan | Dikelola oleh Lembaga Media & Komunikasi IPM Tangerang Selatan
+                            </p>
+                            <p className="text-[11px] text-gray-600 flex items-center justify-center gap-1.5 font-bold uppercase tracking-tighter">
+                                Designed with <Heart size={10} className="text-red-500 fill-red-500" /> for <span className="text-amber-500">Pelajar Anggrek.</span>
+                            </p>
                         </div>
                     </div>
                 </footer>
@@ -132,8 +179,8 @@ const Layout = ({ children }) => {
             {/* Bottom Nav (Mobile) */}
             <nav className="md:hidden fixed bottom-0 w-full bg-white border-t border-gray-100 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)] z-20 flex justify-around p-2 pb-safe">
                 {navItems.map(item => (
-                    <Link 
-                        key={item.path} 
+                    <Link
+                        key={item.path}
                         to={item.path}
                         className={`flex flex-col items-center p-2 rounded-xl transition-all ${location.pathname === item.path ? 'text-amber-500 font-bold bg-amber-50' : 'text-gray-400 font-medium'}`}
                     >
