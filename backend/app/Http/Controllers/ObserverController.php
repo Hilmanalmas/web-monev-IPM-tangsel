@@ -105,33 +105,65 @@ class ObserverController extends Controller {
         return response()->json(['attendances' => $attendances]);
     }
 
-    public function getPesertaExams($id) {
-        $submissions = ExamSubmission::where('user_id', $id)->with('exam', 'answers.question')->get();
-        $scores = CognitiveScore::where('user_id', $id)->get()->keyBy('exam_submission_id');
+    public function getPesertaExams(Request $request, $id) {
+        $day = $request->query('day');
+        $submissions = ExamSubmission::where('user_id', $id)
+            ->where('day', $day)
+            ->with('exam', 'answers.question')
+            ->get();
         
-        $mapped = $submissions->map(function($sub) use ($scores) {
+        $allScores = CognitiveScore::where('user_id', $id)
+            ->where('day', $day)
+            ->get();
+
+        $submissionScores = $allScores->whereNotNull('exam_submission_id')->keyBy('exam_submission_id');
+        $manualScores = $allScores->whereNull('exam_submission_id');
+        
+        $mapped = $submissions->map(function($sub) use ($submissionScores) {
             return [
                 'submission_id' => $sub->id,
                 'exam_title' => $sub->exam->title,
                 'submitted_at' => $sub->submitted_at,
                 'answers' => $sub->answers,
-                'observer_score' => $scores->has($sub->id) ? $scores[$sub->id]->score : null
+                'observer_score' => isset($submissionScores[$sub->id]) ? $submissionScores[$sub->id]->score : null
             ];
         });
+
+        // Append manual scores
+        foreach ($manualScores as $ms) {
+            $mapped->push([
+                'submission_id' => null,
+                'exam_title' => $ms->notes ?: 'Hasil Tes Kognitif Manual',
+                'submitted_at' => $ms->created_at,
+                'answers' => [],
+                'observer_score' => $ms->score
+            ]);
+        }
+
         return response()->json(['exams' => $mapped]);
     }
 
     public function storeCognitiveScore(Request $request) {
         $data = $request->validate([
             'user_id' => 'required',
-            'exam_submission_id' => 'required',
-            'score' => 'required|integer|min:0|max:100'
+            'exam_submission_id' => 'nullable',
+            'score' => 'required|integer|min:0|max:100',
+            'notes' => 'nullable|string'
         ]);
 
-        $score = CognitiveScore::updateOrCreate(
-            ['user_id' => $data['user_id'], 'exam_submission_id' => $data['exam_submission_id']],
-            ['observer_id' => Auth::id(), 'score' => $data['score']]
-        );
+        $currentDay = AppSetting::get('current_day', 1);
+
+        // For manual input (null submission_id), we use updateOrCreate with user_id + maybe notes? 
+        // Or just allow multiple manual scores per day.
+        $score = CognitiveScore::create([
+            'user_id' => $data['user_id'],
+            'exam_submission_id' => $data['exam_submission_id'],
+            'observer_id' => Auth::id(),
+            'score' => $data['score'],
+            'notes' => $data['notes'],
+            'day' => $currentDay
+        ]);
+
         return response()->json($score);
     }
 

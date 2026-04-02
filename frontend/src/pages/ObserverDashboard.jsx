@@ -117,13 +117,15 @@ const ObserverDashboard = () => {
         }
     };
 
-    const submitCognitive = async (submissionId) => {
+    const submitCognitive = async (submissionId = null) => {
+        if (!formScore) return alert('Nilai wajib diisi (0-100)');
         setSubmitStatus('submitting');
         try {
             await axios.post('/api/observer/score/cognitive', {
                 user_id: selectedUser.id,
                 exam_submission_id: submissionId,
-                score: formScore
+                score: formScore,
+                notes: submissionId ? null : formNotes // Use notes as test name for manual input
             });
             setSubmitStatus('success');
             setTimeout(() => fetchTabData(selectedUser.id, 'kognitif'), 1000);
@@ -268,47 +270,61 @@ const ObserverDashboard = () => {
                                     {/* KOGNITIF */}
                                     {activeTab === 'kognitif' && (
                                         <>
-                                            <p className="text-gray-500 mb-4 font-medium italic">Menampilkan hasil ujian target pada Hari {selectedDay}.</p>
-                                            {examsData.length === 0 ? <div className="p-12 text-center bg-white rounded-2xl border-2 border-dashed border-gray-200 text-gray-400 font-bold">Belum ada ujian yang dikerjakan hari ini.</div> : 
-                                                examsData.map(ex => (
-                                                    <div key={ex.submission_id} className="bg-white p-6 rounded-2xl border shadow-sm space-y-4 hover:border-indigo-200 transition-colors">
-                                                        <div className="flex justify-between items-start">
-                                                            <div>
-                                                                <h4 className="font-black text-xl text-gray-800 uppercase tracking-tight">{ex.exam_title}</h4>
-                                                                <p className="text-xs text-gray-400 font-mono mt-1">Disubmit: {new Date(ex.submitted_at).toLocaleString('id-ID')}</p>
-                                                            </div>
-                                                            <div className="bg-indigo-50 px-4 py-3 rounded-2xl border-2 border-indigo-100 flex items-center gap-4">
-                                                                <span className="font-black text-indigo-800 text-xs">NILAI KOGNITIF:</span>
-                                                                {ex.observer_score !== null ? (
-                                                                     <span className="text-3xl font-black text-indigo-600">{ex.observer_score}</span>
-                                                                ) : (
-                                                                    scoringId === ex.submission_id ? (
-                                                                        <div className="flex items-center gap-2">
-                                                                            <input type="number" min="0" max="100" className="w-20 p-2 border-2 border-indigo-300 rounded-xl text-center font-black text-lg focus:ring-0" value={formScore} onChange={e=>setFormScore(e.target.value)}/>
-                                                                            <button disabled={submitStatus === 'submitting'} onClick={() => submitCognitive(ex.submission_id)} className="bg-green-500 text-white p-2 rounded-xl hover:bg-green-600 transition-colors"><CheckCircle size={24}/></button>
-                                                                        </div>
-                                                                    ) : (
-                                                                        <button onClick={() => { setScoringId(ex.submission_id); setFormScore(''); }} className="bg-indigo-600 text-white px-5 py-2 rounded-xl font-black hover:bg-indigo-700 transition-all active:scale-95 shadow-md shadow-indigo-100">INPUT NILAI</button>
-                                                                    )
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                        
-                                                        {/* Answers Spoilers */}
-                                                        <div className="mt-4 border-t-2 border-gray-50 pt-4 space-y-4">
-                                                            <h5 className="font-black text-gray-400 text-[10px] uppercase tracking-widest pl-1">Rekaman Jawaban Target:</h5>
-                                                            {ex.answers?.map((ans, i) => (
-                                                                <div key={ans.id} className="bg-gray-50/50 p-4 rounded-xl border border-gray-100 text-sm hover:bg-white transition-colors">
-                                                                    <p className="font-bold text-gray-800 mb-2 leading-tight"><span className="text-indigo-300 mr-2">Q{i+1}</span>{ans.question?.question_text}</p>
-                                                                    <div className="text-indigo-700 font-medium pl-6 border-l-2 border-indigo-200 italic">
-                                                                         {ans.user_answer}
-                                                                    </div>
-                                                                </div>
-                                                            ))}
-                                                        </div>
+                                            <div className="bg-amber-50 border-2 border-amber-200 p-6 rounded-3xl mb-8 flex flex-col md:flex-row gap-6 items-center">
+                                                <div className="bg-amber-100 p-4 rounded-2xl text-amber-600"><BookOpen size={30}/></div>
+                                                <div className="flex-1">
+                                                    <h4 className="font-black text-gray-800 uppercase tracking-tight">Input Nilai Kognitif Manual</h4>
+                                                    <p className="text-xs text-amber-800 font-medium opacity-70">Gunakan form ini jika nilai diambil dari tes luar website (Tes Offline/Tertulis).</p>
+                                                </div>
+                                                <div className="flex gap-4 w-full md:w-auto items-end">
+                                                    <div className="flex-1 md:w-48">
+                                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 block">Nama Tes (Opsional)</label>
+                                                        <input type="text" placeholder="Misal: Pre-test Tertulis" className="w-full p-3 border-2 border-white rounded-xl outline-none focus:border-amber-400 font-bold bg-white/50" 
+                                                               value={formNotes} onChange={e=>setFormNotes(e.target.value)}/>
                                                     </div>
-                                                ))
-                                            }
+                                                    <div className="w-24">
+                                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 block">Skor</label>
+                                                        <input type="number" min="0" max="100" placeholder="0" className="w-full p-3 border-2 border-white rounded-xl outline-none focus:border-amber-400 font-black text-center text-lg bg-white/50" 
+                                                               value={formScore} onChange={e=>setFormScore(e.target.value)}/>
+                                                    </div>
+                                                    <button onClick={() => submitCognitive(null)} disabled={submitStatus === 'submitting'}
+                                                            className="bg-amber-500 text-white px-6 py-3.5 rounded-xl font-black hover:bg-amber-600 transition-all shadow-lg shadow-amber-200">
+                                                        SIMPAN
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-4">
+                                                <h5 className="font-black text-gray-400 text-[10px] uppercase tracking-widest pl-2">Riwayat Nilai Kognitif (Hari {selectedDay})</h5>
+                                                {examsData.length === 0 ? (
+                                                    <div className="p-12 text-center bg-white rounded-2xl border-2 border-dashed border-gray-200 text-gray-400 font-bold italic">
+                                                        Belum ada rekam jejak nilai kognitif untuk hari ini.
+                                                    </div>
+                                                ) : (
+                                                    examsData.map((ex, idx) => (
+                                                        <div key={idx} className="bg-white p-5 rounded-2xl border shadow-sm flex justify-between items-center group hover:border-indigo-200 transition-all">
+                                                            <div>
+                                                                <h4 className="font-black text-gray-800 uppercase tracking-tight">{ex.exam_title}</h4>
+                                                                <p className="text-[10px] text-gray-400 font-mono italic">
+                                                                    {new Date(ex.submitted_at).toLocaleString('id-ID', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'})} 
+                                                                    {ex.submission_id ? ' (Online Exam)' : ' (Manual Entry)'}
+                                                                </p>
+                                                            </div>
+                                                            <div className="flex items-center gap-4">
+                                                                {ex.submission_id && ex.observer_score === null && (
+                                                                    <div className="flex items-center gap-2">
+                                                                        <input type="number" min="0" max="100" placeholder="Skor" className="w-20 p-2 border-2 border-indigo-100 rounded-xl text-center font-black" value={formScore} onChange={e=>setFormScore(e.target.value)}/>
+                                                                        <button onClick={() => submitCognitive(ex.submission_id)} className="bg-indigo-600 text-white p-2 rounded-xl"><CheckCircle size={20}/></button>
+                                                                    </div>
+                                                                )}
+                                                                <span className={`w-14 h-14 flex items-center justify-center rounded-2xl font-black text-2xl shadow-md ${ex.submission_id ? 'bg-indigo-600 text-white' : 'bg-amber-500 text-white'}`}>
+                                                                    {ex.observer_score}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    ))
+                                                )}
+                                            </div>
                                         </>
                                     )}
 
