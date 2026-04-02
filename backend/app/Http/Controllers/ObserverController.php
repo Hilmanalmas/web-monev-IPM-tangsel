@@ -28,8 +28,8 @@ class ObserverController extends Controller {
             $rawPath = substr($rawPath, strlen('public/'));
         }
 
-        // Use PHP-served endpoint to bypass Nginx 403 cross-container permission issues
-        return '/api/selfie/' . $rawPath;
+        // Use query-param-based endpoint to bypass Nginx static file intercept
+        return '/api/media?path=' . urlencode($rawPath);
     }
 
     public function getPesertaList() {

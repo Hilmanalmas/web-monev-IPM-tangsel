@@ -4,24 +4,27 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [\App\Http\Controllers\AuthController::class, 'login']);
 
+// Public selfie endpoint — no auth required, uses query param to avoid Nginx static-file intercept
+Route::get('/media', function (\Illuminate\Http\Request $request) {
+    $path = $request->query('path', '');
+    // Security: only allow files within selfies/ directory, block traversal
+    if (!$path || !str_starts_with($path, 'selfies/') || str_contains($path, '..')) {
+        abort(403, 'Access denied');
+    }
+    $fullPath = storage_path('app/public/' . $path);
+    if (!file_exists($fullPath)) {
+        abort(404, 'File not found');
+    }
+    $mimeType = mime_content_type($fullPath) ?: 'image/jpeg';
+    return response()->file($fullPath, [
+        'Content-Type' => $mimeType,
+        'Cache-Control' => 'public, max-age=86400',
+    ]);
+});
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [\App\Http\Controllers\AuthController::class, 'me']);
     Route::post('/logout', [\App\Http\Controllers\AuthController::class, 'logout']);
-
-    // Serve selfie images through PHP to bypass Nginx 403 cross-container permission issues
-    Route::get('/selfie/{path}', function ($path) {
-        $path = ltrim($path, '/');
-        // Security: only allow files within selfies/ directory
-        if (!str_starts_with($path, 'selfies/') || str_contains($path, '..')) {
-            abort(403);
-        }
-        $fullPath = storage_path('app/public/' . $path);
-        if (!file_exists($fullPath)) {
-            abort(404);
-        }
-        $mimeType = mime_content_type($fullPath) ?: 'image/jpeg';
-        return response()->file($fullPath, ['Content-Type' => $mimeType, 'Cache-Control' => 'public, max-age=86400']);
-    })->where('path', '.*');
 
     // --- PESERTA ROUTES ---
     Route::get('/peserta/dashboard', [\App\Http\Controllers\PesertaController::class, 'dashboard']);

@@ -1,40 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Eye, Search, Target, Camera, BookOpen, Activity, Play, Star, CheckCircle, RefreshCcw, Loader2 } from 'lucide-react';
-
-// AuthImage: loads an authenticated image via axios (supports Bearer token)
-const AuthImage = ({ src, alt, className, fallbackClass }) => {
-    const [blobUrl, setBlobUrl] = useState(null);
-    const [failed, setFailed] = useState(false);
-    const prevUrl = useRef(null);
-
-    useEffect(() => {
-        if (!src) { setFailed(true); return; }
-        // If it's base64 or external http, use directly
-        if (src.startsWith('data:') || (src.startsWith('http') && !src.includes(window.location.hostname))) {
-            setBlobUrl(src);
-            return;
-        }
-        let cancelled = false;
-        setBlobUrl(null); setFailed(false);
-        axios.get(src, { responseType: 'blob' })
-            .then(res => {
-                if (cancelled) return;
-                const url = URL.createObjectURL(res.data);
-                setBlobUrl(url);
-                prevUrl.current = url;
-            })
-            .catch(() => { if (!cancelled) setFailed(true); });
-        return () => {
-            cancelled = true;
-            if (prevUrl.current) URL.revokeObjectURL(prevUrl.current);
-        };
-    }, [src]);
-
-    if (failed) return <div className={fallbackClass || 'flex items-center justify-center text-xs text-gray-400'}>Foto tidak tersedia</div>;
-    if (!blobUrl) return <div className={fallbackClass || 'flex items-center justify-center text-xs text-gray-400'}><Loader2 size={20} className="animate-spin text-gray-300"/></div>;
-    return <img src={blobUrl} alt={alt} className={className} />;
-};
 
 const ObserverDashboard = () => {
     const [pesertaList, setPesertaList] = useState([]);
@@ -207,7 +173,7 @@ const ObserverDashboard = () => {
                         <div key={user.id} onClick={() => openDetail(user)} className="bg-white border rounded-2xl p-5 hover:border-indigo-400 hover:shadow-lg transition-all cursor-pointer flex gap-4 items-center group">
                             <div className="h-16 w-16 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center shrink-0 border">
                                 {user.first_selfie ? (
-                                    <AuthImage src={user.first_selfie} alt={user.name} className="w-full h-full object-cover" fallbackClass="w-full h-full flex items-center justify-center"><Camera className="text-gray-300" size={28}/></AuthImage>
+                                    <img src={user.first_selfie} alt={user.name} className="w-full h-full object-cover" onError={(e)=>{e.target.style.display='none'}}/>
                                 ) : (
                                     <Camera className="text-gray-300" size={28}/>
                                 )}
@@ -230,7 +196,7 @@ const ObserverDashboard = () => {
                         <div className="bg-indigo-600 px-6 py-4 text-white flex justify-between items-center shrink-0">
                             <div className="flex items-center gap-4">
                                 {selectedUser.first_selfie && (
-                                    <AuthImage src={selectedUser.first_selfie} className="w-12 h-12 rounded-lg object-cover border-2 border-indigo-400" fallbackClass="w-12 h-12 rounded-lg bg-indigo-700 flex items-center justify-center" />
+                                    <img src={selectedUser.first_selfie} className="w-12 h-12 rounded-lg object-cover border-2 border-indigo-400" onError={(e)=>{e.target.style.display='none'}}/>
                                 )}
                                 <div>
                                     <h3 className="text-xl font-bold">{selectedUser.name}</h3>
@@ -347,13 +313,14 @@ const ObserverDashboard = () => {
                                             ) : (
                                                 attendanceData.map(att => (
                                                         <div key={att.id} className="bg-white border rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition">
-                                                            <div className="w-full h-48 bg-gray-100">
-                                                                <AuthImage
+                                                            <div className="w-full h-48 bg-gray-100 relative">
+                                                                <img
                                                                     src={att.selfie_url}
                                                                     alt="selfie"
                                                                     className="w-full h-48 object-cover"
-                                                                    fallbackClass="w-full h-48 flex items-center justify-center text-gray-400 text-xs bg-gray-100"
+                                                                    onError={(e) => { e.target.style.display='none'; }}
                                                                 />
+                                                                <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-xs -z-0">Foto tidak tersedia</div>
                                                             </div>
                                                             <div className="p-3 bg-gray-900 text-white text-center">
                                                                 <p className="font-bold text-sm tracking-widest text-amber-400 uppercase">{att.slot?.name || att.type || 'Absen'}</p>
