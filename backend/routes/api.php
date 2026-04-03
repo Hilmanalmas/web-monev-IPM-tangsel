@@ -60,7 +60,7 @@ Route::middleware('auth:sanctum')->group(function () {
             // Ambil Detail Target
             $target = \Illuminate\Support\Facades\DB::table('users')
                 ->where('id', $mapping->target_id)
-                ->select('id', 'name', 'email', 'nip', 'asal_instansi')
+                ->select('id', 'name', 'nip', 'asal_instansi')
                 ->first();
 
             if (!$target) {
