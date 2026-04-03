@@ -4,6 +4,8 @@ import { BookOpen, Plus, Trash2, Clock, HelpCircle, Settings, Edit3, Save, X } f
 
 const AdminExams = () => {
     const [exams, setExams] = useState([]);
+    const [users, setUsers] = useState([]);
+    const [resetForm, setResetForm] = useState({ user_id: '', exam_id: '' });
     
     // Forms and Visibility
     const [isCreatingOrEditing, setIsCreatingOrEditing] = useState(false);
@@ -16,11 +18,34 @@ const AdminExams = () => {
 
     useEffect(() => {
         fetchExams();
+        fetchUsers();
     }, []);
 
     const fetchExams = async () => {
         const res = await axios.get('/api/admin/exams');
         setExams(res.data);
+    };
+
+    const fetchUsers = async () => {
+        try {
+            const res = await axios.get('/api/admin/users');
+            const list = res.data.users || res.data;
+            setUsers(list.filter(u => u.role === 'peserta'));
+        } catch (err) { console.error(err); }
+    };
+
+    const handleResetExam = async () => {
+        if (!resetForm.user_id || !resetForm.exam_id) return alert("Pilih peserta dan ujian!");
+        const userName = users.find(u => u.id == resetForm.user_id)?.name;
+        const examTitle = exams.find(e => e.id == resetForm.exam_id)?.title;
+        if (window.confirm(`⚠️ RESET UJIAN: Hapus seluruh jawaban ${userName} untuk ${examTitle}? Peserta bisa ujian ulang dari awal.`)) {
+            try {
+                await axios.post('/api/admin/exams/reset', resetForm);
+                alert("Pengerjaan ujian berhasil direset!");
+            } catch (err) {
+                alert("Gagal: " + (err.response?.data?.error || err.message));
+            }
+        }
     };
 
     // Format datetime string for HTML input
@@ -368,10 +393,64 @@ const AdminExams = () => {
 
                     {/* Placeholder when nothing is selected */}
                     {!isCreatingOrEditing && !editingQuestionsExam && (
-                        <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-gray-700 border-2 border-dashed border-gray-800/50 rounded-3xl p-10">
-                            <HelpCircle size={60} className="mb-4 opacity-10" />
-                            <p className="text-lg">Buat atau pilih salah satu tes di panel kiri untuk mulai mengelola.</p>
-                            <p className="text-sm mt-2 font-mono">Tips: Arahkan kursor ke tes untuk melihat opsi Edit & Hapus.</p>
+                        <div className="space-y-10 animate-in fade-in duration-700">
+                            {/* RESET PANEL - CRITICAL TROUBLESHOOTING */}
+                            <div className="bg-gradient-to-br from-red-600/10 to-amber-600/5 border border-red-500/20 rounded-[2rem] p-10 shadow-2xl relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:opacity-10 transition-opacity">
+                                    <Trash2 size={120} className="rotate-12" />
+                                </div>
+
+                                <div className="flex items-center gap-4 mb-8">
+                                    <div className="p-4 bg-red-600 rounded-2xl shadow-xl shadow-red-600/30">
+                                        <Trash2 className="text-white" size={24} />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Reset Pengerjaan Peserta</h3>
+                                        <div className="h-1 w-20 bg-red-600 mt-1 rounded-full"></div>
+                                    </div>
+                                </div>
+
+                                <p className="text-sm text-gray-400 mb-10 max-w-xl leading-relaxed">
+                                    Fitur ini menghapus seluruh data jawaban dan skor peserta untuk ujian tertentu. Gunakan jika peserta mengalami kendala teknis dan harus mengulang dari awal. <span className="text-red-400 font-bold">Tindakan ini tidak dapat dibatalkan.</span>
+                                </p>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-end">
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-2 block ml-1">Pilih Peserta:</label>
+                                        <select 
+                                            className="w-full bg-black/60 border border-gray-800 rounded-2xl p-5 text-white font-bold outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 appearance-none cursor-pointer transition-all hover:bg-black/80"
+                                            value={resetForm.user_id} onChange={e=>setResetForm({...resetForm, user_id: e.target.value})}
+                                        >
+                                            <option value="">-- Cari Nama Peserta --</option>
+                                            {users.map(u => <option key={u.id} value={u.id}>{u.name} ({u.nip || '-'})</option>)}
+                                        </select>
+                                    </div>
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-2 block ml-1">Pilih Judul Ujian:</label>
+                                        <select 
+                                            className="w-full bg-black/60 border border-gray-800 rounded-2xl p-5 text-white font-bold outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 appearance-none cursor-pointer transition-all hover:bg-black/80"
+                                            value={resetForm.exam_id} onChange={e=>setResetForm({...resetForm, exam_id: e.target.value})}
+                                        >
+                                            <option value="">-- Pilih Ujian Terdaftar --</option>
+                                            {exams.map(ex => <option key={ex.id} value={ex.id}>{ex.title} (Hari {ex.day})</option>)}
+                                        </select>
+                                    </div>
+                                    <div className="md:col-span-2">
+                                        <button 
+                                            onClick={handleResetExam}
+                                            disabled={!resetForm.user_id || !resetForm.exam_id}
+                                            className="w-full h-16 bg-red-600 hover:bg-red-500 disabled:bg-gray-800/50 disabled:text-gray-600 text-white font-black rounded-2xl transition-all shadow-lg shadow-red-600/20 active:scale-[0.98] uppercase tracking-[0.2em] text-xs flex items-center justify-center gap-3 border border-red-500/30"
+                                        >
+                                            <Trash2 size={18} /> Eksekusi Reset Seluruh Jawaban
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="h-full min-h-[200px] flex flex-col items-center justify-center text-gray-800 border-2 border-dashed border-gray-800/30 rounded-[2rem] p-10 opacity-40">
+                                <HelpCircle size={40} className="mb-4" />
+                                <p className="text-sm font-bold tracking-tight">Pilih salah satu ujian di panel kiri untuk mulai mengelola butir soal.</p>
+                            </div>
                         </div>
                     )}
                 </div>

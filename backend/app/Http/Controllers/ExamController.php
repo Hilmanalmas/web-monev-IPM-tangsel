@@ -93,6 +93,23 @@ class ExamController extends Controller {
             'archetype' => $archetype
         ]);
 
+        // Real-time synchronization to Spreadsheet
+        try {
+            $user = $request->user();
+            \App\Services\SpreadsheetService::postScore([
+                'name'     => $user->name,
+                'nip'      => $user->nip,
+                'instansi' => $user->asal_instansi,
+                'category' => 'KOGNITIF',
+                'title'    => $exam->title,
+                'score'    => $score,
+                'day'      => $currentDay,
+                'notes'    => $archetype ? "Archetype: $archetype" : ""
+            ]);
+        } catch (\Exception $e) {
+            // Silently fail to not block user experience
+        }
+
         return response()->json([
             'message' => 'Ujian berhasil dikumpulkan',
             'score' => $exam->show_result ? $score : null,

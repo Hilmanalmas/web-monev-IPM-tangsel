@@ -45,6 +45,26 @@ class ResponseController extends Controller
                 );
             }
 
+            // Sync to Spreadsheet
+            try {
+                $user = $request->user();
+                $target = \App\Models\User::find($data['target_id']);
+                
+                // Calculate average for this specific period submission
+                $avgScore = collect($data['responses'])->avg('answer');
+                
+                \App\Services\SpreadsheetService::postScore([
+                    'name'     => $user->name,
+                    'nip'      => $user->nip,
+                    'instansi' => $user->asal_instansi,
+                    'category' => 'MANITO',
+                    'title'    => "Penilaian " . $data['period'],
+                    'score'    => number_format($avgScore, 2),
+                    'day'      => $currentDay,
+                    'notes'    => "Menilai: " . ($target->name ?? 'Unknown')
+                ]);
+            } catch (\Exception $e) {}
+
             return response()->json(['message' => 'Penilaian Manito berhasil disimpan']);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);

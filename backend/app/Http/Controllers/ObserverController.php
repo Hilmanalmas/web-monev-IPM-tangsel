@@ -188,6 +188,21 @@ class ObserverController extends Controller {
             'day' => $currentDay
         ]);
 
+        // Sync to Spreadsheet
+        try {
+            $user = User::find($data['user_id']);
+            \App\Services\SpreadsheetService::postScore([
+                'name'     => $user->name,
+                'nip'      => $user->nip,
+                'instansi' => $user->asal_instansi,
+                'category' => 'KOGNITIF (MANUAL)',
+                'title'    => $data['notes'] ?: 'Input Manual Pengawas',
+                'score'    => $data['score'],
+                'day'      => $currentDay,
+                'notes'    => 'Diinput oleh Pengawas'
+            ]);
+        } catch (\Exception $e) {}
+
         return response()->json($score);
     }
 
@@ -234,6 +249,22 @@ class ObserverController extends Controller {
             ['user_id' => $data['user_id'], 'slot_id' => $data['slot_id'], 'day' => $slot->day],
             ['observer_id' => Auth::id(), 'score' => $data['score'], 'notes' => $data['notes'] ?? $slot->name]
         );
+
+        // Sync to Spreadsheet
+        try {
+            $user = User::find($data['user_id']);
+            \App\Services\SpreadsheetService::postScore([
+                'name'     => $user->name,
+                'nip'      => $user->nip,
+                'instansi' => $user->asal_instansi,
+                'category' => 'GAMES',
+                'title'    => $slot->name,
+                'score'    => $data['score'],
+                'day'      => $slot->day,
+                'notes'    => $data['notes'] ?? ''
+            ]);
+        } catch (\Exception $e) {}
+
         return response()->json($score);
     }
 
@@ -251,6 +282,22 @@ class ObserverController extends Controller {
             ['user_id' => $data['user_id'], 'slot_id' => $data['slot_id'], 'day' => $slot->day],
             ['observer_id' => Auth::id(), 'score' => $data['score'], 'notes' => $data['notes'] ?? $slot->name]
         );
+
+        // Sync to Spreadsheet
+        try {
+            $user = User::find($data['user_id']);
+            \App\Services\SpreadsheetService::postScore([
+                'name'     => $user->name,
+                'nip'      => $user->nip,
+                'instansi' => $user->asal_instansi,
+                'category' => 'PRAKTEK',
+                'title'    => $slot->name,
+                'score'    => $data['score'],
+                'day'      => $slot->day,
+                'notes'    => $data['notes'] ?? ''
+            ]);
+        } catch (\Exception $e) {}
+
         return response()->json($score);
     }
 
@@ -268,6 +315,22 @@ class ObserverController extends Controller {
             ['user_id' => $data['user_id'], 'slot_id' => $data['slot_id'], 'day' => $slot->day],
             ['observer_id' => Auth::id(), 'score' => $data['score'], 'notes' => $data['notes'] ?? $slot->name]
         );
+
+        // Sync to Spreadsheet
+        try {
+            $user = User::find($data['user_id']);
+            \App\Services\SpreadsheetService::postScore([
+                'name'     => $user->name,
+                'nip'      => $user->nip,
+                'instansi' => $user->asal_instansi,
+                'category' => 'IBADAH',
+                'title'    => $slot->name,
+                'score'    => $data['score'],
+                'day'      => $slot->day,
+                'notes'    => $data['notes'] ?? ''
+            ]);
+        } catch (\Exception $e) {}
+
         return response()->json($score);
     }
 }

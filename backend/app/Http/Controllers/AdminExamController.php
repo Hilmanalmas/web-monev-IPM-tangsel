@@ -102,4 +102,31 @@ class AdminExamController extends Controller {
 
         return response()->json(['message' => 'Questions updated successfully', 'exam' => $exam->load('questions')]);
     }
+
+    public function resetSubmission(Request $request) {
+        $data = $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'exam_id' => 'required|exists:exams,id',
+        ]);
+
+        $submission = \App\Models\ExamSubmission::where('user_id', $data['user_id'])
+            ->where('exam_id', $data['exam_id'])
+            ->first();
+
+        if (!$submission) {
+            return response()->json(['error' => 'Data ujian tidak ditemukan'], 404);
+        }
+
+        // Delete answers and the submission
+        \App\Models\ExamAnswer::where('submission_id', $submission->id)->delete();
+        $submission->delete();
+
+        // Also delete from cognitive_scores if exists
+        \Illuminate\Support\Facades\DB::table('cognitive_scores')
+            ->where('user_id', $data['user_id'])
+            ->where('exam_submission_id', $submission->id)
+            ->delete();
+
+        return response()->json(['message' => 'Pengerjaan ujian berhasil direset!']);
+    }
 }
