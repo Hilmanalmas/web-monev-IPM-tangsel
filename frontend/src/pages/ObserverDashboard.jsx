@@ -309,14 +309,14 @@ const ObserverDashboard = () => {
                                                         <div key={idx} className="flex flex-col gap-2">
                                                             <div className="bg-white p-5 rounded-2xl border shadow-sm flex justify-between items-center group hover:border-indigo-200 transition-all cursor-pointer" 
                                                                  onClick={() => setExpandedExam(expandedExam === ex.submission_id ? null : ex.submission_id)}>
-                                                                <div>
-                                                                    <div className="flex items-center gap-3">
-                                                                        <h4 className="font-black text-gray-800 uppercase tracking-tight">{ex.exam_title} {ex.submission_id && <span className="text-indigo-600 ml-1">(Skor: {ex.participant_score})</span>}</h4>
+                                                                    <div className="flex flex-col md:flex-row md:items-center gap-3">
+                                                                        <h4 className="font-black text-gray-800 uppercase tracking-tight">{ex.exam_title} {ex.submission_id && <span className="text-indigo-600 ml-1">(Nilai Peserta: {ex.participant_score})</span>}</h4>
                                                                         {ex.submission_id && (
                                                                             <span className={`text-[10px] px-2 py-0.5 rounded-full font-black text-white ${ex.archetype ? 'bg-purple-600' : 'bg-gray-400'}`}>
                                                                                 {ex.archetype || 'Hasil Skor'}
                                                                             </span>
                                                                         )}
+                                                                        <span className="text-[10px] font-black text-indigo-500 animate-pulse uppercase tracking-widest hidden md:inline">• KLIK UNTUK DETAIL JAWABAN</span>
                                                                     </div>
                                                                     <p className="text-[10px] text-gray-400 font-mono italic">
                                                                         {new Date(ex.submitted_at).toLocaleString('id-ID', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'})} 
@@ -327,12 +327,15 @@ const ObserverDashboard = () => {
                                                                     {ex.submission_id && ex.observer_score === null && (
                                                                         <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
                                                                             <input type="number" min="0" max="100" placeholder="Skor" className="w-20 p-2 border-2 border-indigo-100 rounded-xl text-center font-black" value={formScore} onChange={e=>setFormScore(e.target.value)}/>
-                                                                            <button onClick={() => submitCognitive(ex.submission_id)} className="bg-indigo-600 text-white p-2 rounded-xl"><CheckCircle size={20}/></button>
+                                                                            <button onClick={() => submitCognitive(ex.submission_id)} className="bg-indigo-600 text-white p-2 rounded-xl" title="Simpan Nilai Pengawas"><CheckCircle size={20}/></button>
                                                                         </div>
                                                                     )}
-                                                                    <span className={`w-14 h-14 flex items-center justify-center rounded-2xl font-black text-2xl shadow-md ${ex.submission_id ? 'bg-indigo-600 text-white' : 'bg-amber-500 text-white'}`}>
-                                                                        {ex.observer_score}
-                                                                    </span>
+                                                                    <div className="text-right flex flex-col items-end">
+                                                                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-tighter mb-0.5">Skor Pengawas</label>
+                                                                        <span className={`w-14 h-14 flex items-center justify-center rounded-2xl font-black text-2xl shadow-md ${ex.submission_id ? 'bg-indigo-600 text-white' : 'bg-amber-500 text-white'}`}>
+                                                                            {ex.observer_score ?? '-'}
+                                                                        </span>
+                                                                    </div>
                                                                     {ex.submission_id && (
                                                                         <ChevronDown className={`transition-transform ${expandedExam === ex.submission_id ? 'rotate-180' : ''}`} size={20}/>
                                                                     )}
