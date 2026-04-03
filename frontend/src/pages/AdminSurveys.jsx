@@ -67,9 +67,23 @@ const AdminSurveys = () => {
 
     return (
         <div className="max-w-5xl mx-auto space-y-12 p-6">
-            <h1 className="text-3xl font-black flex items-center gap-3">
-                <Target className="text-purple-600" size={32} /> Pengaturan Manito Master
-            </h1>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <h1 className="text-3xl font-black flex items-center gap-3">
+                    <Target className="text-purple-600" size={32} /> Pengaturan Manito Master
+                </h1>
+                <button onClick={async () => {
+                    if (confirm('Acak ulang semua target Manito untuk Hari ini?')) {
+                        try {
+                            const res = await axios.post('/api/manito/shuffle', { day: 1 }); // Default day 1 for now
+                            alert(res.data.message || 'Target berhasil diacak!');
+                        } catch (err) {
+                            alert('Gagal mengacak target: ' + (err.response?.data?.message || err.message));
+                        }
+                    }
+                }} className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-8 py-3 rounded-2xl font-black shadow-lg hover:shadow-purple-200 transition-all flex items-center gap-2">
+                    <Plus size={20}/> ACAK TARGET MANITO
+                </button>
+            </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Slot Management */}
