@@ -74,7 +74,7 @@ const AdminSurveys = () => {
                 <button onClick={async () => {
                     if (confirm('Acak ulang semua target Manito untuk Hari ini?')) {
                         try {
-                            const res = await axios.post('/api/manito/shuffle', { day: 1 }); // Default day 1 for now
+                            const res = await axios.post('/api/admin/manito/shuffle', { day: 1 });
                             alert(res.data.message || 'Target berhasil diacak!');
                         } catch (err) {
                             alert('Gagal mengacak target: ' + (err.response?.data?.message || err.message));
