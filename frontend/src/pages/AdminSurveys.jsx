@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Target, Plus, Trash2, Calendar, Clock, HelpCircle, RefreshCw, Users, Play, Edit2 } from 'lucide-react';
+import { Target, Plus, Trash2, Calendar, Clock, HelpCircle, RefreshCw, Users, Play, Edit2, Database } from 'lucide-react';
 import AdminRealtimeMonitor from './AdminRealtimeMonitor';
 
 const AdminSurveys = () => {
@@ -10,6 +10,7 @@ const AdminSurveys = () => {
     const [form, setForm] = useState({ name: '', day: 1, start_time: '', end_time: '' });
     const [qForm, setQForm] = useState({ question_text: '', day: 1 });
     const [resetForm, setResetForm] = useState({ user_id: '', day: 1, period: '' });
+    const [isSyncing, setIsSyncing] = useState(false);
 
     useEffect(() => {
         setQForm(q => ({...q, day: form.day}));
@@ -91,6 +92,21 @@ const AdminSurveys = () => {
         }
     };
 
+    const handleSyncSpreadsheet = async () => {
+        if (!confirm('Apakah Anda yakin ingin mengirim ULANG semua data (Exams, Manito, Soal) ke Spreadsheet? Ini mungkin memakan waktu beberapa saat.')) return;
+        
+        setIsSyncing(true);
+        try {
+            const res = await axios.post('/api/admin/spreadsheet/sync-all');
+            alert(res.data.message);
+        } catch (err) {
+            console.error(err);
+            alert('Gagal melakukan sinkronisasi: ' + (err.response?.data?.error || err.message));
+        } finally {
+            setIsSyncing(false);
+        }
+    };
+
     const groupedSlots = slots.reduce((acc, slot) => {
         acc[slot.day] = acc[slot.day] || [];
         acc[slot.day].push(slot);
@@ -100,10 +116,19 @@ const AdminSurveys = () => {
     return (
         <div className="max-w-5xl mx-auto space-y-12 p-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <h1 className="text-3xl font-black flex items-center gap-3">
+                <h1 className="text-3xl font-black flex items-center gap-3 text-white">
                     <Target className="text-purple-600" size={32} /> Pengaturan Manito Master
                 </h1>
-                <button onClick={async () => {
+                <div className="flex items-center gap-3">
+                    <button 
+                        onClick={handleSyncSpreadsheet}
+                        disabled={isSyncing}
+                        className="bg-green-600 hover:bg-green-500 disabled:bg-gray-800 text-white px-5 h-11 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-green-600/20 active:scale-95 flex items-center gap-2 border border-green-500/30"
+                    >
+                        {isSyncing ? <RefreshCw className="animate-spin" size={16} /> : <Database size={16} />}
+                        {isSyncing ? 'Proses Sync...' : 'Sync Total Spreadsheet'}
+                    </button>
+                    <button onClick={async () => {
                     if (confirm(`Acak ulang semua target Manito untuk Hari ${form.day}?`)) {
                         try {
                             const res = await axios.post('/api/admin/manito/shuffle', { day: form.day });
@@ -116,6 +141,7 @@ const AdminSurveys = () => {
                     <Plus size={20}/> ACAK TARGET MANITO
                 </button>
             </div>
+        </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Slot Management */}
