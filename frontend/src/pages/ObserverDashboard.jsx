@@ -309,39 +309,50 @@ const ObserverDashboard = () => {
                                                         <div key={idx} className="flex flex-col gap-2">
                                                             <div className="bg-white p-5 rounded-2xl border shadow-sm flex justify-between items-center group hover:border-indigo-200 transition-all cursor-pointer" 
                                                                  onClick={() => setExpandedExam(expandedExam === ex.submission_id ? null : ex.submission_id)}>
-                                                                    <div className="flex flex-col md:flex-row md:items-center gap-3">
-                                                                        <h4 className="font-black text-gray-800 uppercase tracking-tight">{ex.exam_title} {ex.submission_id && <span className="text-indigo-600 ml-1">(Nilai Peserta: {ex.participant_score})</span>}</h4>
+                                                                <div className="flex-1">
+                                                                    <div className="flex flex-wrap items-center gap-3">
+                                                                        <h4 className="font-black text-gray-800 uppercase tracking-tight">
+                                                                            {ex.exam_title} 
+                                                                            {ex.submission_id && <span className="text-indigo-600 ml-2">(Nilai: {ex.participant_score})</span>}
+                                                                        </h4>
                                                                         {ex.submission_id && (
                                                                             <span className={`text-[10px] px-2 py-0.5 rounded-full font-black text-white ${ex.archetype ? 'bg-purple-600' : 'bg-gray-400'}`}>
                                                                                 {ex.archetype || 'Hasil Skor'}
                                                                             </span>
                                                                         )}
-                                                                        <span className="text-[10px] font-black text-indigo-500 animate-pulse uppercase tracking-widest hidden md:inline">• KLIK UNTUK DETAIL JAWABAN</span>
+                                                                        {ex.submission_id && (
+                                                                            <span className="text-[10px] font-black text-indigo-400 animate-pulse uppercase tracking-widest">• KLIK DETAIL JAWABAN</span>
+                                                                        )}
                                                                     </div>
-                                                                    <p className="text-[10px] text-gray-400 font-mono italic">
+                                                                    <p className="text-[10px] text-gray-400 font-mono italic mt-1">
                                                                         {new Date(ex.submitted_at).toLocaleString('id-ID', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'})} 
                                                                         {ex.submission_id ? ' (Online Exam)' : ' (Manual Entry)'}
                                                                     </p>
                                                                 </div>
+                                                                
                                                                 <div className="flex items-center gap-4">
                                                                     {ex.submission_id && ex.observer_score === null && (
                                                                         <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
                                                                             <input type="number" min="0" max="100" placeholder="Skor" className="w-20 p-2 border-2 border-indigo-100 rounded-xl text-center font-black" value={formScore} onChange={e=>setFormScore(e.target.value)}/>
-                                                                            <button onClick={() => submitCognitive(ex.submission_id)} className="bg-indigo-600 text-white p-2 rounded-xl" title="Simpan Nilai Pengawas"><CheckCircle size={20}/></button>
+                                                                            <button onClick={() => submitCognitive(ex.submission_id)} className="bg-indigo-600 text-white p-2 rounded-xl" title="Simpan Nilai Pengawas">
+                                                                                <CheckCircle size={20}/>
+                                                                            </button>
                                                                         </div>
                                                                     )}
+                                                                    
                                                                     <div className="text-right flex flex-col items-end">
-                                                                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-tighter mb-0.5">Skor Pengawas</label>
+                                                                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-tighter mb-0.5 whitespace-nowrap">Skor Pengawas</label>
                                                                         <span className={`w-14 h-14 flex items-center justify-center rounded-2xl font-black text-2xl shadow-md ${ex.submission_id ? 'bg-indigo-600 text-white' : 'bg-amber-500 text-white'}`}>
                                                                             {ex.observer_score ?? '-'}
                                                                         </span>
                                                                     </div>
+                                                                    
                                                                     {ex.submission_id && (
-                                                                        <ChevronDown className={`transition-transform ${expandedExam === ex.submission_id ? 'rotate-180' : ''}`} size={20}/>
+                                                                        <ChevronDown className={`transition-transform duration-300 text-gray-400 ${expandedExam === ex.submission_id ? 'rotate-180 text-indigo-600' : ''}`} size={20}/>
                                                                     )}
                                                                 </div>
                                                             </div>
-                                                            
+
                                                             {/* EXPANDED ANSWERS */}
                                                             {expandedExam === ex.submission_id && ex.answers && (
                                                                 <div className="bg-indigo-50/50 rounded-2xl p-6 border-2 border-indigo-100/50 mb-2 animate-in fade-in slide-in-from-top-2 duration-300">
@@ -350,15 +361,15 @@ const ObserverDashboard = () => {
                                                                     </h5>
                                                                     <div className="space-y-4">
                                                                         {ex.answers.map((ans, aIdx) => (
-                                                                            <div key={aIdx} className="bg-white/80 p-4 rounded-xl border border-indigo-100 shadow-sm">
+                                                                            <div key={aIdx} className="bg-white p-4 rounded-xl border border-indigo-100 shadow-sm">
                                                                                 <p className="text-sm font-bold text-gray-800 mb-2">{aIdx + 1}. {ans.question?.question_text || 'Pertanyaan tidak tersedia'}</p>
                                                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                                                    <div className="p-2 rounded-lg bg-gray-50 border border-gray-100">
+                                                                                    <div className="p-2 rounded-lg bg-gray-100/50 border border-gray-100">
                                                                                         <span className="text-[10px] font-black text-gray-400 uppercase block mb-1">Jawaban Peserta</span>
                                                                                         <span className="font-bold text-gray-700">{ans.user_answer || '-'}</span>
                                                                                     </div>
                                                                                     {ans.question?.correct_answer && (
-                                                                                        <div className={`p-2 rounded-lg border ${ans.user_answer === ans.question.correct_answer ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100'}`}>
+                                                                                        <div className={`p-2 rounded-lg border ${ans.user_answer === ans.question.correct_answer ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
                                                                                             <span className="text-[10px] font-black text-gray-400 uppercase block mb-1">Kunci Jawaban</span>
                                                                                             <span className="font-black text-gray-900">{ans.question.correct_answer}</span>
                                                                                             {ans.user_answer === ans.question.correct_answer ? 
