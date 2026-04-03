@@ -352,36 +352,46 @@ const ObserverDashboard = () => {
                                                                         <ChevronDown className={`transition-transform duration-300 text-gray-400 ${expandedExam === ex.submission_id ? 'rotate-180 text-indigo-600' : ''}`} size={20}/>
                                                                     )}
                                                                 </div>
-                                                            </div>
-
-                                                            {/* EXPANDED ANSWERS */}
-                                                            {expandedExam === ex.submission_id && ex.answers && (
+                                                            </div>                                                            {/* EXPANDED ANSWERS */}
+                                                            {expandedExam === ex.submission_id && (
                                                                 <div className="bg-indigo-50/50 rounded-2xl p-6 border-2 border-indigo-100/50 mb-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                                                                    <h5 className="text-xs font-black text-indigo-900 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                                                        <FileText size={14}/> Rekam Jejak Jawaban
-                                                                    </h5>
+                                                                    <div className="flex justify-between items-center mb-4">
+                                                                        <h5 className="text-xs font-black text-indigo-900 uppercase tracking-widest flex items-center gap-2">
+                                                                            <FileText size={14}/> Rekam Jejak Jawaban
+                                                                        </h5>
+                                                                        <span className="text-[10px] font-black bg-indigo-200 text-indigo-700 px-2 py-0.5 rounded-lg">
+                                                                            TOTAL JAWABAN: {ex.answers?.length || 0}
+                                                                        </span>
+                                                                    </div>
+                                                                    
                                                                     <div className="space-y-4">
-                                                                        {ex.answers.map((ans, aIdx) => (
-                                                                            <div key={aIdx} className="bg-white p-4 rounded-xl border border-indigo-100 shadow-sm">
-                                                                                <p className="text-sm font-bold text-gray-800 mb-2">{aIdx + 1}. {ans.question?.question_text || 'Pertanyaan tidak tersedia'}</p>
-                                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                                                    <div className="p-2 rounded-lg bg-gray-100/50 border border-gray-100">
-                                                                                        <span className="text-[10px] font-black text-gray-400 uppercase block mb-1">Jawaban Peserta</span>
-                                                                                        <span className="font-bold text-gray-700">{ans.user_answer || '-'}</span>
-                                                                                    </div>
-                                                                                    {ans.question?.correct_answer && (
-                                                                                        <div className={`p-2 rounded-lg border ${ans.user_answer === ans.question.correct_answer ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-                                                                                            <span className="text-[10px] font-black text-gray-400 uppercase block mb-1">Kunci Jawaban</span>
-                                                                                            <span className="font-black text-gray-900">{ans.question.correct_answer}</span>
-                                                                                            {ans.user_answer === ans.question.correct_answer ? 
-                                                                                                <Check className="inline ml-2 text-green-600" size={14}/> : 
-                                                                                                <X className="inline ml-2 text-red-600" size={14}/>
-                                                                                            }
+                                                                        {(!ex.answers || ex.answers.length === 0) ? (
+                                                                            <p className="text-center py-4 text-xs font-bold text-gray-400 italic bg-white rounded-xl border border-dashed">
+                                                                                Database mengembalikan 0 jawaban untuk sesi ini.
+                                                                            </p>
+                                                                        ) : (
+                                                                            ex.answers.map((ans, aIdx) => (
+                                                                                <div key={aIdx} className="bg-white p-4 rounded-xl border border-indigo-100 shadow-sm">
+                                                                                    <p className="text-sm font-bold text-gray-800 mb-2">{aIdx + 1}. {ans.question_text || 'Pertanyaan tidak tersedia'}</p>
+                                                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                                                        <div className="p-2 rounded-lg bg-gray-100/50 border border-gray-100">
+                                                                                            <span className="text-[10px] font-black text-gray-400 uppercase block mb-1">Jawaban Peserta</span>
+                                                                                            <span className="font-bold text-gray-700">{ans.user_answer || '-'}</span>
                                                                                         </div>
-                                                                                    )}
+                                                                                        {ans.correct_answer && (
+                                                                                            <div className={`p-2 rounded-lg border ${ans.user_answer === ans.correct_answer ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+                                                                                                <span className="text-[10px] font-black text-gray-400 uppercase block mb-1">Kunci Jawaban</span>
+                                                                                                <span className="font-black text-gray-900">{ans.correct_answer}</span>
+                                                                                                {ans.user_answer === ans.correct_answer ? 
+                                                                                                    <Check className="inline ml-2 text-green-600" size={14}/> : 
+                                                                                                    <X className="inline ml-2 text-red-600" size={14}/>
+                                                                                                }
+                                                                                            </div>
+                                                                                        )}
+                                                                                    </div>
                                                                                 </div>
-                                                                            </div>
-                                                                        ))}
+                                                                            ))
+                                                                        )}
                                                                     </div>
                                                                 </div>
                                                             )}
