@@ -29,6 +29,7 @@ class ManitoController extends Controller
 
     public function getTarget(Request $request)
     {
+        die("TES CONTROLLER: SAMPAI DI SINI");
         try {
             $user = $request->user();
             // Hardcode day 1 for testing to bypass app_settings table issues
