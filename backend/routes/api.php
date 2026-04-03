@@ -33,12 +33,17 @@ Route::middleware('auth:sanctum')->group(function () {
             $user = $request->user();
             if (!$user) return response()->json(['error' => 'Unauthorized'], 401);
 
-            // 1. Ambil Hari Aktif (Raw DB)
-            $day = \Illuminate\Support\Facades\DB::table('app_settings')
-                ->where('key', 'current_day')
-                ->value('value') ?: 1;
+            // Cek apakah tabel app_settings ada dan ada nilainya
+            $day = 1;
+            try {
+                $day = \Illuminate\Support\Facades\DB::table('app_settings')
+                    ->where('key', 'current_day')
+                    ->value('value') ?: 1;
+            } catch (\Exception $e) {
+                // Biarkan day = 1 jika tabel app_settings belum siap
+            }
 
-            // 2. Ambil Mapping (Raw DB)
+            // Cek Mapping
             $mapping = \Illuminate\Support\Facades\DB::table('manito_mappings')
                 ->where('assessor_id', $user->id)
                 ->where('day', $day)
@@ -47,26 +52,34 @@ Route::middleware('auth:sanctum')->group(function () {
 
             if (!$mapping) {
                 return response()->json([
-                    'message' => 'Target Manito belum ditentukan untukmu.',
+                    'message' => 'Target Manito belum ada untuk Hari ' . $day,
                     'debug' => ['user_id' => $user->id, 'day' => $day]
                 ], 404);
             }
 
-            // 3. Ambil Detail Target (Raw DB)
+            // Ambil Detail Target
             $target = \Illuminate\Support\Facades\DB::table('users')
                 ->where('id', $mapping->target_id)
                 ->select('id', 'name', 'email', 'nip', 'asal_instansi')
                 ->first();
 
             if (!$target) {
-                return response()->json(['message' => 'Data target tidak ditemukan.'], 404);
+                // Fallback jika user target terhapus tapi mapping masih ada
+                $target = (object)[
+                    'id' => $mapping->target_id,
+                    'name' => 'Peserta ' . $mapping->target_id,
+                    'nip' => '-',
+                    'asal_instansi' => 'Peserta'
+                ];
             }
 
             return response()->json(['target' => $target], 200);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'Gagal mengambil data',
-                'message' => $e->getMessage()
+                'error' => 'Gagal sistem Manito',
+                'details' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
             ], 500);
         }
     });
