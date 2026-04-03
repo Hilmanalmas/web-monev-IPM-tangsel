@@ -28,7 +28,35 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // --- PESERTA ROUTES ---
     Route::get('/peserta/dashboard', [\App\Http\Controllers\PesertaController::class, 'dashboard']);
-    Route::get('/manito/target', [\App\Http\Controllers\ManitoController::class, 'getTarget']);
+    Route::get('/manito/target', function (Request $request) {
+        try {
+            $user = $request->user();
+            if (!$user) return response()->json(['error' => 'Unauthorized'], 401);
+
+            $day = \Illuminate\Support\Facades\DB::table('app_settings')
+                ->where('key', 'current_day')
+                ->value('value') ?: 1;
+
+            $mapping = \Illuminate\Support\Facades\DB::table('manito_mappings')
+                ->where('assessor_id', $user->id)
+                ->where('day', $day)
+                ->where('is_active', 1)
+                ->first();
+
+            if (!$mapping) {
+                return response()->json(['message' => 'Target Manito belum ditentukan.'], 404);
+            }
+
+            $target = \Illuminate\Support\Facades\DB::table('users')
+                ->where('id', $mapping->target_id)
+                ->select('id', 'name', 'email')
+                ->first();
+
+            return response()->json(['target' => $target ?: (object)[]], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    });
     
     // Attendance
     Route::get('/attendance/slots', [\App\Http\Controllers\AttendanceController::class, 'availableSlots']);
