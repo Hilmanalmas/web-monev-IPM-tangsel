@@ -34,7 +34,9 @@ const AdminSurveys = () => {
     const fetchUsers = async () => {
         try {
             const res = await axios.get('/api/admin/users');
-            setUsers(res.data.filter(u => u.role === 'peserta'));
+            // Backend mengembalikan { users: [...] }
+            const userList = res.data.users || res.data;
+            setUsers(userList.filter(u => u.role === 'peserta'));
         } catch (err) {
             console.error("Gagal mengambil data peserta:", err);
         }
