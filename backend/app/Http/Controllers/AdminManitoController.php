@@ -43,4 +43,20 @@ class AdminManitoController extends Controller {
         SurveySlot::findOrFail($id)->delete();
         return response()->json(['message' => 'Slot deleted']);
     }
+
+    public function resetResponse(Request $request) {
+        $data = $request->validate([
+            'user_id' => 'required',
+            'day' => 'required|integer',
+            'period' => 'required|string'
+        ]);
+
+        \Illuminate\Support\Facades\DB::table('survey_responses')
+            ->where('user_id', $data['user_id'])
+            ->where('day', $data['day'])
+            ->where('period', $data['period'])
+            ->delete();
+
+        return response()->json(['message' => 'Penilaian berhasil direset untuk sesi ' . $data['period'] . ' hari ' . $data['day']]);
+    }
 }

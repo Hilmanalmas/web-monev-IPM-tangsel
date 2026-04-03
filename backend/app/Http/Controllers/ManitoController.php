@@ -68,7 +68,7 @@ class ManitoController extends Controller
             $day = $request->input('day');
             $service = app(\App\Services\ManitoService::class);
             $result = $service->shuffleAll($day);
-            
+
             return response()->json($result, $result['success'] ? 200 : 400);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);

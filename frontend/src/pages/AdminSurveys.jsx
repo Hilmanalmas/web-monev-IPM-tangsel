@@ -6,8 +6,10 @@ import AdminRealtimeMonitor from './AdminRealtimeMonitor';
 const AdminSurveys = () => {
     const [slots, setSlots] = useState([]);
     const [questions, setQuestions] = useState([]);
+    const [users, setUsers] = useState([]);
     const [form, setForm] = useState({ name: '', day: 1, start_time: '', end_time: '' });
     const [qForm, setQForm] = useState({ question_text: '', day: 1 });
+    const [resetForm, setResetForm] = useState({ user_id: '', day: 1, period: '' });
 
     useEffect(() => {
         setQForm(q => ({...q, day: form.day}));
@@ -15,6 +17,7 @@ const AdminSurveys = () => {
 
     useEffect(() => {
         fetchData();
+        fetchUsers();
     }, []);
 
     const fetchData = async () => {
@@ -25,6 +28,28 @@ const AdminSurveys = () => {
             setQuestions(questionsRes.data);
         } catch (err) {
             console.error("Gagal mengambil data survey:", err);
+        }
+    };
+
+    const fetchUsers = async () => {
+        try {
+            const res = await axios.get('/api/admin/users');
+            setUsers(res.data.filter(u => u.role === 'peserta'));
+        } catch (err) {
+            console.error("Gagal mengambil data peserta:", err);
+        }
+    };
+
+    const handleReset = async () => {
+        if (!resetForm.user_id || !resetForm.period) return alert("Pilih peserta dan sesi!");
+        const userName = users.find(u => u.id == resetForm.user_id)?.name;
+        if (confirm(`RESET PENILAIAN: Apakah Anda yakin ingin menghapus penilaian ${userName} untuk sesi ${resetForm.period}?`)) {
+            try {
+                const res = await axios.post('/api/admin/surveys/reset', resetForm);
+                alert(res.data.message || 'Penilaian berhasil direset!');
+            } catch (err) {
+                alert("Gagal reset penilaian: " + (err.response?.data?.error || err.message));
+            }
         }
     };
 
@@ -173,6 +198,59 @@ const AdminSurveys = () => {
             </div>
 
             <AdminRealtimeMonitor />
+
+            {/* Reset Penilaian Section */}
+            <div className="bg-white p-8 rounded-3xl shadow-xl border-2 border-red-50">
+                <h2 className="text-2xl font-black mb-6 flex items-center gap-3 text-red-600">
+                    <RefreshCw size={28} /> Reset Penilaian Manito
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                    <div>
+                        <label className="text-xs font-bold text-gray-400 block mb-2">PILIH PESERTA (PENILAI)</label>
+                        <select 
+                            className="w-full p-3 border rounded-xl bg-gray-50"
+                            value={resetForm?.user_id || ''}
+                            onChange={e => setResetForm({...resetForm, user_id: e.target.value})}
+                        >
+                            <option value="">-- Pilih Peserta --</option>
+                            {users.map(u => (
+                                <option key={u.id} value={u.id}>{u.name} ({u.asal_instansi})</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="text-xs font-bold text-gray-400 block mb-2">HARI KE-</label>
+                        <input 
+                            type="number" 
+                            className="w-full p-3 border rounded-xl bg-gray-50"
+                            value={resetForm?.day || 1}
+                            onChange={e => setResetForm({...resetForm, day: parseInt(e.target.value)})}
+                        />
+                    </div>
+                    <div>
+                        <label className="text-xs font-bold text-gray-400 block mb-2">PILIH SESI/PERIOD</label>
+                        <select 
+                            className="w-full p-3 border rounded-xl bg-gray-50"
+                            value={resetForm?.period || ''}
+                            onChange={e => setResetForm({...resetForm, period: e.target.value})}
+                        >
+                            <option value="">-- Pilih Sesi --</option>
+                            {slots.filter(s => s.day === (resetForm?.day || 1)).map(s => (
+                                <option key={s.id} value={s.name}>{s.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <button 
+                        onClick={handleReset}
+                        className="bg-red-600 text-white p-3 rounded-xl font-black hover:bg-red-700 shadow-lg shadow-red-100 transition-all"
+                    >
+                        RESET PENILAIAN
+                    </button>
+                </div>
+                <p className="mt-4 text-xs text-gray-400 italic font-medium">
+                    * Reset ini akan menghapus semua jawaban peserta tersebut pada sesi yang pilih, sehingga mereka bisa mengisi ulang.
+                </p>
+            </div>
         </div>
     );
 };

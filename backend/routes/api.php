@@ -146,6 +146,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/admin/surveys/slots', [\App\Http\Controllers\AdminManitoController::class, 'listSlots']);
         Route::post('/admin/surveys/slots', [\App\Http\Controllers\AdminManitoController::class, 'storeSlot']);
         Route::delete('/admin/surveys/slots/{id}', [\App\Http\Controllers\AdminManitoController::class, 'destroySlot']);
+        Route::post('/admin/surveys/reset', [\App\Http\Controllers\AdminManitoController::class, 'resetResponse']);
         
         // Settings Attendance
         Route::get('/admin/attendance/slots', [\App\Http\Controllers\AdminAttendanceController::class, 'listSlots']);

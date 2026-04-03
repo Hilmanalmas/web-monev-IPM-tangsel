@@ -29,10 +29,12 @@ class ManitoService
                 throw new Exception("Not enough participants to shuffle (minimum 2 required).");
             }
 
-            // Invalidate old mappings for THIS day
+            // Invalidate old mappings for THIS day only
             ManitoMapping::where('day', $day)->delete();
-            // Also invalidate is_active for all if we want only one active day at a time
-            ManitoMapping::where('is_active', true)->update(['is_active' => false]);
+            
+            // Note: We don't want to globally deactivate other days anymore 
+            // as it causes accounts from other days to lose their targets.
+            // Mappings are already naturally filtered by 'day' and 'is_active'.
 
             $ids = $pesertas->pluck('id')->toArray();
             shuffle($ids);
