@@ -2,80 +2,76 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\ManitoService;
-use App\Models\ManitoMapping;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class ManitoController extends Controller
 {
-    protected $manitoService;
-
-    public function __construct(ManitoService $manitoService)
-    {
-        $this->manitoService = $manitoService;
-    }
-
-    public function shuffle(Request $request)
-    {
-        $day = $request->input('day');
-        $result = $this->manitoService->shuffleAll($day);
-        
-        if ($result['success']) {
-            return response()->json($result, 200);
-        } else {
-            return response()->json($result, 400);
-        }
-    }
-
+    /**
+     * Get the target for the current authenticated user
+     */
     public function getTarget(Request $request)
     {
         try {
             $user = $request->user();
-            
-            // Bypass app_settings table using raw query for maximum safety
-            $currentDaySetting = DB::table('app_settings')
+            if (!$user) {
+                return response()->json(['error' => 'Unauthorized'], 401);
+            }
+
+            // 1. Ambil Hari Aktif (Raw DB)
+            $day = DB::table('app_settings')
                 ->where('key', 'current_day')
-                ->first();
-            
-            $currentDay = $currentDaySetting ? intval($currentDaySetting->value) : 1;
-            
-            // Step 1: Find the mapping first (Manual query no relations yet)
-            $mapping = ManitoMapping::where('assessor_id', $user->id)
-                ->where('day', $currentDay)
-                ->where('is_active', true)
+                ->value('value') ?: 1;
+
+            // 2. Ambil Mapping (Raw DB)
+            $mapping = DB::table('manito_mappings')
+                ->where('assessor_id', $user->id)
+                ->where('day', $day)
+                ->where('is_active', 1)
                 ->first();
 
             if (!$mapping) {
                 return response()->json([
-                    'message' => 'Target Manito belum ditentukan untukmu hari ini.',
-                    'debug' => [
-                        'user_id' => $user->id,
-                        'day' => $currentDay
-                    ]
+                    'message' => 'Target Manito belum ditentukan untukmu hari ini (Hari ' . $day . ').',
+                    'debug' => ['user_id' => $user->id, 'day' => $day]
                 ], 404);
             }
 
-            // Step 2: Find the target user manually to avoid relation bugs
-            $targetUser = User::select('id', 'name', 'email')
-                ->find($mapping->target_id);
+            // 3. Ambil Nama Target (Raw DB)
+            $target = DB::table('users')
+                ->where('id', $mapping->target_id)
+                ->select('id', 'name', 'email')
+                ->first();
 
-            if (!$targetUser) {
-                return response()->json([
-                    'message' => 'Data target tidak ditemukan di sistem.',
-                    'debug' => ['target_id' => $mapping->target_id]
-                ], 404);
+            if (!$target) {
+                return response()->json(['message' => 'Data target tidak ditemukan.'], 404);
             }
 
-            return response()->json(['target' => $targetUser], 200);
+            return response()->json(['target' => $target], 200);
 
         } catch (\Exception $e) {
+            // Jika masih error, tampilkan detailnya di sini
             return response()->json([
-                'error' => 'Sistem gagal mengambil data.',
-                'message' => $e->getMessage(),
-                'trace' => 'Error at Line ' . $e->getLine() . ' in ' . basename($e->getFile())
+                'error' => 'Gagal mengambil data Manito',
+                'details' => $e->getMessage(),
+                'line' => $e->getLine()
             ], 500);
+        }
+    }
+
+    /**
+     * Admin function for shuffling (Uses Service)
+     */
+    public function shuffle(Request $request)
+    {
+        try {
+            $day = $request->input('day');
+            $service = app(\App\Services\ManitoService::class);
+            $result = $service->shuffleAll($day);
+            
+            return response()->json($result, $result['success'] ? 200 : 400);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 }
