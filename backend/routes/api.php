@@ -186,7 +186,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/admin/reports/export', [\App\Http\Controllers\AdminReportController::class, 'exportScores']);
 
         // Global Settings (Days, etc)
-        Route::get('/admin/surveys/realtime', [\App\Http\Controllers\AdminStatsController::class, 'getRealtimeSurveys']);
+        Route::get('/admin/surveys/realtime', [\App\Http\Controllers\AdminStatsController::class, 'getRealtimeFeed']);
         Route::get('/admin/settings', [\App\Http\Controllers\AdminStatsController::class, 'getSettings']);
         Route::post('/admin/settings', [\App\Http\Controllers\AdminStatsController::class, 'updateSettings']);
     });
