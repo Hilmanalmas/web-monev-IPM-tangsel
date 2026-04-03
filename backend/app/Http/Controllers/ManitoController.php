@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Services\ManitoService;
 use App\Models\ManitoMapping;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ManitoController extends Controller
 {
@@ -32,8 +33,8 @@ class ManitoController extends Controller
         try {
             $user = $request->user();
             
-            // Get current day from DB safely
-            $currentDay = \Illuminate\Support\Facades\DB::table('app_settings')
+            // Ambil hari aktif dari database, default ke 1 jika tidak ada
+            $currentDay = DB::table('app_settings')
                 ->where('key', 'current_day')
                 ->value('value') ?: 1;
             
@@ -46,17 +47,19 @@ class ManitoController extends Controller
                 ->first();
 
             if (!$mapping) {
-                return response()->json(['message' => 'No mapping found for you today (Day ' . $currentDay . ')'], 404);
+                return response()->json([
+                    'message' => 'Target Manito belum ditentukan untukmu hari ini (Hari ' . $currentDay . ').',
+                    'debug_user_id' => $user->id,
+                    'debug_day' => $currentDay
+                ], 404);
             }
-
-            return response()->json(['target' => $mapping->target], 200);
-        } catch (\Exception $e) {
 
             if (!$mapping->target) {
-                return response()->json(['message' => 'Target not found in mapping.'], 404);
+                return response()->json(['message' => 'Target tidak ditemukan dalam sistem.'], 404);
             }
 
             return response()->json(['target' => $mapping->target], 200);
+
         } catch (\Exception $e) {
             return response()->json([
                 'error' => $e->getMessage(),
