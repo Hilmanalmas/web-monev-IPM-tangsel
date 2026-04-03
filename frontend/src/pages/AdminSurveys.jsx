@@ -6,7 +6,11 @@ const AdminSurveys = () => {
     const [slots, setSlots] = useState([]);
     const [questions, setQuestions] = useState([]);
     const [form, setForm] = useState({ name: '', day: 1, start_time: '', end_time: '' });
-    const [qForm, setQForm] = useState({ question_text: '' });
+    const [qForm, setQForm] = useState({ question_text: '', day: 1 });
+
+    useEffect(() => {
+        setQForm(q => ({...q, day: form.day}));
+    }, [form.day]);
 
     useEffect(() => {
         fetchData();
@@ -72,9 +76,9 @@ const AdminSurveys = () => {
                     <Target className="text-purple-600" size={32} /> Pengaturan Manito Master
                 </h1>
                 <button onClick={async () => {
-                    if (confirm('Acak ulang semua target Manito untuk Hari ini?')) {
+                    if (confirm(`Acak ulang semua target Manito untuk Hari ${form.day}?`)) {
                         try {
-                            const res = await axios.post('/api/admin/manito/shuffle', { day: 1 });
+                            const res = await axios.post('/api/admin/manito/shuffle', { day: form.day });
                             alert(res.data.message || 'Target berhasil diacak!');
                         } catch (err) {
                             alert('Gagal mengacak target: ' + (err.response?.data?.message || err.message));
