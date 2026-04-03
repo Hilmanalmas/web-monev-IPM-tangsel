@@ -36,7 +36,8 @@ class ManitoController extends Controller
             ->where('day', $currentDay)
             ->where('is_active', true)
             ->with(['target' => function($query) {
-                $query->select('id', 'name', 'email', 'nip', 'asal_instansi');
+                // Remove nip and asal_instansi as they might not exist in the users table
+                $query->select('id', 'name', 'email', 'role');
             }])
             ->first();
 
