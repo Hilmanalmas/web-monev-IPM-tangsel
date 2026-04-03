@@ -96,6 +96,7 @@ const ObserverDashboard = () => {
         try {
             if (tab === 'kognitif') {
                 const res = await axios.get(`/api/observer/peserta/${userId}/exams?day=${selectedDay}`);
+                console.log("[DEBUG] Exams Data:", res.data.exams);
                 setExamsData(res.data.exams || []);
             } else if (tab === 'games' || tab === 'practice' || tab === 'ibadah') {
                 const res = await axios.get(`/api/observer/peserta/${userId}/games-practice?day=${selectedDay}`);
@@ -313,7 +314,7 @@ const ObserverDashboard = () => {
                                                                     <div className="flex flex-wrap items-center gap-3">
                                                                         <h4 className="font-black text-gray-800 uppercase tracking-tight">
                                                                             {ex.exam_title} 
-                                                                            {ex.submission_id && <span className="text-indigo-600 ml-2">(Nilai: {ex.participant_score})</span>}
+                                                                            {ex.submission_id && <span className="text-indigo-600 ml-2">(Nilai Peserta: {ex.participant_score ?? 0})</span>}
                                                                         </h4>
                                                                         {ex.submission_id && (
                                                                             <span className={`text-[10px] px-2 py-0.5 rounded-full font-black text-white ${ex.archetype ? 'bg-purple-600' : 'bg-gray-400'}`}>

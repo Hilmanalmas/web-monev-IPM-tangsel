@@ -107,12 +107,16 @@ class ObserverController extends Controller {
 
     public function getPesertaExams(Request $request, $id) {
         $day = $request->query('day');
-        $submissions = ExamSubmission::where('user_id', $id)
-            ->where('day', $day)
-            ->with('exam', 'answers.question')
+        
+        $submissions = \Illuminate\Support\Facades\DB::table('exam_submissions')
+            ->join('exams', 'exam_submissions.exam_id', '=', 'exams.id')
+            ->where('exam_submissions.user_id', $id)
+            ->where('exam_submissions.day', $day)
+            ->select('exam_submissions.*', 'exams.title as exam_title')
             ->get();
         
-        $allScores = CognitiveScore::where('user_id', $id)
+        $allScores = \Illuminate\Support\Facades\DB::table('cognitive_scores')
+            ->where('user_id', $id)
             ->where('day', $day)
             ->get();
 
@@ -120,12 +124,19 @@ class ObserverController extends Controller {
         $manualScores = $allScores->whereNull('exam_submission_id');
         
         $mapped = $submissions->map(function($sub) use ($submissionScores) {
+            // Get answers manually for this submission
+            $answers = \Illuminate\Support\Facades\DB::table('exam_answers')
+                ->leftJoin('exam_questions', 'exam_answers.question_id', '=', 'exam_questions.id')
+                ->where('exam_answers.submission_id', $sub->id)
+                ->select('exam_answers.*', 'exam_questions.question_text', 'exam_questions.correct_answer')
+                ->get();
+
             return [
                 'submission_id' => $sub->id,
-                'exam_title' => $sub->exam->title,
+                'exam_title' => $sub->exam_title,
                 'submitted_at' => $sub->submitted_at,
                 'participant_score' => $sub->score,
-                'answers' => $sub->answers,
+                'answers' => $answers,
                 'archetype' => $sub->archetype,
                 'observer_score' => isset($submissionScores[$sub->id]) ? $submissionScores[$sub->id]->score : null
             ];
@@ -137,6 +148,7 @@ class ObserverController extends Controller {
                 'submission_id' => null,
                 'exam_title' => $ms->notes ?: 'Hasil Tes Kognitif Manual',
                 'submitted_at' => $ms->created_at,
+                'participant_score' => null,
                 'answers' => [],
                 'archetype' => null,
                 'observer_score' => $ms->score
