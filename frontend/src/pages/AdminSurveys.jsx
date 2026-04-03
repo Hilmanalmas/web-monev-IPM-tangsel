@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Target, Plus, Trash2, Calendar, Clock, HelpCircle } from 'lucide-react';
+import { Target, Plus, Trash2, Calendar, Clock, HelpCircle, RefreshCw, Users, Play, Edit2 } from 'lucide-react';
+import AdminRealtimeMonitor from './AdminRealtimeMonitor';
 
 const AdminSurveys = () => {
     const [slots, setSlots] = useState([]);
@@ -170,6 +171,8 @@ const AdminSurveys = () => {
                     </div>
                 </div>
             </div>
+
+            <AdminRealtimeMonitor />
         </div>
     );
 };
