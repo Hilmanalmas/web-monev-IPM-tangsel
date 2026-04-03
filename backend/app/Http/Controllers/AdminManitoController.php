@@ -11,8 +11,14 @@ class AdminManitoController extends Controller {
     public function storeQuestion(Request $request) {
         $data = $request->validate([
             'question_text' => 'required',
-            'category' => 'required|in:afektif,psikomotorik'
+            'category' => 'nullable|in:afektif,psikomotorik'
         ]);
+        
+        // Default to afektif if not provided
+        if (!isset($data['category'])) {
+            $data['category'] = 'afektif';
+        }
+
         return response()->json(SurveyQuestion::create($data));
     }
 
