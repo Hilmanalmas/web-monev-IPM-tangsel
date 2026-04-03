@@ -31,25 +31,32 @@ class ManitoController extends Controller
     {
         try {
             $user = $request->user();
-            $currentDay = \Illuminate\Support\Facades\DB::table('app_settings')
-                ->where('key', 'current_day')
-                ->value('value') ?: 1;
+            // Hardcode day 1 for testing to bypass app_settings table issues
+            $currentDay = 1; 
             
             $mapping = ManitoMapping::where('assessor_id', $user->id)
                 ->where('day', $currentDay)
                 ->where('is_active', true)
                 ->with(['target' => function($query) {
-                    $query->select('id', 'name', 'email', 'role');
+                    $query->select('id', 'name', 'email');
                 }])
                 ->first();
 
-            if (!$mapping || !$mapping->target) {
-                return response()->json(['message' => 'No target assigned for today.'], 404);
+            if (!$mapping) {
+                return response()->json(['message' => 'No mapping found for User ID: ' . $user->id . ' on Day ' . $currentDay], 404);
+            }
+
+            if (!$mapping->target) {
+                return response()->json(['message' => 'Target not found in mapping.'], 404);
             }
 
             return response()->json(['target' => $mapping->target], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()], 500);
+            return response()->json([
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ], 500);
         }
     }
 }
