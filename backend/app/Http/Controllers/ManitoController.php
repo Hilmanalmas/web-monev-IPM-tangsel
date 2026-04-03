@@ -29,22 +29,25 @@ class ManitoController extends Controller
 
     public function getTarget(Request $request)
     {
-        $user = $request->user();
-        $currentDay = \App\Models\AppSetting::get('current_day', 1);
-        
-        $mapping = ManitoMapping::where('assessor_id', $user->id)
-            ->where('day', $currentDay)
-            ->where('is_active', true)
-            ->with(['target' => function($query) {
-                // Remove nip and asal_instansi as they might not exist in the users table
-                $query->select('id', 'name', 'email', 'role');
-            }])
-            ->first();
+        try {
+            $user = $request->user();
+            $currentDay = \App\Models\AppSetting::get('current_day', 1);
+            
+            $mapping = ManitoMapping::where('assessor_id', $user->id)
+                ->where('day', $currentDay)
+                ->where('is_active', true)
+                ->with(['target' => function($query) {
+                    $query->select('id', 'name', 'email', 'role');
+                }])
+                ->first();
 
-        if (!$mapping || !$mapping->target) {
-            return response()->json(['message' => 'No target assigned for today.'], 404);
+            if (!$mapping || !$mapping->target) {
+                return response()->json(['message' => 'No target assigned for today.'], 404);
+            }
+
+            return response()->json(['target' => $mapping->target], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()], 500);
         }
-
-        return response()->json(['target' => $mapping->target], 200);
     }
 }
