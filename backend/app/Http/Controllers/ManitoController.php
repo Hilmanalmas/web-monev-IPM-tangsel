@@ -31,7 +31,9 @@ class ManitoController extends Controller
     {
         try {
             $user = $request->user();
-            $currentDay = \App\Models\AppSetting::get('current_day', 1);
+            $currentDay = \Illuminate\Support\Facades\DB::table('app_settings')
+                ->where('key', 'current_day')
+                ->value('value') ?: 1;
             
             $mapping = ManitoMapping::where('assessor_id', $user->id)
                 ->where('day', $currentDay)

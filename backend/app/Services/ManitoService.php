@@ -17,7 +17,9 @@ class ManitoService
         DB::beginTransaction();
         try {
             if (!$day) {
-                $day = \App\Models\AppSetting::get('current_day', 1);
+                $day = \Illuminate\Support\Facades\DB::table('app_settings')
+                    ->where('key', 'current_day')
+                    ->value('value') ?: 1;
             }
 
             // Get all participants
