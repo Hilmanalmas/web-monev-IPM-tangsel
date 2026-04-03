@@ -131,12 +131,21 @@ class ObserverController extends Controller {
                 ->select('exam_answers.*', 'exam_questions.question_text', 'exam_questions.correct_answer')
                 ->get();
 
+            // DEBUG: Count raw answers without join to see if ID mismatch
+            $rawAnswerCount = \Illuminate\Support\Facades\DB::table('exam_answers')
+                ->where('submission_id', $sub->id)
+                ->count();
+
             return [
                 'submission_id' => $sub->id,
                 'exam_title' => $sub->exam_title,
                 'submitted_at' => $sub->submitted_at,
                 'participant_score' => $sub->score,
                 'answers' => $answers,
+                'debug_info' => [
+                    'raw_answer_count' => $rawAnswerCount,
+                    'is_zero_answers' => $answers->count() === 0
+                ],
                 'archetype' => $sub->archetype,
                 'observer_score' => isset($submissionScores[$sub->id]) ? $submissionScores[$sub->id]->score : null
             ];

@@ -366,9 +366,14 @@ const ObserverDashboard = () => {
                                                                     
                                                                     <div className="space-y-4">
                                                                         {(!ex.answers || ex.answers.length === 0) ? (
-                                                                            <p className="text-center py-4 text-xs font-bold text-gray-400 italic bg-white rounded-xl border border-dashed">
-                                                                                Database mengembalikan 0 jawaban untuk sesi ini.
-                                                                            </p>
+                                                                            <div className="text-center py-6 bg-white rounded-2xl border-2 border-dashed border-gray-100 italic space-y-2">
+                                                                                <p className="text-xs font-bold text-gray-400">Database mengembalikan 0 jawaban untuk sesi ini.</p>
+                                                                                {ex.debug_info && (
+                                                                                    <div className="text-[10px] text-red-400 font-mono font-black uppercase tracking-widest bg-red-50 inline-block px-3 py-1 rounded-full border border-red-100">
+                                                                                        DEBUG: Raw Answer In DB = {ex.debug_info.raw_answer_count}
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
                                                                         ) : (
                                                                             ex.answers.map((ans, aIdx) => (
                                                                                 <div key={aIdx} className="bg-white p-4 rounded-xl border border-indigo-100 shadow-sm">
