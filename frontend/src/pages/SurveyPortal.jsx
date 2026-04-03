@@ -4,16 +4,16 @@ import { User, Send, Star, Clock, CheckCircle2, AlertCircle, Calendar } from 'lu
 
 const SCALE_OPTIONS = {
     afektif: [
-        { value: 1, label: 'Void', desc: 'Hampa' },
-        { value: 2, label: 'Echo', desc: 'Gema' },
-        { value: 3, label: 'Pulse', desc: 'Berdenyut' },
-        { value: 4, label: 'Radiance', desc: 'Memancar' }
+        { value: 1, label: 'Skip / Belum Bisa', desc: 'Sama sekali belum bisa atau nggak nyoba' },
+        { value: 2, label: 'Butuh Guide', desc: 'Masih harus diarahin atau sering nanya "habis ini apa?"' },
+        { value: 3, label: 'Oke / Bisa', desc: 'Bisa ngerjain sendiri meskipun kadang masih mikir' },
+        { value: 4, label: 'Pro Banget', desc: 'Lancar jaya, sat-set, bisa jadi contoh' }
     ],
     psikomotorik: [
-        { value: 1, label: 'Glitchy', desc: 'Tersendat' },
-        { value: 2, label: 'Rigid', desc: 'Kaku' },
-        { value: 3, label: 'Fluid', desc: 'Mengalir' },
-        { value: 4, label: 'Artistry', desc: 'Berseni' }
+        { value: 1, label: 'Skip / Belum Bisa', desc: 'Sama sekali belum bisa atau nggak nyoba' },
+        { value: 2, label: 'Butuh Guide', desc: 'Masih harus diarahin atau sering nanya "habis ini apa?"' },
+        { value: 3, label: 'Oke / Bisa', desc: 'Bisa ngerjain sendiri meskipun kadang masih mikir' },
+        { value: 4, label: 'Pro Banget', desc: 'Lancar jaya, sat-set, bisa jadi contoh' }
     ]
 };
 

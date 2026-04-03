@@ -28,8 +28,47 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // --- PESERTA ROUTES ---
     Route::get('/peserta/dashboard', [\App\Http\Controllers\PesertaController::class, 'dashboard']);
-    Route::get('/manito/target', function () {
-        return response()->json(['target' => ['name' => 'Koneksi Berhasil']], 200);
+    Route::get('/manito/target', function (Request $request) {
+        try {
+            $user = $request->user();
+            if (!$user) return response()->json(['error' => 'Unauthorized'], 401);
+
+            // 1. Ambil Hari Aktif (Raw DB)
+            $day = \Illuminate\Support\Facades\DB::table('app_settings')
+                ->where('key', 'current_day')
+                ->value('value') ?: 1;
+
+            // 2. Ambil Mapping (Raw DB)
+            $mapping = \Illuminate\Support\Facades\DB::table('manito_mappings')
+                ->where('assessor_id', $user->id)
+                ->where('day', $day)
+                ->where('is_active', 1)
+                ->first();
+
+            if (!$mapping) {
+                return response()->json([
+                    'message' => 'Target Manito belum ditentukan untukmu.',
+                    'debug' => ['user_id' => $user->id, 'day' => $day]
+                ], 404);
+            }
+
+            // 3. Ambil Detail Target (Raw DB)
+            $target = \Illuminate\Support\Facades\DB::table('users')
+                ->where('id', $mapping->target_id)
+                ->select('id', 'name', 'email', 'nip', 'asal_instansi')
+                ->first();
+
+            if (!$target) {
+                return response()->json(['message' => 'Data target tidak ditemukan.'], 404);
+            }
+
+            return response()->json(['target' => $target], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Gagal mengambil data',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     });
     
     // Attendance
