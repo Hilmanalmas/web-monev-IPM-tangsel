@@ -24,10 +24,12 @@ class ManitoController extends Controller
                 ->value('value') ?: 1;
 
             // 2. Ambil Mapping (Raw DB)
+            // Prioritaskan mapping hari ini. Jika tidak ada, fallback ke hari sebelumnya yang aktif.
             $mapping = DB::table('manito_mappings')
                 ->where('assessor_id', $user->id)
-                ->where('day', $day)
+                ->where('day', '<=', $day) // Tidak mengambil mapping hari esok jika admin sudah acak duluan
                 ->where('is_active', 1)
+                ->orderBy('day', 'desc')
                 ->first();
 
             if (!$mapping) {
