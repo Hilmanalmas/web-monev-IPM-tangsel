@@ -18,7 +18,7 @@ class AdminSpreadsheetController extends Controller
             // --- 0. BERSIHKAN SEMUA TAB TERLEBIH DAHULU ---
             SpreadsheetService::clearAll();
 
-            $batchSize = 50; 
+            $batchSize = 50;
             $count = 0;
 
             // --- 1. PROSES INPUT_NILAI (Skor Per Sesi) ---
@@ -31,8 +31,14 @@ class AdminSpreadsheetController extends Controller
                 ->get();
             foreach ($examSubmissions as $es) {
                 $inputNilaiData[] = [
-                    'name' => $es->name, 'nip' => $es->nip, 'instansi' => $es->asal_instansi,
-                    'category' => 'EXAM', 'title' => $es->title, 'score' => $es->score, 'day' => $es->day, 'notes' => '-'
+                    'name' => $es->name,
+                    'nip' => $es->nip,
+                    'instansi' => $es->asal_instansi,
+                    'category' => 'EXAM',
+                    'title' => $es->title,
+                    'score' => $es->score,
+                    'day' => $es->day,
+                    'notes' => '-'
                 ];
             }
 
@@ -42,8 +48,14 @@ class AdminSpreadsheetController extends Controller
                 ->get();
             foreach ($cogScores as $cs) {
                 $inputNilaiData[] = [
-                    'name' => $cs->name, 'nip' => $cs->nip, 'instansi' => $cs->asal_instansi,
-                    'category' => 'KOGNITIF (MANUAL)', 'title' => 'Input Manual', 'score' => $cs->score, 'day' => '-', 'notes' => $cs->notes
+                    'name' => $cs->name,
+                    'nip' => $cs->nip,
+                    'instansi' => $cs->asal_instansi,
+                    'category' => 'KOGNITIF (MANUAL)',
+                    'title' => 'Input Manual',
+                    'score' => $cs->score,
+                    'day' => '-',
+                    'notes' => $cs->notes
                 ];
             }
 
@@ -54,8 +66,14 @@ class AdminSpreadsheetController extends Controller
                 ->get();
             foreach ($gameScores as $gs) {
                 $inputNilaiData[] = [
-                    'name' => $gs->name, 'nip' => $gs->nip, 'instansi' => $gs->asal_instansi,
-                    'category' => 'GAMES', 'title' => $gs->slot_name, 'score' => $gs->score, 'day' => '-', 'notes' => '-'
+                    'name' => $gs->name,
+                    'nip' => $gs->nip,
+                    'instansi' => $gs->asal_instansi,
+                    'category' => 'GAMES',
+                    'title' => $gs->slot_name,
+                    'score' => $gs->score,
+                    'day' => '-',
+                    'notes' => '-'
                 ];
             }
 
@@ -66,8 +84,14 @@ class AdminSpreadsheetController extends Controller
                 ->get();
             foreach ($pracScores as $ps) {
                 $inputNilaiData[] = [
-                    'name' => $ps->name, 'nip' => $ps->nip, 'instansi' => $ps->asal_instansi,
-                    'category' => 'PRAKTEK', 'title' => $ps->slot_name, 'score' => $ps->score, 'day' => '-', 'notes' => '-'
+                    'name' => $ps->name,
+                    'nip' => $ps->nip,
+                    'instansi' => $ps->asal_instansi,
+                    'category' => 'PRAKTEK',
+                    'title' => $ps->slot_name,
+                    'score' => $ps->score,
+                    'day' => '-',
+                    'notes' => '-'
                 ];
             }
 
@@ -77,8 +101,14 @@ class AdminSpreadsheetController extends Controller
                 ->get();
             foreach ($worship as $ws) {
                 $inputNilaiData[] = [
-                    'name' => $ws->name, 'nip' => $ws->nip, 'instansi' => $ws->asal_instansi,
-                    'category' => 'IBADAH', 'title' => $ws->activity_name, 'score' => $ws->score, 'day' => $ws->day, 'notes' => '-'
+                    'name' => $ws->name,
+                    'nip' => $ws->nip,
+                    'instansi' => $ws->asal_instansi,
+                    'category' => 'IBADAH',
+                    'title' => $ws->activity_name,
+                    'score' => $ws->score,
+                    'day' => $ws->day,
+                    'notes' => '-'
                 ];
             }
 
@@ -89,8 +119,14 @@ class AdminSpreadsheetController extends Controller
                 ->get();
             foreach ($attendance as $at) {
                 $inputNilaiData[] = [
-                    'name' => $at->name, 'nip' => $at->nip, 'instansi' => $at->asal_instansi,
-                    'category' => 'PRESENSI', 'title' => $at->slot_name, 'score' => 100, 'day' => $at->day, 'notes' => 'STATUS: HADIR'
+                    'name' => $at->name,
+                    'nip' => $at->nip,
+                    'instansi' => $at->asal_instansi,
+                    'category' => 'PRESENSI',
+                    'title' => $at->slot_name,
+                    'score' => 100,
+                    'day' => $at->day,
+                    'notes' => 'STATUS: HADIR'
                 ];
             }
 
@@ -112,8 +148,11 @@ class AdminSpreadsheetController extends Controller
                 ->get();
             foreach ($rawAnswers as $ra) {
                 $detailData[] = [
-                    'name' => $ra->name, 'category' => 'RAW EXAM', 'title' => $ra->question_text,
-                    'notes' => $ra->user_answer, 'score' => $ra->is_correct ? 'BENAR' : 'SALAH'
+                    'name' => $ra->name,
+                    'category' => 'RAW EXAM',
+                    'title' => $ra->question_text,
+                    'notes' => $ra->user_answer,
+                    'score' => $ra->is_correct ? 'BENAR' : 'SALAH'
                 ];
             }
 
@@ -126,8 +165,11 @@ class AdminSpreadsheetController extends Controller
                 ->get();
             foreach ($rawManito as $rm) {
                 $detailData[] = [
-                    'name' => $rm->evaluator_name, 'category' => 'RAW MANITO', 'title' => 'Menilai: ' . $rm->target_name,
-                    'notes' => $rm->question_text, 'score' => $rm->answer
+                    'name' => $rm->evaluator_name,
+                    'category' => 'RAW MANITO',
+                    'title' => 'Menilai: ' . $rm->target_name,
+                    'notes' => $rm->question_text,
+                    'score' => $rm->answer
                 ];
             }
 
@@ -139,8 +181,11 @@ class AdminSpreadsheetController extends Controller
                 ->get();
             foreach ($rtl as $r) {
                 $detailData[] = [
-                    'name' => $r->name, 'category' => 'RAW RTL', 'title' => 'Respon RTL',
-                    'notes' => $r->question_text, 'score' => $r->answer
+                    'name' => $r->name,
+                    'category' => 'RAW RTL',
+                    'title' => 'Respon RTL',
+                    'notes' => $r->question_text,
+                    'score' => $r->answer
                 ];
             }
 
@@ -156,16 +201,28 @@ class AdminSpreadsheetController extends Controller
             foreach ($exams as $ex) {
                 foreach ($ex->questions as $q) {
                     $soalData[] = [
-                        'category' => 'SOAL EXAM', 'title' => $ex->title, 'day' => $ex->day, 'notes' => $q->question_text . ' (Kunci: ' . $q->correct_answer . ')',
-                        'name' => '-', 'nip' => '-', 'instansi' => '-', 'score' => '-'
+                        'category' => 'SOAL EXAM',
+                        'title' => $ex->title,
+                        'day' => $ex->day,
+                        'notes' => $q->question_text . ' (Kunci: ' . $q->correct_answer . ')',
+                        'name' => '-',
+                        'nip' => '-',
+                        'instansi' => '-',
+                        'score' => '-'
                     ];
                 }
             }
             $surveyQuestions = SurveyQuestion::all();
             foreach ($surveyQuestions as $sq) {
                 $soalData[] = [
-                    'category' => 'SOAL SURVEY', 'title' => 'Manito', 'day' => $sq->day, 'notes' => $sq->question_text,
-                    'name' => '-', 'nip' => '-', 'instansi' => '-', 'score' => '-'
+                    'category' => 'SOAL SURVEY',
+                    'title' => 'Manito',
+                    'day' => $sq->day,
+                    'notes' => $sq->question_text,
+                    'name' => '-',
+                    'nip' => '-',
+                    'instansi' => '-',
+                    'score' => '-'
                 ];
             }
             SpreadsheetService::postBatch($soalData, 'Master_Soal');
@@ -177,7 +234,9 @@ class AdminSpreadsheetController extends Controller
             foreach ($users as $user) {
                 $final = $this->computeFinalScore($user);
                 $rekapData[] = [
-                    'name' => $user->name, 'nip' => $user->nip, 'instansi' => $user->asal_instansi,
+                    'name' => $user->name,
+                    'nip' => $user->nip,
+                    'instansi' => $user->asal_instansi,
                     'score' => $final['final']
                 ];
             }
@@ -197,7 +256,8 @@ class AdminSpreadsheetController extends Controller
         }
     }
 
-    private function computeFinalScore($user) {
+    private function computeFinalScore($user)
+    {
         $manitoAfektif = DB::table('survey_responses')
             ->join('survey_questions', 'survey_responses.question_id', '=', 'survey_questions.id')
             ->where('target_id', $user->id)
@@ -218,8 +278,8 @@ class AdminSpreadsheetController extends Controller
 
         $gameAvg = \App\Models\GameScore::where('user_id', $user->id)->avg('score') ?? 0;
         $pracAvg = \App\Models\PracticeScore::where('user_id', $user->id)->avg('score') ?? 0;
-        $kogAvg  = \App\Models\CognitiveScore::where('user_id', $user->id)->avg('score') ?? 0;
-        
+        $kogAvg = \App\Models\CognitiveScore::where('user_id', $user->id)->avg('score') ?? 0;
+
         // Ibadah (Cumulative Sum, capped at 100)
         $worshipSum = \App\Models\WorshipLog::where('user_id', $user->id)->sum('score') ?? 0;
         $worshipFinal = $worshipSum > 100 ? 100 : $worshipSum;

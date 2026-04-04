@@ -22,12 +22,17 @@ class ResponseController extends Controller
 
             $date = \Carbon\Carbon::today()->format('Y-m-d');
             
-            // Ambil Hari Aktif (Raw)
             $currentDay = \Illuminate\Support\Facades\DB::table('app_settings')
                 ->where('key', 'current_day')
                 ->value('value') ?: 1;
+            
+            $slot = \Illuminate\Support\Facades\DB::table('survey_slots')
+                ->where('name', $data['period'])
+                ->first();
 
-            \Illuminate\Support\Facades\DB::transaction(function() use ($data, $request, $date, $currentDay) {
+            $targetDay = $slot ? $slot->day : $currentDay;
+
+            \Illuminate\Support\Facades\DB::transaction(function() use ($data, $request, $date, $targetDay) {
                 foreach ($data['responses'] as $resp) {
                     \Illuminate\Support\Facades\DB::table('survey_responses')->updateOrInsert(
                         [
@@ -36,7 +41,7 @@ class ResponseController extends Controller
                             'question_id' => $resp['question_id'],
                             'period' => $data['period'],
                             'date' => $date,
-                            'day' => $currentDay
+                            'day' => $targetDay
                         ],
                         [
                             'answer' => $resp['answer'],
@@ -62,7 +67,7 @@ class ResponseController extends Controller
                     'category' => 'MANITO',
                     'title'    => "Penilaian " . $data['period'],
                     'score'    => number_format($avgScore, 2),
-                    'day'      => $currentDay,
+                    'day'      => $targetDay,
                     'notes'    => "Menilai: " . ($target->name ?? 'Unknown')
                 ]);
             } catch (\Exception $e) {}
@@ -79,25 +84,24 @@ class ResponseController extends Controller
             $user = $request->user();
             $now = \Carbon\Carbon::now();
             
-            $currentDay = \Illuminate\Support\Facades\DB::table('app_settings')
-                ->where('key', 'current_day')
-                ->value('value') ?: 1;
-
+            // Tampilkan SEMUA slot dari SEMUA hari agar peserta bisa melihat progressnya
             $slots = \Illuminate\Support\Facades\DB::table('survey_slots')
-                ->where('day', $currentDay)
+                ->orderBy('day', 'asc')
+                ->orderBy('start_time', 'asc')
                 ->get();
 
+            // Ambil semua respon user ini
             $responses = \Illuminate\Support\Facades\DB::table('survey_responses')
                 ->where('user_id', $user->id)
-                ->where('day', $currentDay)
-                ->get()
-                ->groupBy('period');
+                ->get();
 
             $activeQuestionsCount = \Illuminate\Support\Facades\DB::table('survey_questions')
                 ->where('is_active', 1)
                 ->count();
 
             $result = $slots->map(function ($slot) use ($responses, $now, $activeQuestionsCount) {
+                // Parsing waktu dengan mempertimbangkan hari operasional
+                // Namun untuk deteksi buka/tutup, kita gunakan waktu sekarang
                 $start = \Carbon\Carbon::createFromFormat('H:i:s', $slot->start_time);
                 $end = \Carbon\Carbon::createFromFormat('H:i:s', $slot->end_time);
                 
@@ -105,12 +109,15 @@ class ResponseController extends Controller
                     $end->addDay();
                 }
 
-                $userResponsesForPeriod = isset($responses[$slot->name]) ? collect($responses[$slot->name]) : collect();
-                $isFilled = $userResponsesForPeriod->count() >= $activeQuestionsCount && $activeQuestionsCount > 0;
+                // Cek apakah sudah diisi untuk slot & hari yang spesifik ini
+                $isFilled = $responses->where('period', $slot->name)
+                                    ->where('day', $slot->day)
+                                    ->count() >= $activeQuestionsCount && $activeQuestionsCount > 0;
 
                 return [
                     'id' => $slot->id,
                     'name' => $slot->name,
+                    'day' => $slot->day,
                     'start_time' => $slot->start_time,
                     'end_time' => $slot->end_time,
                     'is_filled' => $isFilled,
