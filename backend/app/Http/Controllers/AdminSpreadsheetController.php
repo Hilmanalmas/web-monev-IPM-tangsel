@@ -133,9 +133,9 @@ class AdminSpreadsheetController extends Controller {
                     'instansi' => $at->asal_instansi,
                     'category' => 'PRESENSI',
                     'title'    => $at->slot_name,
-                    'score'    => $at->status === 'hadir' ? 100 : 0,
+                    'score'    => 100,
                     'day'      => $at->day,
-                    'notes'    => 'STATUS: ' . strtoupper($at->status)
+                    'notes'    => 'STATUS: HADIR'
                 ]);
                 $count++;
             }
