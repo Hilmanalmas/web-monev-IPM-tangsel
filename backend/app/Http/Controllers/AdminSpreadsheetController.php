@@ -15,6 +15,9 @@ class AdminSpreadsheetController extends Controller
     public function syncAll()
     {
         try {
+            // --- 0. BERSIHKAN SEMUA TAB TERLEBIH DAHULU ---
+            SpreadsheetService::clearAll();
+
             $batchSize = 50; 
             $count = 0;
 

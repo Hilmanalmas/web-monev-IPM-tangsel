@@ -58,4 +58,20 @@ class SpreadsheetService
             Log::error("Failed to send BATCH to Spreadsheet: " . $e->getMessage());
         }
     }
+
+    /**
+     * Menghapus seluruh isi data di Spreadsheet (kecuali Header)
+     */
+    public static function clearAll()
+    {
+        if (empty(self::WEBHOOK_URL)) {
+            return;
+        }
+
+        try {
+            Http::timeout(30)->post(self::WEBHOOK_URL, ['action' => 'clear_all']);
+        } catch (\Exception $e) {
+            Log::error("Failed to CLEAR Spreadsheet: " . $e->getMessage());
+        }
+    }
 }
