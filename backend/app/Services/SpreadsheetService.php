@@ -10,7 +10,7 @@ class SpreadsheetService
      * URL Webhook Google Apps Script (Sesuai pengaturan kemarin)
      * Silakan isi URL /exec milik Anda di sini.
      */
-    const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycby1VckPGwyJNxl4ZZD21Cy5pEQE5pJtgdhK_7iPAcVoqYYLHanBHUalNyFpDyOqPIIzgQ/exec';
+    const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbytwqBaWWWoasiXiuo130QuqIfgrD1Up7R8agRgtvmG2ZN7lvMw17f7rLX8XuHyDOHZSQ/exec';
 
     /**
      * Mengirimkan data nilai ke Spreadsheet secara Real-time

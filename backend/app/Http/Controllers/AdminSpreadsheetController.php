@@ -15,13 +15,12 @@ class AdminSpreadsheetController extends Controller
     public function syncAll()
     {
         try {
-            $batchSize = 50; // Ukuran rombongan data
+            $batchSize = 50; 
             $count = 0;
 
-            // --- 1. PROSES INPUT_NILAI (Batch) ---
+            // --- 1. PROSES INPUT_NILAI (Skor Per Sesi) ---
             $inputNilaiData = [];
 
-            // Exams
             $examSubmissions = DB::table('exam_submissions')
                 ->join('users', 'exam_submissions.user_id', '=', 'users.id')
                 ->join('exams', 'exam_submissions.exam_id', '=', 'exams.id')
@@ -34,7 +33,6 @@ class AdminSpreadsheetController extends Controller
                 ];
             }
 
-            // Cognitive Manual
             $cogScores = DB::table('cognitive_scores')
                 ->join('users', 'cognitive_scores.user_id', '=', 'users.id')
                 ->select('cognitive_scores.*', 'users.name', 'users.nip', 'users.asal_instansi')
@@ -46,7 +44,6 @@ class AdminSpreadsheetController extends Controller
                 ];
             }
 
-            // Games
             $gameScores = DB::table('game_scores')
                 ->join('users', 'game_scores.user_id', '=', 'users.id')
                 ->join('game_slots', 'game_scores.slot_id', '=', 'game_slots.id')
@@ -59,7 +56,6 @@ class AdminSpreadsheetController extends Controller
                 ];
             }
 
-            // Practice
             $pracScores = DB::table('practice_scores')
                 ->join('users', 'practice_scores.user_id', '=', 'users.id')
                 ->join('practice_slots', 'practice_scores.slot_id', '=', 'practice_slots.id')
@@ -72,7 +68,6 @@ class AdminSpreadsheetController extends Controller
                 ];
             }
 
-            // Worship
             $worship = DB::table('worship_logs')
                 ->join('users', 'worship_logs.user_id', '=', 'users.id')
                 ->select('worship_logs.*', 'users.name', 'users.nip', 'users.asal_instansi')
@@ -84,7 +79,6 @@ class AdminSpreadsheetController extends Controller
                 ];
             }
 
-            // Attendance
             $attendance = DB::table('attendances')
                 ->join('users', 'attendances.user_id', '=', 'users.id')
                 ->join('attendance_slots', 'attendances.slot_id', '=', 'attendance_slots.id')
@@ -97,27 +91,63 @@ class AdminSpreadsheetController extends Controller
                 ];
             }
 
-            // RTL
-            $rtl = DB::table('rtl_responses')
-                ->join('users', 'rtl_responses.user_id', '=', 'users.id')
-                ->join('rtl_questions', 'rtl_responses.question_id', '=', 'rtl_questions.id')
-                ->select('rtl_responses.*', 'users.name', 'users.nip', 'users.asal_instansi', 'rtl_questions.question_text')
-                ->get();
-            foreach ($rtl as $r) {
-                $inputNilaiData[] = [
-                    'name' => $r->name, 'nip' => $r->nip, 'instansi' => $r->asal_instansi,
-                    'category' => 'RTL', 'title' => 'Respon RTL', 'score' => '-', 'day' => '-', 'notes' => $r->question_text . ': ' . $r->answer
-                ];
-            }
-
-            // Kirim inputNilaiData per batch
             $chunks = array_chunk($inputNilaiData, $batchSize);
             foreach ($chunks as $chunk) {
                 SpreadsheetService::postBatch($chunk, 'Input_Nilai');
                 $count += count($chunk);
             }
 
-            // --- 2. PROSES MASTER_SOAL (Batch) ---
+            // --- 2. PROSES ARSIP_JAWABAN_DETAIL (Batch) ---
+            $detailData = [];
+
+            // Raw Exam Answers
+            $rawAnswers = DB::table('exam_answers')
+                ->join('exam_submissions', 'exam_answers.submission_id', '=', 'exam_submissions.id')
+                ->join('users', 'exam_submissions.user_id', '=', 'users.id')
+                ->join('exam_questions', 'exam_answers.question_id', '=', 'exam_questions.id')
+                ->select('users.name', 'exam_answers.user_answer', 'exam_answers.is_correct', 'exam_questions.question_text')
+                ->get();
+            foreach ($rawAnswers as $ra) {
+                $detailData[] = [
+                    'name' => $ra->name, 'category' => 'RAW EXAM', 'title' => $ra->question_text,
+                    'notes' => $ra->user_answer, 'score' => $ra->is_correct ? 'BENAR' : 'SALAH'
+                ];
+            }
+
+            // Raw Manito Responses
+            $rawManito = DB::table('survey_responses')
+                ->join('users as evaluators', 'survey_responses.user_id', '=', 'evaluators.id')
+                ->join('users as targets', 'survey_responses.target_id', '=', 'targets.id')
+                ->join('survey_questions', 'survey_responses.question_id', '=', 'survey_questions.id')
+                ->select('evaluators.name as evaluator_name', 'targets.name as target_name', 'survey_questions.question_text', 'survey_responses.answer')
+                ->get();
+            foreach ($rawManito as $rm) {
+                $detailData[] = [
+                    'name' => $rm->evaluator_name, 'category' => 'RAW MANITO', 'title' => 'Menilai: ' . $rm->target_name,
+                    'notes' => $rm->question_text, 'score' => $rm->answer
+                ];
+            }
+
+            // Raw RTL
+            $rtl = DB::table('rtl_responses')
+                ->join('users', 'rtl_responses.user_id', '=', 'users.id')
+                ->join('rtl_questions', 'rtl_responses.question_id', '=', 'rtl_questions.id')
+                ->select('users.name', 'rtl_questions.question_text', 'rtl_responses.answer')
+                ->get();
+            foreach ($rtl as $r) {
+                $detailData[] = [
+                    'name' => $r->name, 'category' => 'RAW RTL', 'title' => 'Respon RTL',
+                    'notes' => $r->question_text, 'score' => $r->answer
+                ];
+            }
+
+            $detailChunks = array_chunk($detailData, $batchSize);
+            foreach ($detailChunks as $dChunk) {
+                SpreadsheetService::postBatch($dChunk, 'Arsip_Jawaban_Detail');
+                $count += count($dChunk);
+            }
+
+            // --- 3. PROSES MASTER_SOAL (Backup Soal) ---
             $soalData = [];
             $exams = Exam::with('questions')->get();
             foreach ($exams as $ex) {
@@ -138,7 +168,7 @@ class AdminSpreadsheetController extends Controller
             SpreadsheetService::postBatch($soalData, 'Master_Soal');
             $count += count($soalData);
 
-            // --- 3. PROSES REKAP_NILAI_AKHIR (Batch) ---
+            // --- 4. PROSES REKAP_NILAI_AKHIR (Summary) ---
             $rekapData = [];
             $users = User::where('role', 'peserta')->get();
             foreach ($users as $user) {
@@ -150,7 +180,7 @@ class AdminSpreadsheetController extends Controller
             }
             SpreadsheetService::postBatch($rekapData, 'Rekap_Nilai_Akhir');
 
-            return response()->json(['message' => 'Sukses mendorong ' . $count . ' data ke 3 Tab Spreadsheet!']);
+            return response()->json(['message' => 'Sukses mendorong ' . $count . ' data detail ke 4 Tab Spreadsheet!']);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
