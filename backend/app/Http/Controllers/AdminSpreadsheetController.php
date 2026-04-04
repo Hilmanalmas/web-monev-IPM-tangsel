@@ -180,7 +180,15 @@ class AdminSpreadsheetController extends Controller
             }
             SpreadsheetService::postBatch($rekapData, 'Rekap_Nilai_Akhir');
 
-            return response()->json(['message' => 'Sukses mendorong ' . $count . ' data detail ke 4 Tab Spreadsheet!']);
+            return response()->json([
+                'message' => 'Sukses mendorong ' . $count . ' data!',
+                'breakdown' => [
+                    'skor_sesi' => count($inputNilaiData),
+                    'arsip_detail' => count($detailData),
+                    'backup_soal' => count($soalData),
+                    'rekap_final' => count($rekapData)
+                ]
+            ]);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
