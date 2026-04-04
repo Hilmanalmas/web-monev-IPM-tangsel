@@ -78,7 +78,7 @@ class AdminSpreadsheetController extends Controller
             foreach ($worship as $ws) {
                 $inputNilaiData[] = [
                     'name' => $ws->name, 'nip' => $ws->nip, 'instansi' => $ws->asal_instansi,
-                    'category' => 'IBADAH', 'title' => $ws->activity_type, 'score' => $ws->score, 'day' => $ws->day, 'notes' => '-'
+                    'category' => 'IBADAH', 'title' => $ws->activity_name, 'score' => $ws->score, 'day' => $ws->day, 'notes' => '-'
                 ];
             }
 
@@ -219,12 +219,15 @@ class AdminSpreadsheetController extends Controller
         $gameAvg = \App\Models\GameScore::where('user_id', $user->id)->avg('score') ?? 0;
         $pracAvg = \App\Models\PracticeScore::where('user_id', $user->id)->avg('score') ?? 0;
         $kogAvg  = \App\Models\CognitiveScore::where('user_id', $user->id)->avg('score') ?? 0;
-        $worshipAvg = \App\Models\WorshipLog::where('user_id', $user->id)->avg('score') ?? 0;
+        
+        // Ibadah (Cumulative Sum, capped at 100)
+        $worshipSum = \App\Models\WorshipLog::where('user_id', $user->id)->sum('score') ?? 0;
+        $worshipFinal = $worshipSum > 100 ? 100 : $worshipSum;
 
         $afektifFinal = ($manitoAfektif * 0.5) + ($absensiScore * 0.5);
         $psikomotorikFinal = ($manitoPsiko * 0.4) + ($gameAvg * 0.3) + ($pracAvg * 0.3);
 
-        $finalScore = ($afektifFinal * 0.35) + ($psikomotorikFinal * 0.35) + ($kogAvg * 0.20) + ($worshipAvg * 0.10);
+        $finalScore = ($afektifFinal * 0.35) + ($psikomotorikFinal * 0.35) + ($kogAvg * 0.20) + ($worshipFinal * 0.10);
 
         return ['final' => round($finalScore, 2)];
     }

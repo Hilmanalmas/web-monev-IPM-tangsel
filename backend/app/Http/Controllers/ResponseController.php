@@ -27,23 +27,25 @@ class ResponseController extends Controller
                 ->where('key', 'current_day')
                 ->value('value') ?: 1;
 
-            foreach ($data['responses'] as $resp) {
-                \Illuminate\Support\Facades\DB::table('survey_responses')->updateOrInsert(
-                    [
-                        'user_id' => $request->user()->id,
-                        'target_id' => $data['target_id'],
-                        'question_id' => $resp['question_id'],
-                        'period' => $data['period'],
-                        'date' => $date,
-                        'day' => $currentDay
-                    ],
-                    [
-                        'answer' => $resp['answer'],
-                        'created_at' => now(),
-                        'updated_at' => now()
-                    ]
-                );
-            }
+            \Illuminate\Support\Facades\DB::transaction(function() use ($data, $request, $date, $currentDay) {
+                foreach ($data['responses'] as $resp) {
+                    \Illuminate\Support\Facades\DB::table('survey_responses')->updateOrInsert(
+                        [
+                            'user_id' => $request->user()->id,
+                            'target_id' => $data['target_id'],
+                            'question_id' => $resp['question_id'],
+                            'period' => $data['period'],
+                            'date' => $date,
+                            'day' => $currentDay
+                        ],
+                        [
+                            'answer' => $resp['answer'],
+                            'created_at' => now(),
+                            'updated_at' => now()
+                        ]
+                    );
+                }
+            });
 
             // Sync to Spreadsheet
             try {

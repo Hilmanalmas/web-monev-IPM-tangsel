@@ -14,8 +14,11 @@ class WorshipLog extends Model
         'observer_id',
         'slot_id',
         'score',
+        'bonus_points',
+        'activity_name',
         'notes',
-        'day'
+        'day',
+        'date'
     ];
 
     public function user()

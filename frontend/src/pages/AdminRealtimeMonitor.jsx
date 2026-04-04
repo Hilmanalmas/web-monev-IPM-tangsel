@@ -1,14 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { CheckCircle, XCircle, User, Activity, Search, ClipboardList, PenTool, LayoutGrid } from 'lucide-react';
 
 const AdminRealtimeMonitor = () => {
     const [logs, setLogs] = useState([]);
+    const [progress, setProgress] = useState([]);
+    const [exams, setExams] = useState([]);
+    const [surveys, setSurveys] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [search, setSearch] = useState("");
 
-    const fetchLogs = async () => {
+    const fetchData = async () => {
         try {
-            const res = await axios.get('/api/admin/surveys/realtime');
-            setLogs(res.data);
+            const [logsRes, progressRes] = await Promise.all([
+                axios.get('/api/admin/surveys/realtime'),
+                axios.get('/api/admin/reports/progress')
+            ]);
+            setLogs(logsRes.data);
+            setProgress(progressRes.data.progress || []);
+            setExams(progressRes.data.exams || []);
+            setSurveys(progressRes.data.surveys || []);
             setLoading(false);
         } catch (err) {
             console.error("Gagal ambil data monitor", err);
@@ -16,8 +27,8 @@ const AdminRealtimeMonitor = () => {
     };
 
     useEffect(() => {
-        fetchLogs();
-        const interval = setInterval(fetchLogs, 5000);
+        fetchData();
+        const interval = setInterval(fetchData, 8000);
         return () => clearInterval(interval);
     }, []);
 
@@ -32,91 +43,149 @@ const AdminRealtimeMonitor = () => {
         return `${styles[type] || "bg-gray-100"} px-2 py-1 rounded-lg text-[10px] font-black border uppercase tracking-wider`;
     };
 
-    const formatScore = (score, type) => {
-        if (type === 'MANITO') {
-            const labels = { 4: "Pro", 3: "Oke", 2: "Guide", 1: "Skip" };
-            return labels[score] || score;
-        }
-        return score;
-    };
+    const StatusBox = ({ active, label, colorClass = "emerald" }) => (
+        <div className={`p-1.5 rounded-lg flex flex-col items-center justify-center gap-1 transition-all duration-500 border
+            ${active 
+                ? `bg-${colorClass}-50 border-${colorClass}-200 text-${colorClass}-600` 
+                : 'bg-slate-50 border-slate-100 text-slate-200 opacity-50'}`}>
+            {active ? <CheckCircle size={10} strokeWidth={3} /> : <XCircle size={10} />}
+            <span className="text-[7px] font-black uppercase tracking-tighter truncate w-12 text-center" title={label}>{label}</span>
+        </div>
+    );
+
+    const filteredProgress = progress.filter(p => 
+        p.name.toLowerCase().includes(search.toLowerCase())
+    );
 
     return (
-        <div className="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden mt-10">
-            <div className="bg-slate-900 px-8 py-6 flex justify-between items-center">
-                <div>
-                    <h3 className="font-black text-white text-xl flex items-center gap-3">
-                        <span className="relative flex h-4 w-4">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-4 w-4 bg-rose-500"></span>
-                        </span>
-                        LIVE FEED AKTIVITAS
-                    </h3>
-                    <p className="text-slate-400 text-xs mt-1 font-bold">Memantau semua nilai & aktivitas peserta secara real-time</p>
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-5 duration-700">
+            {/* TASK PROGRESS MATRIX */}
+            <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden">
+                <div className="bg-slate-900 px-8 py-5 flex justify-between items-center border-b border-slate-800">
+                    <div>
+                        <h3 className="font-black text-rose-500 text-lg flex items-center gap-3">
+                            <LayoutGrid size={22} />
+                             RADAR PENGERJAAN TUGAS
+                        </h3>
+                        <p className="text-slate-400 text-[10px] font-bold tracking-widest uppercase">Memantau status per sesi individu</p>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
+                            <input 
+                                type="text" 
+                                placeholder="Cari Nama..." 
+                                className="bg-slate-800 border-none rounded-full py-1.5 pl-9 pr-4 text-xs text-white placeholder:text-slate-500 focus:ring-2 focus:ring-rose-500/50 outline-none w-48 transition-all"
+                                onChange={(e) => setSearch(e.target.value)}
+                            />
+                        </div>
+                    </div>
                 </div>
-                <div className="flex gap-2">
-                    <span className="bg-slate-800 text-slate-300 px-3 py-1 rounded-full text-[10px] font-bold border border-slate-700">AUTO-REFRESH: 5S</span>
+
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-slate-50/80 border-b border-slate-100">
+                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest sticky left-0 bg-slate-50 z-10 border-r">Nama Peserta</th>
+                                <th className="px-4 py-8 text-center bg-rose-50/30">
+                                    <div className="flex flex-col items-center gap-1">
+                                        <ClipboardList size={14} className="text-rose-500" />
+                                        <span className="text-[10px] font-black text-rose-600 uppercase italic">Ujian / Test</span>
+                                    </div>
+                                </th>
+                                <th className="px-4 py-8 text-center bg-purple-50/30">
+                                    <div className="flex flex-col items-center gap-1">
+                                        <PenTool size={14} className="text-purple-500" />
+                                        <span className="text-[10px] font-black text-purple-600 uppercase italic">Manito / Survey</span>
+                                    </div>
+                                </th>
+                                <th className="px-4 py-8 text-center bg-emerald-50/30">
+                                    <div className="flex flex-col items-center gap-1">
+                                        <CheckCircle size={14} className="text-emerald-500" />
+                                        <span className="text-[10px] font-black text-emerald-600 uppercase italic">RTL</span>
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-50">
+                            {filteredProgress.map((p) => (
+                                <tr key={p.id} className="hover:bg-slate-50 transition-all group">
+                                    <td className="px-6 py-4 sticky left-0 bg-white group-hover:bg-slate-50 z-10 border-r">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-rose-500 group-hover:text-white transition-all shadow-inner">
+                                                <User size={16} />
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="font-black text-slate-700 text-sm whitespace-nowrap">{p.name}</span>
+                                                <span className="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">{p.instansi}</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    
+                                    {/* EXAMS INDICATORS */}
+                                    <td className="px-4 py-4 bg-rose-50/10">
+                                        <div className="flex flex-wrap gap-2 justify-center min-w-[150px]">
+                                            {exams.map(ex => (
+                                                <StatusBox key={ex.id} active={p.exams[ex.id]} label={ex.title} colorClass="rose" />
+                                            ))}
+                                        </div>
+                                    </td>
+
+                                    {/* MANITO INDICATORS */}
+                                    <td className="px-4 py-4 bg-purple-50/10">
+                                        <div className="flex flex-wrap gap-2 justify-center min-w-[150px]">
+                                            {surveys.map(sv => (
+                                                <StatusBox key={sv.id} active={p.surveys[sv.id]} label={sv.session_name} colorClass="purple" />
+                                            ))}
+                                        </div>
+                                    </td>
+
+                                    {/* RTL INDICATOR */}
+                                    <td className="px-4 py-4 bg-emerald-50/10 text-center">
+                                        <div className="flex justify-center">
+                                            <StatusBox active={p.has_rtl} label="Submission RTL" colorClass="emerald" />
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
-            <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="bg-slate-50">
-                            <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Waktu</th>
-                            <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Kategori</th>
-                            <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Nama Peserta / Penilai</th>
-                            <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Aktivitas / Item</th>
-                            <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Nilai</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-50">
-                        {loading && logs.length === 0 ? (
-                            <tr>
-                                <td colSpan="5" className="px-8 py-20 text-center">
-                                    <div className="flex flex-col items-center gap-4">
-                                        <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-                                        <p className="font-bold text-slate-400 uppercase tracking-widest animate-pulse">Menghubungkan ke Server...</p>
-                                    </div>
-                                </td>
-                            </tr>
-                        ) : logs.length === 0 ? (
-                            <tr>
-                                <td colSpan="5" className="px-8 py-20 text-center text-slate-400 font-bold uppercase tracking-widest">
-                                    Belum ada aktivitas terekam.
-                                </td>
-                            </tr>
-                        ) : (
-                            logs.map((log, idx) => (
-                                <tr key={log.type + log.id + idx} className="hover:bg-slate-50 transition-all duration-300 group">
-                                    <td className="px-8 py-5 text-sm font-bold text-slate-400 group-hover:text-slate-600">
-                                        {new Date(log.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            {/* LIVE FEED ACTIVITIES - COMPACT */}
+            <div className="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden border-t-4 border-t-slate-900">
+                <div className="bg-white px-8 py-4 flex justify-between items-center border-b border-slate-100">
+                    <h3 className="font-black text-slate-900 text-sm flex items-center gap-2 uppercase tracking-widest italic">
+                        <Activity size={16} className="text-rose-500" />
+                        Aktivitas Masuk Baru
+                    </h3>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <tbody className="divide-y divide-slate-50">
+                            {logs.slice(0, 8).map((log, idx) => (
+                                <tr key={idx} className="hover:bg-slate-50/50 transition-all">
+                                    <td className="px-8 py-3 text-[10px] font-bold text-slate-400">
+                                        {new Date(log.created_at).toLocaleTimeString('id-ID')}
                                     </td>
-                                    <td className="px-8 py-5">
+                                    <td className="px-8 py-3">
                                         <span className={getTypeBadge(log.type)}>{log.type}</span>
                                     </td>
-                                    <td className="px-8 py-5">
-                                        <div className="flex flex-col">
-                                            <span className="font-black text-slate-700 text-base">{log.user_name}</span>
-                                            {log.target_name && (
-                                                <span className="text-[10px] font-bold text-indigo-500 uppercase">Menilai: {log.target_name}</span>
-                                            )}
-                                        </div>
+                                    <td className="px-8 py-3">
+                                        <span className="font-black text-slate-700 text-xs">{log.user_name}</span>
                                     </td>
-                                    <td className="px-8 py-5">
-                                        <p className="text-sm font-bold text-slate-500 truncate max-w-[250px]" title={log.description}>
-                                            {log.description || '-'}
-                                        </p>
+                                    <td className="px-8 py-3">
+                                        <span className="text-[10px] text-slate-500 font-bold">{log.description}</span>
                                     </td>
-                                    <td className="px-8 py-5 text-right">
-                                        <span className={`text-xl font-black ${log.score >= 80 || log.score == 4 ? 'text-emerald-500' : 'text-slate-800'}`}>
-                                            {formatScore(log.score, log.type)}
-                                        </span>
+                                    <td className="px-8 py-3 text-right">
+                                        <span className="text-sm font-black text-rose-500">{log.score}</span>
                                     </td>
                                 </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     );

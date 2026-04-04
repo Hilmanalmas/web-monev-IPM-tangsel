@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\WorshipLog;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class WorshipLogController extends Controller
 {
@@ -16,26 +17,39 @@ class WorshipLogController extends Controller
 
         $user = $request->user();
 
-        // Check if already reported this specific activity today
-        $alreadyReported = WorshipLog::where('user_id', $user->id)
-            ->where('activity_name', $request->activity_name)
-            ->whereDate('created_at', Carbon::today())
-            ->exists();
+        // 🛡️ ATOMIC PROTECTION: Use transaction and updateOrCreate based on DATE
+        return DB::transaction(function() use ($request, $user) {
+            $log = WorshipLog::updateOrCreate(
+                [
+                    'user_id' => $user->id,
+                    'activity_name' => $request->activity_name,
+                    'date' => Carbon::today() // Ensure uniqueness per day
+                ],
+                [
+                    'score' => 10, // Base score for attendance in worship
+                    'bonus_points' => 2,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]
+            );
 
-        if ($alreadyReported) {
-            return response()->json(['message' => 'Anda sudah melaporkan aktivitas ibadah ini hari ini.'], 400);
-        }
+            // Sync to Spreadsheet (Incremental)
+            try {
+                \App\Services\SpreadsheetService::postScore([
+                    'name'     => $user->name,
+                    'instansi' => $user->asal_instansi,
+                    'type'     => 'IBADAH',
+                    'item'     => $request->activity_name,
+                    'score'    => 10,
+                    'desc'     => 'Aktivitas Ibadah Terverifikasi'
+                ]);
+            } catch (\Exception $e) {}
 
-        $log = WorshipLog::create([
-            'user_id' => $user->id,
-            'activity_name' => $request->activity_name,
-            'bonus_points' => 2 // Default bonus according to Brief
-        ]);
-
-        return response()->json([
-            'message' => 'Aktivitas ibadah berhasil dilaporkan. (+2 Poin Bonus)',
-            'log' => $log
-        ], 201);
+            return response()->json([
+                'message' => 'Aktivitas ibadah berhasil dicatat.',
+                'log' => $log
+            ], 201);
+        });
     }
     
     public function index(Request $request)

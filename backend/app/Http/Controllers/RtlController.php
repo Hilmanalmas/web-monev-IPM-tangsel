@@ -7,6 +7,7 @@ use App\Models\RtlResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class RtlController extends Controller
 {
@@ -49,26 +50,42 @@ class RtlController extends Controller
             return response()->json(['message' => 'Laman RTL belum bisa diakses.'], 403);
         }
 
-        $slot = RtlSlot::first();
-        if (!$slot) {
-            $slot = RtlSlot::create(['name' => 'Penilaian Pasca Kegiatan', 'start_time' => '00:00:00', 'end_time' => '23:59:59']);
-        }
+        return DB::transaction(function() use ($data) {
+            $slot = RtlSlot::first();
+            if (!$slot) {
+                $slot = RtlSlot::create(['name' => 'Penilaian Pasca Kegiatan', 'start_time' => '00:00:00', 'end_time' => '23:59:59']);
+            }
 
-        if (RtlResponse::where('user_id', Auth::id())->where('slot_id', $slot->id)->exists()) {
-            return response()->json(['message' => 'Anda sudah mengisi RTL.'], 400);
-        }
+            foreach ($data['responses'] as $resp) {
+                // Use updateOrCreate to prevent duplicates based on user, slot, and specific question
+                RtlResponse::updateOrCreate(
+                    [
+                        'user_id' => Auth::id(),
+                        'question_id' => $resp['question_id'],
+                        'slot_id' => $slot->id
+                    ],
+                    [
+                        'selfie_url' => $data['selfie_url'],
+                        'answer' => $resp['response_text'],
+                        'date' => today()
+                    ]
+                );
+            }
 
-        foreach ($data['responses'] as $resp) {
-            RtlResponse::create([
-                'user_id' => Auth::id(),
-                'question_id' => $resp['question_id'],
-                'slot_id' => $slot->id,
-                'selfie_url' => $data['selfie_url'],
-                'answer' => $resp['response_text'],
-                'date' => today()
-            ]);
-        }
+            // Sync to Spreadsheet (Batch)
+            try {
+                $user = Auth::user();
+                \App\Services\SpreadsheetService::postScore([
+                    'name'     => $user->name,
+                    'instansi' => $user->asal_instansi,
+                    'type'     => 'RTL',
+                    'item'     => 'Submission RTL',
+                    'score'    => 100, // Participation score
+                    'desc'     => 'Submission completed'
+                ]);
+            } catch (\Exception $e) {}
 
-        return response()->json(['message' => 'RTL berhasil dikirim']);
+            return response()->json(['message' => 'RTL berhasil dikirim']);
+        });
     }
 }

@@ -183,7 +183,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/admin/exams/reset', [\App\Http\Controllers\AdminExamController::class, 'resetSubmission']);
         Route::post('/admin/spreadsheet/sync-all', [\App\Http\Controllers\AdminSpreadsheetController::class, 'syncAll']);
 
-        // Final Report Management
+        Route::get('/admin/reports/progress', [\App\Http\Controllers\AdminReportController::class, 'progress']);
         Route::get('/admin/reports', [\App\Http\Controllers\AdminReportController::class, 'index']);
         Route::post('/admin/reports/publish', [\App\Http\Controllers\AdminReportController::class, 'publish']); // Publish scores
         Route::get('/admin/reports/export', [\App\Http\Controllers\AdminReportController::class, 'exportScores']);
