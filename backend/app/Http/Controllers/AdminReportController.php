@@ -10,7 +10,7 @@ use App\Models\GameScore;
 use App\Models\PracticeScore;
 use App\Models\AppSetting;
 use App\Models\Exam;
-use App\Models\SurveySession;
+use App\Models\SurveySlot;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\DB;
@@ -93,7 +93,7 @@ class AdminReportController extends Controller {
     public function progress() {
         $users = User::where('role', 'peserta')->get();
         $exams = Exam::select('id', 'title')->get();
-        $surveySessions = SurveySession::select('id', 'session_name', 'period')->get();
+        $surveySessions = SurveySlot::select('id', 'name as session_name', 'day')->get();
 
         $progress = $users->map(function($u) use ($exams, $surveySessions) {
             $examStatus = [];
@@ -103,8 +103,10 @@ class AdminReportController extends Controller {
 
             $surveyStatus = [];
             foreach($surveySessions as $ss) {
-                $surveyStatus[$ss->id] = SurveyResponse::where('user_id', $u->id)->where('period', $ss->period)->exists();
+                $surveyStatus[$ss->id] = SurveyResponse::where('user_id', $u->id)->where('period', $ss->session_name)->exists();
             }
+
+            $scores = $this->computeFinalScore($u);
 
             return [
                 'id' => $u->id,
@@ -112,7 +114,8 @@ class AdminReportController extends Controller {
                 'instansi' => $u->asal_instansi,
                 'exams' => $examStatus,
                 'surveys' => $surveyStatus,
-                'has_rtl' => DB::table('rtl_responses')->where('user_id', $u->id)->exists()
+                'has_rtl' => DB::table('rtl_responses')->where('user_id', $u->id)->exists(),
+                'scores' => $scores
             ];
         });
 
@@ -121,5 +124,71 @@ class AdminReportController extends Controller {
             'surveys' => $surveySessions,
             'progress' => $progress
         ]);
+    }
+
+    public function fullReport() {
+        $users = User::where('role', 'peserta')->get();
+        $userIds = $users->pluck('id');
+        
+        // Bulk fetch all data
+        $allExams = DB::table('exam_submissions')
+            ->join('exams', 'exam_submissions.exam_id', '=', 'exams.id')
+            ->whereIn('user_id', $userIds)
+            ->select('exam_submissions.user_id', 'exams.title', 'exam_submissions.score', 'exam_submissions.created_at')
+            ->get()->groupBy('user_id');
+
+        $allSurveys = DB::table('survey_responses')
+            ->join('survey_questions', 'survey_responses.question_id', '=', 'survey_questions.id')
+            ->whereIn('target_id', $userIds)
+            ->select('survey_responses.target_id as user_id', 'survey_responses.period', 'survey_questions.question_text', 'survey_responses.answer', 'survey_questions.category')
+            ->get()->groupBy('user_id');
+        
+        $allGames = DB::table('game_scores')
+            ->join('game_slots', 'game_scores.slot_id', '=', 'game_slots.id')
+            ->whereIn('user_id', $userIds)
+            ->select('game_scores.user_id', 'game_slots.name', 'game_scores.score', 'game_scores.notes')
+            ->get()->groupBy('user_id');
+
+        $allPractice = DB::table('practice_scores')
+            ->join('practice_slots', 'practice_scores.slot_id', '=', 'practice_slots.id')
+            ->whereIn('user_id', $userIds)
+            ->select('practice_scores.user_id', 'practice_slots.name', 'practice_scores.score', 'practice_scores.notes')
+            ->get()->groupBy('user_id');
+
+        $allWorship = DB::table('worship_logs')
+            ->join('worship_slots', 'worship_logs.slot_id', '=', 'worship_slots.id')
+            ->whereIn('user_id', $userIds)
+            ->select('worship_logs.user_id', 'worship_slots.name', 'worship_logs.score')
+            ->get()->groupBy('user_id');
+
+        $allAttendance = DB::table('attendances')
+            ->join('attendance_slots', 'attendances.slot_id', '=', 'attendance_slots.id')
+            ->whereIn('user_id', $userIds)
+            ->select('attendances.user_id', 'attendance_slots.name', 'attendances.day', 'attendances.created_at')
+            ->get()->groupBy('user_id');
+
+        $detailedReports = $users->map(function($user) use ($allExams, $allSurveys, $allGames, $allPractice, $allWorship, $allAttendance) {
+            $summary = $this->computeFinalScore($user);
+            
+            return [
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'instansi' => $user->asal_instansi,
+                    'nip' => $user->nip
+                ],
+                'summary' => $summary,
+                'details' => [
+                    'exams' => $allExams->get($user->id, []),
+                    'surveys' => $allSurveys->get($user->id, []),
+                    'games' => $allGames->get($user->id, []),
+                    'practice' => $allPractice->get($user->id, []),
+                    'worship' => $allWorship->get($user->id, []),
+                    'attendance' => $allAttendance->get($user->id, [])
+                ]
+            ];
+        });
+
+        return response()->json($detailedReports);
     }
 }

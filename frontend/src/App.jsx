@@ -22,6 +22,7 @@ import SurveyPortal from './pages/SurveyPortal';
 import RtlPortal from './pages/RtlPortal';
 import ObserverIbadah from './pages/ObserverIbadah';
 import Layout from './components/Layout';
+import AdminReports from './pages/AdminReports';
 import { Camera } from 'lucide-react';
 
 const Dashboard = () => {
@@ -119,6 +120,7 @@ const AppLayout = () => (
             <Route path="/admin/rtl" element={<ProtectedRoute allowedRoles={['admin']}><AdminRtl /></ProtectedRoute>} />
             <Route path="/admin/games" element={<ProtectedRoute allowedRoles={['admin']}><AdminGames /></ProtectedRoute>} />
             <Route path="/admin/practice" element={<ProtectedRoute allowedRoles={['admin']}><AdminPractice /></ProtectedRoute>} />
+            <Route path="/admin/reports" element={<ProtectedRoute allowedRoles={['admin']}><AdminReports /></ProtectedRoute>} />
             
             <Route path="/observer" element={<ProtectedRoute allowedRoles={['admin', 'observer']}><ObserverDashboard /></ProtectedRoute>} />
             

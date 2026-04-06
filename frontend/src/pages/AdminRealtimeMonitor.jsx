@@ -105,6 +105,18 @@ const AdminRealtimeMonitor = () => {
                                         <span className="text-[10px] font-black text-emerald-600 uppercase italic">RTL</span>
                                     </div>
                                 </th>
+                                <th className="px-4 py-8 text-center bg-indigo-50/30 border-l border-white/50">
+                                    <div className="flex flex-col items-center gap-1">
+                                        <Activity size={14} className="text-indigo-500" />
+                                        <span className="text-[10px] font-black text-indigo-600 uppercase italic">Progres</span>
+                                    </div>
+                                </th>
+                                <th className="px-4 py-8 text-center bg-amber-50/30 border-l border-white/50">
+                                    <div className="flex flex-col items-center gap-1">
+                                        <Target size={14} className="text-amber-500" />
+                                        <span className="text-[10px] font-black text-amber-600 uppercase italic">Nilai Akhir</span>
+                                    </div>
+                                </th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
@@ -141,9 +153,59 @@ const AdminRealtimeMonitor = () => {
                                     </td>
 
                                     {/* RTL INDICATOR */}
-                                    <td className="px-4 py-4 bg-emerald-50/10 text-center">
+                                    <td className="px-4 py-4 bg-emerald-50/10 text-center border-r">
                                         <div className="flex justify-center">
                                             <StatusBox active={p.has_rtl} label="Submission RTL" colorClass="emerald" />
+                                        </div>
+                                    </td>
+
+                                    {/* NEW: PROGRESS PERCENTAGE */}
+                                    <td className="px-4 py-4 bg-indigo-50/10 text-center border-r">
+                                        {(() => {
+                                            const totalTasks = exams.length + surveys.length + 1;
+                                            const doneExams = Object.values(p.exams || {}).filter(v => v).length;
+                                            const doneSurveys = Object.values(p.surveys || {}).filter(v => v).length;
+                                            const doneRtl = p.has_rtl ? 1 : 0;
+                                            const progressPercent = Math.round(((doneExams + doneSurveys + doneRtl) / totalTasks) * 100);
+                                            return (
+                                                <div className="flex flex-col items-center gap-1">
+                                                    <div className="relative w-10 h-10 flex items-center justify-center">
+                                                        <svg className="w-12 h-12 transform -rotate-90">
+                                                            <circle cx="24" cy="24" r="18" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-indigo-100" />
+                                                            <circle cx="24" cy="24" r="18" stroke="currentColor" strokeWidth="4" fill="transparent" strokeDasharray={113} strokeDashoffset={113 - (progressPercent / 100) * 113} strokeLinecap="round" className="text-indigo-600 transition-all duration-700" />
+                                                        </svg>
+                                                        <span className="absolute text-[8px] font-black text-indigo-700">{progressPercent}%</span>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })()}
+                                    </td>
+
+                                    {/* NEW: FINAL SCORE PERCENTAGE */}
+                                    <td className="px-4 py-4 bg-amber-50/10 text-center">
+                                        <div className="flex flex-col items-center group/score">
+                                            <span className="text-xl font-black text-amber-600 drop-shadow-sm">{p.scores?.final ?? 0}</span>
+                                            <span className="text-[8px] font-black text-amber-500 uppercase tracking-tighter">POINT TOTAL</span>
+                                            
+                                            {/* BREAKDOWN SUBTEXT */}
+                                            <div className="mt-2 flex flex-wrap justify-center gap-x-2 gap-y-0.5 max-w-[120px] opacity-60 group-hover:opacity-100 transition-opacity">
+                                                <div className="flex gap-1 items-center">
+                                                    <span className="text-[7px] font-black text-indigo-500 uppercase">A:</span>
+                                                    <span className="text-[7px] font-bold text-slate-600">{p.scores?.afektif ?? 0}</span>
+                                                </div>
+                                                <div className="flex gap-1 items-center">
+                                                    <span className="text-[7px] font-black text-emerald-500 uppercase">P:</span>
+                                                    <span className="text-[7px] font-bold text-slate-600">{p.scores?.psiko ?? 0}</span>
+                                                </div>
+                                                <div className="flex gap-1 items-center">
+                                                    <span className="text-[7px] font-black text-rose-500 uppercase">K:</span>
+                                                    <span className="text-[7px] font-bold text-slate-600">{p.scores?.kognitif ?? 0}</span>
+                                                </div>
+                                                <div className="flex gap-1 items-center">
+                                                    <span className="text-[7px] font-black text-amber-500 uppercase">I:</span>
+                                                    <span className="text-[7px] font-bold text-slate-600">{p.scores?.ibadah ?? 0}</span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>

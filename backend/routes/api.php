@@ -186,6 +186,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/admin/reports/progress', [\App\Http\Controllers\AdminReportController::class, 'progress']);
         Route::get('/admin/reports', [\App\Http\Controllers\AdminReportController::class, 'index']);
         Route::post('/admin/reports/publish', [\App\Http\Controllers\AdminReportController::class, 'publish']); // Publish scores
+        Route::get('/admin/reports/full', [\App\Http\Controllers\AdminReportController::class, 'fullReport']);
         Route::get('/admin/reports/export', [\App\Http\Controllers\AdminReportController::class, 'exportScores']);
 
         // Global Settings (Days, etc)

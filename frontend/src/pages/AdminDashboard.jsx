@@ -102,15 +102,45 @@ const AdminDashboard = () => {
                     </div>
                 </div>
 
-                <div className="bg-amber-50 rounded-3xl p-8 border border-amber-200 flex flex-col justify-center">
-                    <h3 className="text-xl font-bold text-amber-800 mb-2 flex items-center gap-2">
-                        <CheckCircle size={20} /> Petunjuk Admin
+                <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-xl relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-8 opacity-5 text-indigo-600 group-hover:scale-110 transition-transform"><Target size={120} /></div>
+                    <h3 className="text-xl font-black text-gray-800 mb-6 flex items-center gap-3 uppercase tracking-tight">
+                        <Sparkles className="text-amber-500" /> Strategi Pembobotan Nilai
                     </h3>
-                    <ul className="list-disc ml-5 text-amber-700 space-y-2 text-sm">
-                        <li>Gunakan tombol <strong>"Unduh Rekap Nilai"</strong> untuk mengkalkulasi skor akhir secara otomatis.</li>
-                        <li>Sistem MONEV V2 menghitung Bobot: Afektif (35%), Psikomotorik (35%), Kognitif (20%) dan Ibadah (10%).</li>
-                        <li><strong>Kontrol Hari:</strong> Pastikan Anda mengganti hari operasional setiap hari baru dimulai agar data tidak bercampur.</li>
-                    </ul>
+                    
+                    <div className="space-y-5">
+                        {[
+                            { label: 'Afektif', weight: 35, color: 'indigo', items: ['Manito (50%)', 'Absensi (50%)'] },
+                            { label: 'Psikomotorik', weight: 35, color: 'emerald', items: ['Manito (40%)', 'Games (30%)', 'Praktek (30%)'] },
+                            { label: 'Kognitif', weight: 20, color: 'rose', items: ['Post-test', 'Ujian Harian'] },
+                            { label: 'Ibadah', weight: 10, color: 'amber', items: ['Worship Logs', 'Kultum'] },
+                        ].map((cat, i) => (
+                            <div key={i} className="relative">
+                                <div className="flex justify-between items-end mb-1.5 px-1">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">{cat.label}</span>
+                                    <span className={`text-xs font-black text-${cat.color}-600`}>{cat.weight}%</span>
+                                </div>
+                                <div className="w-full h-3 bg-gray-50 rounded-full overflow-hidden border border-gray-100 shadow-inner">
+                                    <div 
+                                        className={`h-full bg-gradient-to-r from-${cat.color}-500 to-${cat.color}-400 rounded-full shadow-lg`}
+                                        style={{ width: `${cat.weight}%` }}
+                                    ></div>
+                                </div>
+                                <p className="text-[9px] text-gray-400 mt-1.5 px-1 font-bold italic opacity-60">
+                                    Komponen: {cat.items.join(' • ')}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="mt-8 pt-6 border-t border-gray-50">
+                        <div className="flex items-start gap-3 bg-amber-50 p-4 rounded-2xl border border-amber-100">
+                            <ShieldAlert className="text-amber-500 shrink-0 mt-0.5" size={18} />
+                            <p className="text-[10px] text-amber-800 font-bold leading-relaxed">
+                                <strong>PENTING:</strong> Pastikan Hari Operasional (H-X) sudah sesuai sebelum mengunduh rekap. Bobot ini telah disesuaikan dengan kurikulum Pelajar Anggrek V2.
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
