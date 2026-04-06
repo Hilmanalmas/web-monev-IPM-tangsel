@@ -42,11 +42,11 @@ const AdminAttendance = () => {
         }
     };
 
-    const groupedSlots = slots.reduce((acc, slot) => {
+    const groupedSlots = Array.isArray(slots) ? slots.reduce((acc, slot) => {
         acc[slot.day] = acc[slot.day] || [];
         acc[slot.day].push(slot);
         return acc;
-    }, {});
+    }, {}) : {};
 
     return (
         <div className="max-w-4xl mx-auto space-y-8 p-6">
@@ -98,7 +98,7 @@ const AdminAttendance = () => {
                                 <div key={s.id} className="bg-white p-5 rounded-2xl shadow-sm border hover:border-blue-200 transition-colors flex justify-between items-center group">
                                     <div>
                                         <h3 className="font-bold text-gray-800">{s.name}</h3>
-                                        <p className="text-sm text-gray-500 font-mono">{s.start_time.substring(0,5)} - {s.end_time.substring(0,5)}</p>
+                                        <p className="text-sm text-gray-500 font-mono">{s.start_time?.substring(0,5)} - {s.end_time?.substring(0,5)}</p>
                                     </div>
                                     <button onClick={() => handleDelete(s.id)} className="text-gray-300 hover:text-red-500 hover:bg-red-50 p-2 rounded-xl transition-all">
                                         <Trash2 size={20}/>

@@ -16,8 +16,9 @@ const AdminReports = () => {
         setLoading(true);
         try {
             const res = await axios.get('/api/admin/reports/full');
-            setReports(res.data);
+            setReports(Array.isArray(res.data) ? res.data : []);
         } catch (err) {
+            setReports([]);
             console.error("Gagal ambil laporan detail", err);
         } finally {
             setLoading(false);

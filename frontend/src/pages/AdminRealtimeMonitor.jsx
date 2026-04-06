@@ -53,9 +53,9 @@ const AdminRealtimeMonitor = () => {
         </div>
     );
 
-    const filteredProgress = progress.filter(p => 
+    const filteredProgress = Array.isArray(progress) ? progress.filter(p => 
         p.name.toLowerCase().includes(search.toLowerCase())
-    );
+    ) : [];
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-5 duration-700">

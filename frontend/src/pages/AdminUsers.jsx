@@ -24,7 +24,7 @@ const AdminUsers = () => {
         setLoading(true);
         try {
             const res = await axios.get('/api/admin/users');
-            setUsers(res.data.users);
+            setUsers(Array.isArray(res.data.users) ? res.data.users : []);
             const setRes = await axios.get('/api/admin/settings');
             setCurrentDay(setRes.data.current_day);
             setShuffleDay(setRes.data.current_day);
@@ -85,11 +85,11 @@ const AdminUsers = () => {
         }
     };
 
-    const filteredUsers = users.filter(user => 
+    const filteredUsers = Array.isArray(users) ? users.filter(user => 
         user.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
         user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.instansi?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    ) : [];
 
     if (loading) return <div className="p-20 text-center text-amber-500 font-bold"><RefreshCcw className="animate-spin mx-auto mb-4" size={40}/> Memuat Database Pasukan...</div>;
 

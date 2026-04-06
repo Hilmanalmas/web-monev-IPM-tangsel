@@ -37,7 +37,11 @@ const AdminSurveys = () => {
             const res = await axios.get('/api/admin/users');
             // Backend mengembalikan { users: [...] }
             const userList = res.data.users || res.data;
-            setUsers(userList.filter(u => u.role === 'peserta'));
+            if (Array.isArray(userList)) {
+                setUsers(userList.filter(u => u.role === 'peserta'));
+            } else {
+                setUsers([]);
+            }
         } catch (err) {
             console.error("Gagal mengambil data peserta:", err);
         }
@@ -107,11 +111,11 @@ const AdminSurveys = () => {
         }
     };
 
-    const groupedSlots = slots.reduce((acc, slot) => {
+    const groupedSlots = Array.isArray(slots) ? slots.reduce((acc, slot) => {
         acc[slot.day] = acc[slot.day] || [];
         acc[slot.day].push(slot);
         return acc;
-    }, {});
+    }, {}) : {};
 
     return (
         <div className="max-w-5xl mx-auto space-y-12 p-6">
@@ -186,7 +190,7 @@ const AdminSurveys = () => {
                                     <div key={s.id} className="bg-white p-4 rounded-2xl shadow-sm border flex justify-between items-center group">
                                         <div>
                                             <h4 className="font-bold text-gray-800">{s.name}</h4>
-                                            <p className="text-xs text-gray-400">{s.start_time.substring(0,5)} - {s.end_time.substring(0,5)}</p>
+                                            <p className="text-xs text-gray-400">{s.start_time?.substring(0,5)} - {s.end_time?.substring(0,5)}</p>
                                         </div>
                                         <button onClick={() => handleDeleteSlot(s.id)} className="text-gray-300 hover:text-red-500 p-2">
                                             <Trash2 size={18}/>
@@ -212,7 +216,7 @@ const AdminSurveys = () => {
                     </div>
 
                     <div className="bg-white rounded-3xl shadow-lg border overflow-hidden">
-                        {questions.map((q, idx) => (
+                        {Array.isArray(questions) && questions.map((q, idx) => (
                             <div key={q.id} className="p-4 border-b last:border-0 flex justify-between items-center hover:bg-gray-50 group">
                                 <p className="text-gray-700"><span className="text-gray-300 font-bold mr-3">{idx + 1}</span>{q.question_text}</p>
                                 <button onClick={() => handleDeleteQuestion(q.id)} className="text-gray-300 hover:text-red-500 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -220,7 +224,7 @@ const AdminSurveys = () => {
                                 </button>
                             </div>
                         ))}
-                        {questions.length === 0 && <p className="p-10 text-center text-gray-400">Belum ada pertanyaan.</p>}
+                        {(!Array.isArray(questions) || questions.length === 0) && <p className="p-10 text-center text-gray-400">Belum ada pertanyaan.</p>}
                     </div>
                 </div>
             </div>
@@ -263,7 +267,7 @@ const AdminSurveys = () => {
                             onChange={e => setResetForm({...resetForm, period: e.target.value})}
                         >
                             <option value="">-- Pilih Sesi --</option>
-                            {slots.filter(s => s.day === (resetForm?.day || 1)).map(s => (
+                            {Array.isArray(slots) && slots.filter(s => s.day === (resetForm?.day || 1)).map(s => (
                                 <option key={s.id} value={s.name}>{s.name}</option>
                             ))}
                         </select>
