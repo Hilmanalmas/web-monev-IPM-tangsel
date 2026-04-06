@@ -229,7 +229,7 @@ const AdminSurveys = () => {
                 </div>
             </div>
 
-            <AdminRealtimeMonitor />
+            {/* <AdminRealtimeMonitor /> */}
 
             {/* Reset Penilaian Section */}
             <div className="bg-white p-8 rounded-3xl shadow-xl border-2 border-red-50">

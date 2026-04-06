@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { CheckCircle, XCircle, User, Activity, Search, ClipboardList, PenTool, LayoutGrid } from 'lucide-react';
+import { CheckCircle, XCircle, User, Activity, Search, ClipboardList, PenTool, LayoutGrid, Target } from 'lucide-react';
 
 const AdminRealtimeMonitor = () => {
     const [logs, setLogs] = useState([]);
@@ -138,7 +138,7 @@ const AdminRealtimeMonitor = () => {
                                     <td className="px-4 py-4 bg-rose-50/10">
                                         <div className="flex flex-wrap gap-2 justify-center min-w-[150px]">
                                             {exams.map(ex => (
-                                                <StatusBox key={ex.id} active={p.exams[ex.id]} label={ex.title} colorClass="rose" />
+                                                <StatusBox key={ex.id} active={p.exams?.[ex.id]} label={ex.title} colorClass="rose" />
                                             ))}
                                         </div>
                                     </td>
@@ -147,7 +147,7 @@ const AdminRealtimeMonitor = () => {
                                     <td className="px-4 py-4 bg-purple-50/10">
                                         <div className="flex flex-wrap gap-2 justify-center min-w-[150px]">
                                             {surveys.map(sv => (
-                                                <StatusBox key={sv.id} active={p.surveys[sv.id]} label={sv.session_name} colorClass="purple" />
+                                                <StatusBox key={sv.id} active={p.surveys?.[sv.id]} label={sv.session_name} colorClass="purple" />
                                             ))}
                                         </div>
                                     </td>
@@ -162,7 +162,7 @@ const AdminRealtimeMonitor = () => {
                                     {/* NEW: PROGRESS PERCENTAGE */}
                                     <td className="px-4 py-4 bg-indigo-50/10 text-center border-r">
                                         {(() => {
-                                            const totalTasks = exams.length + surveys.length + 1;
+                                            const totalTasks = (exams?.length || 0) + (surveys?.length || 0) + 1;
                                             const doneExams = Object.values(p.exams || {}).filter(v => v).length;
                                             const doneSurveys = Object.values(p.surveys || {}).filter(v => v).length;
                                             const doneRtl = p.has_rtl ? 1 : 0;
@@ -226,7 +226,7 @@ const AdminRealtimeMonitor = () => {
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <tbody className="divide-y divide-slate-50">
-                            {logs.slice(0, 8).map((log, idx) => (
+                            {(Array.isArray(logs) ? logs.slice(0, 8) : []).map((log, idx) => (
                                 <tr key={idx} className="hover:bg-slate-50/50 transition-all">
                                     <td className="px-8 py-3 text-[10px] font-bold text-slate-400">
                                         {new Date(log.created_at).toLocaleTimeString('id-ID')}

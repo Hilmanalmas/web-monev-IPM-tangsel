@@ -38,7 +38,7 @@ const Layout = ({ children }) => {
         navItems.push({ path: '/admin/games', label: 'Set Games', icon: <Gamepad2 size={22} /> });
         navItems.push({ path: '/admin/practice', label: 'Set Praktek', icon: <Activity size={22} /> });
         navItems.push({ path: '/admin/ibadah', label: 'Set Ibadah', icon: <Star size={22} /> });
-        navItems.push({ path: '/admin/reports', label: 'Laporan Detail', icon: <ClipboardList size={22} /> });
+        // navItems.push({ path: '/admin/reports', label: 'Laporan Detail', icon: <ClipboardList size={22} /> });
     }
 
     if (user.role === 'observer' || user.role === 'admin') {
