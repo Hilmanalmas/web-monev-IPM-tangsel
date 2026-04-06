@@ -42,11 +42,11 @@ const AdminGames = () => {
         }
     };
 
-    const groupedSlots = slots.reduce((acc, slot) => {
+    const groupedSlots = Array.isArray(slots) ? slots.reduce((acc, slot) => {
         acc[slot.day] = acc[slot.day] || [];
         acc[slot.day].push(slot);
         return acc;
-    }, {});
+    }, {}) : {};
 
     return (
         <div className="max-w-4xl mx-auto space-y-8 p-6">

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Home, Camera, ClipboardEdit, BookOpen, ShieldAlert, Users, Eye, ClipboardCheck, BarChart3, Gamepad2, Activity, Star, Instagram, Phone, Mail, Youtube, Twitter, MapPin, Heart } from 'lucide-react';
+import { LogOut, Home, Camera, ClipboardEdit, BookOpen, ShieldAlert, Users, Eye, ClipboardCheck, BarChart3, Gamepad2, Activity, Star, Instagram, Phone, Mail, Youtube, Twitter, MapPin, Heart, ClipboardList } from 'lucide-react';
 import logo from '../assets/logo-monev.png';
 import pdIpmLogo from '../assets/logo.png';
 
