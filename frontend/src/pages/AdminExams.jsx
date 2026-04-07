@@ -6,12 +6,12 @@ const AdminExams = () => {
     const [exams, setExams] = useState([]);
     const [users, setUsers] = useState([]);
     const [resetForm, setResetForm] = useState({ user_id: '', exam_id: '' });
-    
+
     // Forms and Visibility
     const [isCreatingOrEditing, setIsCreatingOrEditing] = useState(false);
     const [editingExamId, setEditingExamId] = useState(null);
     const [examForm, setExamForm] = useState({ title: '', description: '', start_time: '', end_time: '', duration_minutes: 60, type: 'test', show_result: true, day: 1 });
-    
+
     // Questions Editor
     const [editingQuestionsExam, setEditingQuestionsExam] = useState(null);
     const [questionsForm, setQuestionsForm] = useState([]);
@@ -63,11 +63,11 @@ const AdminExams = () => {
 
     const openEditExam = (exam) => {
         setEditingExamId(exam.id);
-        setExamForm({ 
-            title: exam.title, 
-            description: exam.description || '', 
-            start_time: formatForInput(exam.start_time), 
-            end_time: formatForInput(exam.end_time), 
+        setExamForm({
+            title: exam.title,
+            description: exam.description || '',
+            start_time: formatForInput(exam.start_time),
+            end_time: formatForInput(exam.end_time),
             duration_minutes: exam.duration_minutes,
             type: exam.type || 'test',
             show_result: exam.show_result ?? true,
@@ -117,7 +117,7 @@ const AdminExams = () => {
             id: q.id,
             type: q.type || 'pg',
             question_text: q.question_text,
-            options: q.options ? (Array.isArray(q.options) ? q.options : Object.keys(q.options).map(k => ({key: k, val: q.options[k]}))) : [{ key: 'A', val: '' }, { key: 'B', val: '' }, { key: 'C', val: '' }, { key: 'D', val: '' }],
+            options: q.options ? (Array.isArray(q.options) ? q.options : Object.keys(q.options).map(k => ({ key: k, val: q.options[k] }))) : [{ key: 'A', val: '' }, { key: 'B', val: '' }, { key: 'C', val: '' }, { key: 'D', val: '' }],
             weights: q.weights || { A: 4, B: 3, C: 2, D: 1 },
             correct_answer: q.correct_answer || 'A',
             points: q.points || 0
@@ -126,13 +126,13 @@ const AdminExams = () => {
     };
 
     const handleAddQuestionToForm = () => {
-        setQuestionsForm([...questionsForm, { 
+        setQuestionsForm([...questionsForm, {
             type: 'pg',
-            question_text: '', 
-            options: [{ key: 'A', val: '' }, { key: 'B', val: '' }, { key: 'C', val: '' }, { key: 'D', val: '' }], 
+            question_text: '',
+            options: [{ key: 'A', val: '' }, { key: 'B', val: '' }, { key: 'C', val: '' }, { key: 'D', val: '' }],
             weights: { A: 4, B: 3, C: 2, D: 1 },
-            correct_answer: 'A', 
-            points: 10 
+            correct_answer: 'A',
+            points: 10
         }]);
     };
 
@@ -144,7 +144,7 @@ const AdminExams = () => {
 
     const handleDuplicateQuestion = (index) => {
         const questionToCopy = questionsForm[index];
-        const newQuestion = { 
+        const newQuestion = {
             ...JSON.parse(JSON.stringify(questionToCopy)), // Deep copy
             id: undefined // Ensure it's treated as a new question
         };
@@ -213,7 +213,7 @@ const AdminExams = () => {
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                 {/* Left Panel: Daftar Tes */}
                 <div className="lg:col-span-1 space-y-4">
-                    <button 
+                    <button
                         onClick={openCreateExam}
                         className="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-3 rounded-2xl transition-all shadow-xl shadow-amber-900/20 flex items-center justify-center gap-2"
                     >
@@ -223,7 +223,7 @@ const AdminExams = () => {
                     <div className="bg-gray-900/50 border border-gray-800 p-4 rounded-2xl space-y-3">
                         <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">Daftar Tes Aktif</h3>
                         {exams.length === 0 && <p className="text-xs text-gray-600 italic">Belum ada tes yang dibuat.</p>}
-                        
+
                         {exams.map(ex => (
                             <div key={ex.id} className="group relative p-4 rounded-xl border border-gray-800 bg-black/40 hover:border-amber-500/50 transition-all overflow-hidden">
                                 <h4 className="font-bold text-white pr-6">{ex.title}</h4>
@@ -268,33 +268,33 @@ const AdminExams = () => {
                             <form onSubmit={handleSaveExam} className="space-y-4 max-w-xl">
                                 <div>
                                     <label className="text-xs uppercase font-bold text-gray-500">Judul Tes</label>
-                                    <input type="text" className="w-full mt-1 bg-black/50 border border-gray-700 rounded-xl p-3 text-white focus:border-amber-500 outline-none" value={examForm.title} onChange={e => setExamForm({...examForm, title: e.target.value})} required />
+                                    <input type="text" className="w-full mt-1 bg-black/50 border border-gray-700 rounded-xl p-3 text-white focus:border-amber-500 outline-none" value={examForm.title} onChange={e => setExamForm({ ...examForm, title: e.target.value })} required />
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="text-xs uppercase font-bold text-gray-500">Waktu Mulai</label>
-                                        <input type="datetime-local" className="w-full mt-1 bg-black/50 border border-gray-700 rounded-xl p-3 text-white focus:border-amber-500 outline-none" value={examForm.start_time} onChange={e => setExamForm({...examForm, start_time: e.target.value})} required />
+                                        <input type="datetime-local" className="w-full mt-1 bg-black/50 border border-gray-700 rounded-xl p-3 text-white focus:border-amber-500 outline-none" value={examForm.start_time} onChange={e => setExamForm({ ...examForm, start_time: e.target.value })} required />
                                     </div>
                                     <div>
                                         <label className="text-xs uppercase font-bold text-gray-500">Waktu Selesai</label>
-                                        <input type="datetime-local" className="w-full mt-1 bg-black/50 border border-gray-700 rounded-xl p-3 text-white focus:border-amber-500 outline-none" value={examForm.end_time} onChange={e => setExamForm({...examForm, end_time: e.target.value})} required />
+                                        <input type="datetime-local" className="w-full mt-1 bg-black/50 border border-gray-700 rounded-xl p-3 text-white focus:border-amber-500 outline-none" value={examForm.end_time} onChange={e => setExamForm({ ...examForm, end_time: e.target.value })} required />
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="text-xs uppercase font-bold text-gray-500">Tipe Tes</label>
-                                        <select className="w-full mt-1 bg-black/50 border border-gray-700 rounded-xl p-3 text-white focus:border-amber-500 outline-none" value={examForm.type} onChange={e => setExamForm({...examForm, type: e.target.value})}>
+                                        <select className="w-full mt-1 bg-black/50 border border-gray-700 rounded-xl p-3 text-white focus:border-amber-500 outline-none" value={examForm.type} onChange={e => setExamForm({ ...examForm, type: e.target.value })}>
                                             <option value="test">Test Standar (Benar/Salah)</option>
                                             <option value="archetype">Archetype (Skala 1-4)</option>
                                         </select>
                                     </div>
                                     <div>
                                         <label className="text-xs uppercase font-bold text-gray-500">Durasi (Menit)</label>
-                                        <input type="number" className="w-full mt-1 bg-black/50 border border-gray-700 rounded-xl p-3 text-white focus:border-amber-500 outline-none" value={examForm.duration_minutes} onChange={e => setExamForm({...examForm, duration_minutes: e.target.value})} required />
+                                        <input type="number" className="w-full mt-1 bg-black/50 border border-gray-700 rounded-xl p-3 text-white focus:border-amber-500 outline-none" value={examForm.duration_minutes} onChange={e => setExamForm({ ...examForm, duration_minutes: e.target.value })} required />
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4 bg-gray-800/50 p-4 rounded-xl border border-gray-700">
-                                    <input type="checkbox" className="w-5 h-5 accent-amber-500" checked={examForm.show_result} onChange={e => setExamForm({...examForm, show_result: e.target.checked})} />
+                                    <input type="checkbox" className="w-5 h-5 accent-amber-500" checked={examForm.show_result} onChange={e => setExamForm({ ...examForm, show_result: e.target.checked })} />
                                     <div>
                                         <p className="text-sm font-bold text-white">Tampilkan Hasil Ke Peserta</p>
                                         <p className="text-[10px] text-gray-400">Jika dicentang, peserta dapat melihat skor/archetype mereka segera setelah selesai.</p>
@@ -311,34 +311,34 @@ const AdminExams = () => {
                     {/* Questions Batch Editor */}
                     {editingQuestionsExam && (
                         <div className="bg-gray-900/50 border border-gray-800 p-8 rounded-3xl relative animate-in fade-in duration-300">
-                             <div className="flex justify-between items-end border-b border-gray-800 pb-6 mb-6">
+                            <div className="flex justify-between items-end border-b border-gray-800 pb-6 mb-6">
                                 <div>
                                     <h2 className="text-2xl font-bold text-white flex items-center gap-2"><Edit3 className="text-blue-500" /> Edit Soal: <span className="text-amber-500">{editingQuestionsExam.title}</span></h2>
                                     <p className="text-gray-400 mt-1 text-sm">Tambahkan atau ubah soal di bawah ini, lalu klik Simpan pada bagian paling bawah halaman.</p>
                                 </div>
-                                <button onClick={() => setEditingQuestionsExam(null)} className="p-2 bg-gray-800 text-gray-400 hover:text-white rounded-xl"><X size={20}/></button>
-                             </div>
+                                <button onClick={() => setEditingQuestionsExam(null)} className="p-2 bg-gray-800 text-gray-400 hover:text-white rounded-xl"><X size={20} /></button>
+                            </div>
 
-                             <div className="space-y-8">
-                                 {questionsForm.map((q, qIndex) => (
-                                     <div key={qIndex} className="bg-black/40 border border-gray-700 p-6 rounded-2xl relative shadow-lg">
+                            <div className="space-y-8">
+                                {questionsForm.map((q, qIndex) => (
+                                    <div key={qIndex} className="bg-black/40 border border-gray-700 p-6 rounded-2xl relative shadow-lg">
                                         <span className="absolute -top-3 -left-3 w-8 h-8 flex items-center justify-center bg-gray-800 border-2 border-gray-700 text-white font-black rounded-full text-xs">{qIndex + 1}</span>
                                         <div className="absolute top-4 right-4 flex gap-2">
                                             <button onClick={() => handleDuplicateQuestion(qIndex)} title="Duplikasi Soal" className="text-gray-600 hover:text-green-500 transition-colors"><Copy size={18} /></button>
                                             <button onClick={() => handleRemoveQuestionFromForm(qIndex)} title="Hapus Soal" className="text-gray-600 hover:text-red-500 transition-colors"><Trash2 size={18} /></button>
                                         </div>
-                                        
+
                                         <div className="space-y-4 mt-2 pr-8">
                                             <div className="flex items-center gap-4 mb-2">
                                                 <label className="text-[10px] uppercase font-bold text-gray-500">Tipe Soal:</label>
                                                 <div className="flex bg-gray-800 rounded-lg p-1">
-                                                    <button 
+                                                    <button
                                                         onClick={() => handleTypeChange(qIndex, 'pg')}
                                                         className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all ${q.type === 'pg' ? 'bg-amber-500 text-white' : 'text-gray-400 hover:text-gray-200'}`}
                                                     >
                                                         Pilihan Ganda
                                                     </button>
-                                                    <button 
+                                                    <button
                                                         onClick={() => handleTypeChange(qIndex, 'essay')}
                                                         className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all ${q.type === 'essay' ? 'bg-amber-500 text-white' : 'text-gray-400 hover:text-gray-200'}`}
                                                     >
@@ -347,12 +347,12 @@ const AdminExams = () => {
                                                 </div>
                                             </div>
 
-                                            <textarea 
+                                            <textarea
                                                 placeholder="Tulis pertanyaan di sini..."
                                                 className="w-full bg-black/60 border border-gray-700 rounded-xl p-4 text-white outline-none focus:border-blue-500 placeholder-gray-600 min-h-[100px]"
                                                 value={q.question_text} onChange={(e) => handleQuestionTextChange(qIndex, e.target.value)}
                                             />
-                                            
+
                                             {q.type === 'pg' && (
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
                                                     {q.options.map((opt, optIndex) => (
@@ -360,16 +360,16 @@ const AdminExams = () => {
                                                             <div className="flex flex-col items-center pl-2">
                                                                 <span className={`text-xs font-black ${(editingQuestionsExam.type !== 'archetype' && q.correct_answer === opt.key) ? 'text-green-500' : 'text-gray-500'}`}>{opt.key}</span>
                                                                 {editingQuestionsExam.type !== 'archetype' && (
-                                                                    <input 
-                                                                        type="radio" name={`correct_${qIndex}`} 
-                                                                        checked={q.correct_answer === opt.key} 
+                                                                    <input
+                                                                        type="radio" name={`correct_${qIndex}`}
+                                                                        checked={q.correct_answer === opt.key}
                                                                         onChange={() => handleCorrectAnswerChange(qIndex, opt.key)}
                                                                         className="mt-1 cursor-pointer accent-green-500"
                                                                     />
                                                                 )}
                                                             </div>
                                                             <div className="flex-1 flex gap-2 items-center">
-                                                                <input 
+                                                                <input
                                                                     type="text" placeholder={`Opsi ${opt.key}`}
                                                                     className="bg-transparent border-none text-white w-full outline-none text-sm p-2"
                                                                     value={opt.val} onChange={(e) => handleOptionChange(qIndex, optIndex, e.target.value)}
@@ -377,8 +377,8 @@ const AdminExams = () => {
                                                                 {editingQuestionsExam.type === 'archetype' && (
                                                                     <div className="flex items-center gap-1 bg-black/40 px-2 py-1 rounded-lg border border-gray-700">
                                                                         <span className="text-[10px] font-black text-amber-500">SKOR:</span>
-                                                                        <input type="number" className="w-10 bg-transparent text-white text-xs font-black text-center outline-none" value={q.weights?.[opt.key] || 0} 
-                                                                               onChange={(e) => handleWeightChange(qIndex, opt.key, e.target.value)}/>
+                                                                        <input type="number" className="w-10 bg-transparent text-white text-xs font-black text-center outline-none" value={q.weights?.[opt.key] || 0}
+                                                                            onChange={(e) => handleWeightChange(qIndex, opt.key, e.target.value)} />
                                                                     </div>
                                                                 )}
                                                             </div>
@@ -393,21 +393,21 @@ const AdminExams = () => {
                                                 </div>
                                             )}
                                         </div>
-                                     </div>
-                                 ))}
+                                    </div>
+                                ))}
 
-                                 {questionsForm.length === 0 && (
-                                     <div className="text-center py-10 bg-black/20 border-2 border-dashed border-gray-800 rounded-2xl text-gray-500 font-medium">
-                                         Belum ada soal pada tes ini. Klik "Tambah Soal Baru" di bawah.
-                                     </div>
-                                 )}
+                                {questionsForm.length === 0 && (
+                                    <div className="text-center py-10 bg-black/20 border-2 border-dashed border-gray-800 rounded-2xl text-gray-500 font-medium">
+                                        Belum ada soal pada tes ini. Klik "Tambah Soal Baru" di bawah.
+                                    </div>
+                                )}
 
-                                 <button onClick={handleAddQuestionToForm} className="w-full border-2 border-dashed border-gray-700 text-gray-400 hover:border-amber-500 hover:text-amber-500 py-4 rounded-2xl font-bold flex flex-col items-center justify-center gap-2 transition-all">
-                                     <Plus size={24} /> Tambah Soal Baru
-                                 </button>
-                             </div>
+                                <button onClick={handleAddQuestionToForm} className="w-full border-2 border-dashed border-gray-700 text-gray-400 hover:border-amber-500 hover:text-amber-500 py-4 rounded-2xl font-bold flex flex-col items-center justify-center gap-2 transition-all">
+                                    <Plus size={24} /> Tambah Soal Baru
+                                </button>
+                            </div>
 
-                             <div className="sticky bottom-6 mt-10 p-4 bg-gray-900/90 backdrop-blur-md border border-gray-700 rounded-2xl flex justify-between items-center shadow-2xl">
+                            <div className="sticky bottom-6 mt-10 p-4 bg-gray-900/90 backdrop-blur-md border border-gray-700 rounded-2xl flex justify-between items-center shadow-2xl">
                                 <span className="text-gray-400 text-sm font-medium ml-2">Total Soal: <span className="text-white font-black">{questionsForm.length}</span></span>
                                 <div className="flex gap-4">
                                     <button onClick={() => setEditingQuestionsExam(null)} className="px-6 py-2.5 rounded-xl text-white font-bold bg-gray-800 hover:bg-gray-700 transition-colors">Batal Edit</button>
@@ -415,7 +415,7 @@ const AdminExams = () => {
                                         <Save size={18} /> Simpan Seluruh Soal
                                     </button>
                                 </div>
-                             </div>
+                            </div>
                         </div>
                     )}
 
@@ -441,13 +441,13 @@ const AdminExams = () => {
                                 <p className="text-sm text-gray-400 mb-10 max-w-xl leading-relaxed">
                                     Fitur ini menghapus seluruh data jawaban dan skor peserta untuk ujian tertentu. Gunakan jika peserta mengalami kendala teknis dan harus mengulang dari awal. <span className="text-red-400 font-bold">Tindakan ini tidak dapat dibatalkan.</span>
                                 </p>
-                                
+
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-end">
                                     <div className="space-y-3">
                                         <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-2 block ml-1">Pilih Peserta:</label>
-                                        <select 
+                                        <select
                                             className="w-full bg-black/60 border border-gray-800 rounded-2xl p-5 text-white font-bold outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 appearance-none cursor-pointer transition-all hover:bg-black/80"
-                                            value={resetForm.user_id} onChange={e=>setResetForm({...resetForm, user_id: e.target.value})}
+                                            value={resetForm.user_id} onChange={e => setResetForm({ ...resetForm, user_id: e.target.value })}
                                         >
                                             <option value="">-- Cari Nama Peserta --</option>
                                             {users.map(u => <option key={u.id} value={u.id}>{u.name} ({u.nip || '-'})</option>)}
@@ -455,16 +455,16 @@ const AdminExams = () => {
                                     </div>
                                     <div className="space-y-3">
                                         <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-2 block ml-1">Pilih Judul Ujian:</label>
-                                        <select 
+                                        <select
                                             className="w-full bg-black/60 border border-gray-800 rounded-2xl p-5 text-white font-bold outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 appearance-none cursor-pointer transition-all hover:bg-black/80"
-                                            value={resetForm.exam_id} onChange={e=>setResetForm({...resetForm, exam_id: e.target.value})}
+                                            value={resetForm.exam_id} onChange={e => setResetForm({ ...resetForm, exam_id: e.target.value })}
                                         >
                                             <option value="">-- Pilih Ujian Terdaftar --</option>
                                             {exams.map(ex => <option key={ex.id} value={ex.id}>{ex.title} (Hari {ex.day})</option>)}
                                         </select>
                                     </div>
                                     <div className="md:col-span-2">
-                                        <button 
+                                        <button
                                             onClick={handleResetExam}
                                             disabled={!resetForm.user_id || !resetForm.exam_id}
                                             className="w-full h-16 bg-red-600 hover:bg-red-500 disabled:bg-gray-800/50 disabled:text-gray-600 text-white font-black rounded-2xl transition-all shadow-lg shadow-red-600/20 active:scale-[0.98] uppercase tracking-[0.2em] text-xs flex items-center justify-center gap-3 border border-red-500/30"
