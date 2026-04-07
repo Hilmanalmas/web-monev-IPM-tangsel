@@ -178,6 +178,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/admin/exams', [\App\Http\Controllers\AdminExamController::class, 'storeExam']);
         Route::put('/admin/exams/{id}', [\App\Http\Controllers\AdminExamController::class, 'updateExam']);
         Route::delete('/admin/exams/{id}', [\App\Http\Controllers\AdminExamController::class, 'destroyExam']);
+        Route::post('/admin/exams/{id}/duplicate', [\App\Http\Controllers\AdminExamController::class, 'duplicateExam']);
         Route::post('/admin/exams/{id}/questions', [\App\Http\Controllers\AdminExamController::class, 'storeExamQuestion']);
         Route::put('/admin/exams/{id}/questions/batch', [\App\Http\Controllers\AdminExamController::class, 'batchUpdateExamQuestions']);
         Route::post('/admin/exams/reset', [\App\Http\Controllers\AdminExamController::class, 'resetSubmission']);

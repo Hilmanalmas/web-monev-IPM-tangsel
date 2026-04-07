@@ -43,6 +43,24 @@ class AdminExamController extends Controller {
         return response()->json(['message' => 'Exam deleted']);
     }
 
+    public function duplicateExam($id) {
+        $exam = Exam::with('questions')->findOrFail($id);
+        
+        // Duplicate the exam
+        $newExam = $exam->replicate();
+        $newExam->title = $exam->title . " (Copy)";
+        $newExam->save();
+
+        // Duplicate the questions
+        foreach ($exam->questions as $question) {
+            $newQuestion = $question->replicate();
+            $newQuestion->exam_id = $newExam->id;
+            $newQuestion->save();
+        }
+
+        return response()->json($newExam->load('questions'));
+    }
+
     public function storeExamQuestion(Request $request, $examId) {
         $data = $request->validate([
             'question_text' => 'required',

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { BookOpen, Plus, Trash2, Clock, HelpCircle, Settings, Edit3, Save, X } from 'lucide-react';
+import { BookOpen, Plus, Trash2, Clock, HelpCircle, Settings, Edit3, Save, X, Copy } from 'lucide-react';
 
 const AdminExams = () => {
     const [exams, setExams] = useState([]);
@@ -100,6 +100,17 @@ const AdminExams = () => {
         fetchExams();
     };
 
+    const handleDuplicateExam = async (id) => {
+        try {
+            await axios.post(`/api/admin/exams/${id}/duplicate`);
+            fetchExams();
+            alert("Test berhasil diduplikasi!");
+        } catch (err) {
+            console.error(err);
+            alert("Gagal menduplikasi test.");
+        }
+    };
+
     const openEditQuestions = (exam) => {
         setEditingQuestionsExam(exam);
         const loadedQuestions = exam.questions.map(q => ({
@@ -128,6 +139,17 @@ const AdminExams = () => {
     const handleRemoveQuestionFromForm = (index) => {
         const newQ = [...questionsForm];
         newQ.splice(index, 1);
+        setQuestionsForm(newQ);
+    };
+
+    const handleDuplicateQuestion = (index) => {
+        const questionToCopy = questionsForm[index];
+        const newQuestion = { 
+            ...JSON.parse(JSON.stringify(questionToCopy)), // Deep copy
+            id: undefined // Ensure it's treated as a new question
+        };
+        const newQ = [...questionsForm];
+        newQ.splice(index + 1, 0, newQuestion);
         setQuestionsForm(newQ);
     };
 
@@ -222,6 +244,9 @@ const AdminExams = () => {
                                     <button onClick={() => openEditExam(ex)} title="Edit Pengaturan Tes" className="p-1.5 bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-white rounded-lg transition-all">
                                         <Settings size={16} />
                                     </button>
+                                    <button onClick={() => handleDuplicateExam(ex.id)} title="Duplikasi Test" className="p-1.5 bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white rounded-lg transition-all">
+                                        <Copy size={16} />
+                                    </button>
                                     <button onClick={() => handleDeleteExam(ex.id)} title="Hapus Tes" className="p-1.5 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-all">
                                         <Trash2 size={16} />
                                     </button>
@@ -298,7 +323,10 @@ const AdminExams = () => {
                                  {questionsForm.map((q, qIndex) => (
                                      <div key={qIndex} className="bg-black/40 border border-gray-700 p-6 rounded-2xl relative shadow-lg">
                                         <span className="absolute -top-3 -left-3 w-8 h-8 flex items-center justify-center bg-gray-800 border-2 border-gray-700 text-white font-black rounded-full text-xs">{qIndex + 1}</span>
-                                        <button onClick={() => handleRemoveQuestionFromForm(qIndex)} title="Hapus Soal Ini" className="absolute top-4 right-4 text-gray-600 hover:text-red-500 transition-colors"><Trash2 size={18} /></button>
+                                        <div className="absolute top-4 right-4 flex gap-2">
+                                            <button onClick={() => handleDuplicateQuestion(qIndex)} title="Duplikasi Soal" className="text-gray-600 hover:text-green-500 transition-colors"><Copy size={18} /></button>
+                                            <button onClick={() => handleRemoveQuestionFromForm(qIndex)} title="Hapus Soal" className="text-gray-600 hover:text-red-500 transition-colors"><Trash2 size={18} /></button>
+                                        </div>
                                         
                                         <div className="space-y-4 mt-2 pr-8">
                                             <div className="flex items-center gap-4 mb-2">
