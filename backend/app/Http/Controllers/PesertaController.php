@@ -63,8 +63,9 @@ class PesertaController extends Controller {
                 return ['type' => 'manito', 'name' => $s->name, 'done' => $done];
             });
 
-        $exams = Exam::where('start_time', '<=', $now)
-            ->where('end_time', '>=', $now)
+        $exams = Exam::where('day', $currentDay)
+            ->where('start_time', '<=', $now->copy()->addMinutes(1))
+            ->where('end_time', '>=', $now->copy()->subMinutes(1))
             ->get()->map(function($ex) use ($user) {
                 $done = ExamSubmission::where('user_id', $user->id)
                     ->where('exam_id', $ex->id)

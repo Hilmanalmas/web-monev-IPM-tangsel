@@ -15,9 +15,12 @@ class ExamController extends Controller {
         $now = Carbon::now();
         $userId = $request->user()->id;
         
+        $currentDay = AppSetting::get('current_day', 1);
+        
         $exams = Exam::with('questions')
-            ->where('start_time', '<=', $now)
-            ->where('end_time', '>=', $now)
+            ->where('day', $currentDay)
+            ->where('start_time', '<=', $now->addMinutes(1)) // 1-minute buffer for clock sync
+            ->where('end_time', '>=', $now->subMinutes(1))
             ->get();
             
         $mappedExams = $exams->map(function($exam) use ($userId) {
