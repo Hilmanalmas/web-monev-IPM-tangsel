@@ -97,14 +97,26 @@ class RtlController extends Controller
 
             try {
                 $user = Auth::user();
+                
+                // Format pertanyaan dan jawaban untuk dikirim ke Spreadsheet
+                $questions = \App\Models\RtlQuestion::whereIn('id', collect($data['responses'])->pluck('question_id'))->get()->keyBy('id');
+                $descText = "";
+                $idx = 1;
+                foreach ($data['responses'] as $resp) {
+                    $qText = $questions[$resp['question_id']]->question_text ?? 'Pertanyaan ' . $idx;
+                    $aText = $resp['response_text'];
+                    $descText .= "Q{$idx}: {$qText}\nA: {$aText}\n\n";
+                    $idx++;
+                }
+
                 \App\Services\SpreadsheetService::postScore([
                     'name'     => $user->name,
                     'instansi' => $user->asal_instansi,
                     'type'     => 'RTL',
                     'item'     => $slot->name,
                     'score'    => 100,
-                    'desc'     => 'Submission completed for ' . $slot->name
-                ]);
+                    'desc'     => trim($descText)
+                ], 'RTL');
             } catch (\Exception $e) {}
 
             return response()->json(['message' => 'RTL berhasil dikirim']);
