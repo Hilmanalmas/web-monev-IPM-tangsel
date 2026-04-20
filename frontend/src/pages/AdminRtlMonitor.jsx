@@ -42,28 +42,54 @@ const AdminRtlMonitor = () => {
             });
         });
 
-        // Buat Baris Header
-        const header = ['Nama Peserta', 'Tanggal', ...questionsList];
-        
-        // Buat Baris Data
-        const rows = filteredResponses.map(r => {
-            const rowData = [r.user_name, r.date];
+        // Buat struktur HTML Table agar saat di-paste ke Excel, formatnya sangat rapih
+        let htmlTable = '<table style="border-collapse: collapse; width: 100%; border: 1px solid black;"><thead><tr style="background-color: #f3f3f3; font-weight: bold;">';
+        htmlTable += `<th style="border: 1px solid black; padding: 5px;">Nama Peserta</th>`;
+        htmlTable += `<th style="border: 1px solid black; padding: 5px;">Tanggal</th>`;
+        questionsList.forEach(q => {
+            htmlTable += `<th style="border: 1px solid black; padding: 5px;">${q}</th>`;
+        });
+        htmlTable += '</tr></thead><tbody>';
+
+        filteredResponses.forEach(r => {
+            htmlTable += '<tr>';
+            htmlTable += `<td style="border: 1px solid black; padding: 5px;">${r.user_name}</td>`;
+            htmlTable += `<td style="border: 1px solid black; padding: 5px;">${r.date}</td>`;
             questionsList.forEach(q => {
                 const found = r.answers.find(ans => ans.question === q);
-                // Bersihkan karakter tab/new line agar tidak merusak format tabel
-                const cleanText = found ? found.answer.replace(/\n/g, ' ').replace(/\t/g, ' ') : '-';
-                rowData.push(cleanText);
+                // Ubah enter (\n) menjadi <br> agar di Excel tetap dalam satu sel yang sama
+                const cleanText = found ? found.answer.replace(/\n/g, '<br>') : '-';
+                htmlTable += `<td style="border: 1px solid black; padding: 5px;">${cleanText}</td>`;
             });
-            return rowData.join('\t'); // Gunakan Tab sebagai pemisah (kompatibel dengan Excel)
+            htmlTable += '</tr>';
         });
+        htmlTable += '</tbody></table>';
 
-        const fullText = [header.join('\t'), ...rows].join('\n');
+        // Proses Copy ke Clipboard (Trick Select & ExecCommand yang didukung 100% Excel)
+        const div = document.createElement('div');
+        div.style.position = 'absolute';
+        div.style.top = '-9999px';
+        div.style.left = '-9999px';
+        div.innerHTML = htmlTable;
+        document.body.appendChild(div);
         
-        navigator.clipboard.writeText(fullText).then(() => {
-            alert('Sukses! Tabel berhasil disalin. Silakan buka Excel/Google Sheets lalu tekan Ctrl+V (Paste).');
-        }).catch(err => {
-            alert('Gagal menyalin: ' + err);
-        });
+        const table = div.querySelector('table');
+        const range = document.createRange();
+        range.selectNode(table);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        
+        try {
+            document.execCommand('copy');
+            alert('✅ Sukses! Data berhasil disalin dalam format Tabel Asli.\n\nSilakan buka Excel atau Google Sheets, lalu klik kanan dan pilih "Paste" (Ctrl+V). Semua jawaban akan terpisah dengan rapi ke dalam masing-masing kotak!');
+        } catch (err) {
+            alert('Gagal menyalin tabel: ' + err);
+        }
+        
+        // Pembersihan
+        sel.removeAllRanges();
+        document.body.removeChild(div);
     };
 
     return (
