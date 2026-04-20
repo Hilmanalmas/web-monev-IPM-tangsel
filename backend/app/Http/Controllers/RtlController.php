@@ -19,9 +19,10 @@ class RtlController extends Controller
     public function availableSlots(Request $request)
     {
         $now = now();
+        $slots = \App\Models\RtlSlot::all();
         
-        $slots = RtlSlot::all()->map(function($slot) use ($now) {
-            $baseDate = $slot->slot_date ? $slot->slot_date : now()->toDateString();
+        $mapped = $slots->map(function($slot) use ($now) {
+            $baseDate = $slot->slot_date ?: $now->toDateString();
             $start = \Carbon\Carbon::parse($baseDate . ' ' . $slot->start_time);
             $end = \Carbon\Carbon::parse($baseDate . ' ' . $slot->end_time);
             
@@ -31,7 +32,8 @@ class RtlController extends Controller
             
             $isOpen = $now->between($start, $end);
             
-            $isFilled = clone RtlResponse::where('user_id', Auth::id())
+            $isFilled = \DB::table('rtl_responses')
+                ->where('user_id', \Auth::id())
                 ->where('slot_id', $slot->id)
                 ->exists();
                 
@@ -45,7 +47,8 @@ class RtlController extends Controller
                 'is_filled' => $isFilled
             ];
         });
-        return response()->json($slots);
+        
+        return response()->json($mapped);
     }
 
     public function storeResponse(Request $request)
