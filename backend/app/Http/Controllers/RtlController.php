@@ -22,8 +22,8 @@ class RtlController extends Controller
         
         $slots = RtlSlot::all()->map(function($slot) use ($now) {
             $baseDate = $slot->slot_date ? $slot->slot_date : now()->toDateString();
-            $start = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $baseDate . ' ' . $slot->start_time);
-            $end = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $baseDate . ' ' . $slot->end_time);
+            $start = \Carbon\Carbon::parse($baseDate . ' ' . $slot->start_time);
+            $end = \Carbon\Carbon::parse($baseDate . ' ' . $slot->end_time);
             
             if ($end->lessThanOrEqualTo($start)) {
                 $end->addDay();
@@ -62,8 +62,8 @@ class RtlController extends Controller
         
         $now = now();
         $baseDate = $slot->slot_date ? $slot->slot_date : now()->toDateString();
-        $start = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $baseDate . ' ' . $slot->start_time);
-        $end = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $baseDate . ' ' . $slot->end_time);
+        $start = \Carbon\Carbon::parse($baseDate . ' ' . $slot->start_time);
+        $end = \Carbon\Carbon::parse($baseDate . ' ' . $slot->end_time);
         if ($end->lessThanOrEqualTo($start)) $end->addDay();
         
         $isOpen = $now->between($start, $end);
