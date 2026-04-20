@@ -99,7 +99,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/exams/{examId}/submit', [\App\Http\Controllers\ExamController::class, 'submit']);
 
     // RTL
-    Route::get('/rtl/status', [\App\Http\Controllers\RtlController::class, 'rtlStatus']);
+    Route::get('/rtl/slots', [\App\Http\Controllers\RtlController::class, 'availableSlots']);
     Route::get('/rtl/questions', [\App\Http\Controllers\RtlController::class, 'activeQuestions']);
     Route::post('/rtl/respond', [\App\Http\Controllers\RtlController::class, 'storeResponse']);
 
@@ -156,11 +156,9 @@ Route::middleware('auth:sanctum')->group(function () {
         // Settings RTL
         Route::get('/admin/rtl/questions', [\App\Http\Controllers\AdminRtlController::class, 'listQuestions']);
         Route::post('/admin/rtl/questions', [\App\Http\Controllers\AdminRtlController::class, 'storeQuestion']);
-        Route::delete('/admin/rtl/questions/{id}', [\App\Http\Controllers\AdminRtlController::class, 'destroyQuestion']);
-        Route::get('/admin/rtl/status', [\App\Http\Controllers\AdminRtlController::class, 'getStatus']);
-        Route::post('/admin/rtl/toggle', [\App\Http\Controllers\AdminRtlController::class, 'toggleStatus']);
-        Route::get('/admin/rtl/schedule', [\App\Http\Controllers\AdminRtlController::class, 'getSchedule']);
-        Route::post('/admin/rtl/schedule', [\App\Http\Controllers\AdminRtlController::class, 'saveSchedule']);
+        Route::get('/admin/rtl/slots', [\App\Http\Controllers\AdminRtlController::class, 'listSlots']);
+        Route::post('/admin/rtl/slots', [\App\Http\Controllers\AdminRtlController::class, 'storeSlot']);
+        Route::delete('/admin/rtl/slots/{id}', [\App\Http\Controllers\AdminRtlController::class, 'destroySlot']);
         Route::get('/admin/rtl/monitor', [\App\Http\Controllers\AdminRtlController::class, 'monitor']);
 
         // Settings Ibadah

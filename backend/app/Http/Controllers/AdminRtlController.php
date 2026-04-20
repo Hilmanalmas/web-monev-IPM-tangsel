@@ -23,51 +23,31 @@ class AdminRtlController extends Controller {
         return response()->json(['message' => 'Question deleted']);
     }
 
-    public function getSchedule() {
-        return response()->json([
-            'is_active' => Cache::get('is_rtl_active', false),
-            'start_datetime' => AppSetting::get('rtl_start_datetime', ''),
-            'end_datetime' => AppSetting::get('rtl_end_datetime', '')
-        ]);
+    public function listSlots() {
+        return response()->json(\App\Models\RtlSlot::orderBy('slot_date')->orderBy('start_time')->get());
     }
 
-    public function saveSchedule(Request $request) {
+    public function storeSlot(Request $request) {
         $data = $request->validate([
-            'is_active' => 'required|boolean',
-            'start_datetime' => 'nullable|string',
-            'end_datetime' => 'nullable|string'
+            'name' => 'required|string',
+            'slot_date' => 'required|date',
+            'start_time' => 'required',
+            'end_time' => 'required'
         ]);
-        Cache::forever('is_rtl_active', $data['is_active']);
-        AppSetting::set('rtl_start_datetime', $data['start_datetime'] ?? null);
-        AppSetting::set('rtl_end_datetime', $data['end_datetime'] ?? null);
-        return response()->json([
-            'message' => 'Jadwal dan status RTL berhasil disimpan',
-            'schedule' => $data
-        ]);
+        return response()->json(\App\Models\RtlSlot::create($data));
     }
 
-    public function getStatus() {
-        return response()->json([
-            'is_active' => Cache::get('is_rtl_active', false)
-        ]);
-    }
-
-    public function toggleStatus(Request $request) {
-        $data = $request->validate([
-            'is_active' => 'required|boolean'
-        ]);
-        Cache::forever('is_rtl_active', $data['is_active']);
-        return response()->json([
-            'is_active' => $data['is_active'],
-            'message' => $data['is_active'] ? 'RTL telah diaktifkan' : 'RTL telah dinonaktifkan'
-        ]);
+    public function destroySlot($id) {
+        \App\Models\RtlSlot::findOrFail($id)->delete();
+        return response()->json(['message' => 'Slot deleted']);
     }
 
     public function monitor() {
         // Fetch all RTL responses grouped by User
-        $responses = RtlResponse::join('users', 'rtl_responses.user_id', '=', 'users.id')
+        $responses = clone RtlResponse::join('users', 'rtl_responses.user_id', '=', 'users.id')
             ->join('rtl_questions', 'rtl_responses.question_id', '=', 'rtl_questions.id')
-            ->select('rtl_responses.*', 'users.name as user_name', 'rtl_questions.question_text')
+            ->join('rtl_slots', 'rtl_responses.slot_id', '=', 'rtl_slots.id')
+            ->select('rtl_responses.*', 'users.name as user_name', 'rtl_questions.question_text', 'rtl_slots.name as slot_name')
             ->orderBy('rtl_responses.user_id')
             ->get();
 
@@ -79,6 +59,7 @@ class AdminRtlController extends Controller {
                     'user_name' => $resp->user_name,
                     'selfie_url' => $resp->selfie_url,
                     'date' => $resp->date,
+                    'slot' => $resp->slot_name,
                     'answers' => []
                 ];
             }

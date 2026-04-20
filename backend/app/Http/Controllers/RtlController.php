@@ -16,65 +16,65 @@ class RtlController extends Controller
         return response()->json(RtlQuestion::where('is_active', true)->get());
     }
 
-    private function checkRtlActive()
+    public function availableSlots(Request $request)
     {
-        $isActive = Cache::get('is_rtl_active', false);
-        $start = \App\Models\AppSetting::get('rtl_start_datetime');
-        $end = \App\Models\AppSetting::get('rtl_end_datetime');
+        $now = now();
         
-        if ($start && $end) {
-            $now = now();
-            if ($now->gte(\Carbon\Carbon::parse($start)) && $now->lte(\Carbon\Carbon::parse($end))) {
-                $isActive = true;
-            } else {
-                $isActive = false; // Always override using dates if available
+        $slots = RtlSlot::all()->map(function($slot) use ($now) {
+            $baseDate = $slot->slot_date ? $slot->slot_date : now()->toDateString();
+            $start = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $baseDate . ' ' . $slot->start_time);
+            $end = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $baseDate . ' ' . $slot->end_time);
+            
+            if ($end->lessThanOrEqualTo($start)) {
+                $end->addDay();
             }
-        }
-        return $isActive;
-    }
-
-    public function rtlStatus()
-    {
-        $isActive = $this->checkRtlActive();
-        $isFilled = false;
-        
-        if ($isActive) {
-            $slot = RtlSlot::first();
-            if ($slot) {
-                $isFilled = RtlResponse::where('user_id', Auth::id())
-                    ->where('slot_id', $slot->id)
-                    ->exists();
-            }
-        }
-
-        return response()->json([
-            'is_active' => $isActive,
-            'is_filled' => $isFilled
-        ]);
+            
+            $isOpen = $now->between($start, $end);
+            
+            $isFilled = clone RtlResponse::where('user_id', Auth::id())
+                ->where('slot_id', $slot->id)
+                ->exists();
+                
+            return [
+                'id' => $slot->id,
+                'name' => $slot->name,
+                'slot_date' => $slot->slot_date,
+                'start_time' => $slot->start_time,
+                'end_time' => $slot->end_time,
+                'is_open' => $isOpen,
+                'is_filled' => $isFilled
+            ];
+        });
+        return response()->json($slots);
     }
 
     public function storeResponse(Request $request)
     {
         $data = $request->validate([
+            'slot_id' => 'required',
             'selfie_url' => 'nullable|string', 
             'responses' => 'required|array',
             'responses.*.question_id' => 'required',
             'responses.*.response_text' => 'required|string'
         ]);
 
-        if (!$this->checkRtlActive()) {
-            return response()->json(['message' => 'Laman RTL belum bisa diakses atau telah ditutup.'], 403);
+        $slot = RtlSlot::findOrFail($data['slot_id']);
+        
+        $now = now();
+        $baseDate = $slot->slot_date ? $slot->slot_date : now()->toDateString();
+        $start = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $baseDate . ' ' . $slot->start_time);
+        $end = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $baseDate . ' ' . $slot->end_time);
+        if ($end->lessThanOrEqualTo($start)) $end->addDay();
+        
+        $isOpen = $now->between($start, $end);
+        if (!$isOpen) {
+            return response()->json(['message' => 'Laman RTL ini sudah ditutup atau belum bisa diakses pada waktu ini.'], 403);
         }
 
-        return DB::transaction(function() use ($data) {
-            $slot = RtlSlot::first();
-            if (!$slot) {
-                $slot = RtlSlot::create(['name' => 'Penilaian Pasca Kegiatan', 'start_time' => '00:00:00', 'end_time' => '23:59:59']);
-            }
-
+        return DB::transaction(function() use ($data, $slot) {
             $userId = Auth::id();
             
-            // Optimize database inserts: delete old responses and run a fast bulk insert
+            // Delete old responses and bulk insert
             RtlResponse::where('user_id', $userId)
                 ->where('slot_id', $slot->id)
                 ->delete();
@@ -86,7 +86,7 @@ class RtlController extends Controller
                     'user_id' => $userId,
                     'question_id' => $resp['question_id'],
                     'slot_id' => $slot->id,
-                    'selfie_url' => $data['selfie_url'],
+                    'selfie_url' => $data['selfie_url'] ?? null,
                     'answer' => $resp['response_text'],
                     'date' => $now->toDateString(),
                     'created_at' => $now,
@@ -95,20 +95,20 @@ class RtlController extends Controller
             }
             RtlResponse::insert($inserts);
 
-            // Sync to Spreadsheet (Batch)
             try {
                 $user = Auth::user();
                 \App\Services\SpreadsheetService::postScore([
                     'name'     => $user->name,
                     'instansi' => $user->asal_instansi,
                     'type'     => 'RTL',
-                    'item'     => 'Submission RTL',
-                    'score'    => 100, // Participation score
-                    'desc'     => 'Submission completed'
+                    'item'     => $slot->name,
+                    'score'    => 100,
+                    'desc'     => 'Submission completed for ' . $slot->name
                 ]);
             } catch (\Exception $e) {}
 
             return response()->json(['message' => 'RTL berhasil dikirim']);
         });
     }
+
 }
