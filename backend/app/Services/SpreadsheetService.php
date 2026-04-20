@@ -10,14 +10,16 @@ class SpreadsheetService
      * URL Webhook Google Apps Script (Sesuai pengaturan kemarin)
      * Silakan isi URL /exec milik Anda di sini.
      */
-    const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbytwqBaWWWoasiXiuo130QuqIfgrD1Up7R8agRgtvmG2ZN7lvMw17f7rLX8XuHyDOHZSQ/exec';
-
-    /**
-     * Mengirimkan data nilai ke Spreadsheet secara Real-time
-     */
     public static function postScore($data, $sheetName = 'Input_Nilai')
     {
-        if (empty(self::WEBHOOK_URL)) {
+        $url = config('spreadsheet.webhook_url');
+        
+        // Pilih URL khusus RTL jika sheet_name adalah RTL dan URL-nya tersedia
+        if ($sheetName === 'RTL' && !empty(config('spreadsheet.webhook_rtl'))) {
+            $url = config('spreadsheet.webhook_rtl');
+        }
+
+        if (empty($url)) {
             return;
         }
 
@@ -28,7 +30,7 @@ class SpreadsheetService
                 ...$data
             ];
 
-            Http::timeout(5)->post(self::WEBHOOK_URL, $payload);
+            Http::timeout(5)->post($url, $payload);
 
         } catch (\Exception $e) {
             Log::error("Failed to send data to Spreadsheet: " . $e->getMessage());
@@ -40,7 +42,12 @@ class SpreadsheetService
      */
     public static function postBatch($collection, $sheetName = 'Input_Nilai')
     {
-        if (empty(self::WEBHOOK_URL) || empty($collection)) {
+        $url = config('spreadsheet.webhook_url');
+        if ($sheetName === 'RTL' && !empty(config('spreadsheet.webhook_rtl'))) {
+            $url = config('spreadsheet.webhook_rtl');
+        }
+
+        if (empty($url) || empty($collection)) {
             return;
         }
 
@@ -53,7 +60,7 @@ class SpreadsheetService
                 ]);
             }, $collection);
 
-            Http::timeout(30)->post(self::WEBHOOK_URL, $payload);
+            Http::timeout(30)->post($url, $payload);
         } catch (\Exception $e) {
             Log::error("Failed to send BATCH to Spreadsheet: " . $e->getMessage());
         }
@@ -64,12 +71,13 @@ class SpreadsheetService
      */
     public static function clearAll()
     {
-        if (empty(self::WEBHOOK_URL)) {
+        $url = config('spreadsheet.webhook_url');
+        if (empty($url)) {
             return;
         }
 
         try {
-            Http::timeout(30)->post(self::WEBHOOK_URL, ['action' => 'clear_all']);
+            Http::timeout(30)->post($url, ['action' => 'clear_all']);
         } catch (\Exception $e) {
             Log::error("Failed to CLEAR Spreadsheet: " . $e->getMessage());
         }
