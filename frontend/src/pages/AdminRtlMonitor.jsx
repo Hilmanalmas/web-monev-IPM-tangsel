@@ -29,11 +29,57 @@ const AdminRtlMonitor = () => {
         r.user_name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
+    const copyAsTable = () => {
+        if (filteredResponses.length === 0) return;
+
+        // Ambil semua daftar pertanyaan unik untuk dijadikan header kolom
+        const questionsList = [];
+        filteredResponses.forEach(r => {
+            r.answers.forEach(ans => {
+                if (!questionsList.includes(ans.question)) {
+                    questionsList.push(ans.question);
+                }
+            });
+        });
+
+        // Buat Baris Header
+        const header = ['Nama Peserta', 'Tanggal', ...questionsList];
+        
+        // Buat Baris Data
+        const rows = filteredResponses.map(r => {
+            const rowData = [r.user_name, r.date];
+            questionsList.forEach(q => {
+                const found = r.answers.find(ans => ans.question === q);
+                // Bersihkan karakter tab/new line agar tidak merusak format tabel
+                const cleanText = found ? found.answer.replace(/\n/g, ' ').replace(/\t/g, ' ') : '-';
+                rowData.push(cleanText);
+            });
+            return rowData.join('\t'); // Gunakan Tab sebagai pemisah (kompatibel dengan Excel)
+        });
+
+        const fullText = [header.join('\t'), ...rows].join('\n');
+        
+        navigator.clipboard.writeText(fullText).then(() => {
+            alert('Sukses! Tabel berhasil disalin. Silakan buka Excel/Google Sheets lalu tekan Ctrl+V (Paste).');
+        }).catch(err => {
+            alert('Gagal menyalin: ' + err);
+        });
+    };
+
     return (
         <div className="max-w-7xl mx-auto space-y-8 p-6">
-            <h1 className="text-3xl font-black flex items-center gap-3">
-                <Target className="text-purple-600" size={32} /> Monitor RTL
-            </h1>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <h1 className="text-3xl font-black flex items-center gap-3">
+                    <Target className="text-purple-600" size={32} /> Monitor RTL
+                </h1>
+                
+                <button 
+                    onClick={copyAsTable}
+                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-green-100 transition-all flex items-center justify-center gap-2"
+                >
+                    <Target size={20} /> Salin Semua ke Excel (Tabel)
+                </button>
+            </div>
 
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4 items-center justify-between">
                 <div>
