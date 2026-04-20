@@ -102,7 +102,7 @@ class RtlController extends Controller
                 $user = Auth::user();
                 
                 // Format pertanyaan dan jawaban untuk dikirim ke Spreadsheet
-                $questions = \App\Models\RtlQuestion::whereIn('id', collect($data['responses'])->pluck('question_id'))->get()->keyBy('id');
+                $questions = \DB::table('rtl_questions')->whereIn('id', collect($data['responses'])->pluck('question_id'))->get()->keyBy('id');
                 $descText = "";
                 $idx = 1;
                 foreach ($data['responses'] as $resp) {
@@ -112,15 +112,24 @@ class RtlController extends Controller
                     $idx++;
                 }
 
-                \App\Services\SpreadsheetService::postScore([
-                    'name'     => $user->name,
-                    'instansi' => $user->asal_instansi,
-                    'type'     => 'RTL',
-                    'item'     => $slot->name,
-                    'score'    => 100,
-                    'desc'     => trim($descText)
-                ], 'RTL');
-            } catch (\Exception $e) {}
+                // Pengiriman langsung ke Google Sheets tanpa file Service tambahan
+                $webhookUrl = config('spreadsheet.webhook_rtl') ?: config('spreadsheet.webhook_url');
+                
+                if ($webhookUrl) {
+                    \Illuminate\Support\Facades\Http::timeout(10)->post($webhookUrl, [
+                        'timestamp'  => now()->format('d/m/Y H:i:s'),
+                        'sheet_name' => 'RTL',
+                        'name'       => $user->name,
+                        'instansi'   => $user->asal_instansi,
+                        'type'       => 'RTL',
+                        'item'       => $slot->name,
+                        'score'      => 100,
+                        'desc'       => trim($descText)
+                    ]);
+                }
+            } catch (\Exception $e) {
+                // Abaikan error spreadsheet agar database tetap tersimpan
+            }
 
             return response()->json(['message' => 'RTL berhasil dikirim']);
         });
