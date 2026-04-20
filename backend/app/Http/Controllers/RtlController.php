@@ -16,9 +16,26 @@ class RtlController extends Controller
         return response()->json(RtlQuestion::where('is_active', true)->get());
     }
 
-    public function rtlStatus()
+    private function checkRtlActive()
     {
         $isActive = Cache::get('is_rtl_active', false);
+        $start = \App\Models\AppSetting::get('rtl_start_datetime');
+        $end = \App\Models\AppSetting::get('rtl_end_datetime');
+        
+        if ($start && $end) {
+            $now = now();
+            if ($now->gte(\Carbon\Carbon::parse($start)) && $now->lte(\Carbon\Carbon::parse($end))) {
+                $isActive = true;
+            } else {
+                $isActive = false; // Always override using dates if available
+            }
+        }
+        return $isActive;
+    }
+
+    public function rtlStatus()
+    {
+        $isActive = $this->checkRtlActive();
         $isFilled = false;
         
         if ($isActive) {
@@ -45,9 +62,8 @@ class RtlController extends Controller
             'responses.*.response_text' => 'required|string'
         ]);
 
-        $isActive = Cache::get('is_rtl_active', false);
-        if (!$isActive) {
-            return response()->json(['message' => 'Laman RTL belum bisa diakses.'], 403);
+        if (!$this->checkRtlActive()) {
+            return response()->json(['message' => 'Laman RTL belum bisa diakses atau telah ditutup.'], 403);
         }
 
         return DB::transaction(function() use ($data) {
@@ -56,21 +72,28 @@ class RtlController extends Controller
                 $slot = RtlSlot::create(['name' => 'Penilaian Pasca Kegiatan', 'start_time' => '00:00:00', 'end_time' => '23:59:59']);
             }
 
+            $userId = Auth::id();
+            
+            // Optimize database inserts: delete old responses and run a fast bulk insert
+            RtlResponse::where('user_id', $userId)
+                ->where('slot_id', $slot->id)
+                ->delete();
+
+            $inserts = [];
+            $now = now();
             foreach ($data['responses'] as $resp) {
-                // Use updateOrCreate to prevent duplicates based on user, slot, and specific question
-                RtlResponse::updateOrCreate(
-                    [
-                        'user_id' => Auth::id(),
-                        'question_id' => $resp['question_id'],
-                        'slot_id' => $slot->id
-                    ],
-                    [
-                        'selfie_url' => $data['selfie_url'],
-                        'answer' => $resp['response_text'],
-                        'date' => today()
-                    ]
-                );
+                $inserts[] = [
+                    'user_id' => $userId,
+                    'question_id' => $resp['question_id'],
+                    'slot_id' => $slot->id,
+                    'selfie_url' => $data['selfie_url'],
+                    'answer' => $resp['response_text'],
+                    'date' => $now->toDateString(),
+                    'created_at' => $now,
+                    'updated_at' => $now
+                ];
             }
+            RtlResponse::insert($inserts);
 
             // Sync to Spreadsheet (Batch)
             try {

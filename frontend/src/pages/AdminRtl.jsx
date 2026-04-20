@@ -5,20 +5,26 @@ import { Target, Plus, Trash2, Power, Loader2, ShieldCheck, ShieldOff } from 'lu
 const AdminRtl = () => {
     const [questions, setQuestions] = useState([]);
     const [qForm, setQForm] = useState({ question_text: '' });
+    
     const [rtlActive, setRtlActive] = useState(false);
-    const [toggling, setToggling] = useState(false);
+    const [startDatetime, setStartDatetime] = useState('');
+    const [endDatetime, setEndDatetime] = useState('');
+
+    const [saving, setSaving] = useState(false);
     const [loadingStatus, setLoadingStatus] = useState(true);
 
     useEffect(() => {
         fetchQuestions();
-        fetchStatus();
+        fetchSchedule();
     }, []);
 
-    const fetchStatus = async () => {
+    const fetchSchedule = async () => {
         setLoadingStatus(true);
         try {
-            const res = await axios.get('/api/admin/rtl/status');
+            const res = await axios.get('/api/admin/rtl/schedule');
             setRtlActive(res.data.is_active);
+            setStartDatetime(res.data.start_datetime || '');
+            setEndDatetime(res.data.end_datetime || '');
         } catch (e) { console.error(e); }
         setLoadingStatus(false);
     };
@@ -51,16 +57,23 @@ const AdminRtl = () => {
         }
     };
 
-    const toggleRtl = async () => {
-        setToggling(true);
+    const handleSaveSchedule = async () => {
+        setSaving(true);
         try {
-            const res = await axios.post('/api/admin/rtl/toggle', { is_active: !rtlActive });
-            setRtlActive(res.data.is_active);
+            const res = await axios.post('/api/admin/rtl/schedule', { 
+                is_active: rtlActive,
+                start_datetime: startDatetime,
+                end_datetime: endDatetime
+            });
+            setRtlActive(res.data.schedule.is_active);
+            setStartDatetime(res.data.schedule.start_datetime || '');
+            setEndDatetime(res.data.schedule.end_datetime || '');
+            alert(res.data.message);
         } catch (e) { 
-            alert('Gagal mengubah status akses RTL peserta.');
+            alert('Gagal menyimpan jadwal/status RTL.');
             console.error(e); 
         }
-        setToggling(false);
+        setSaving(false);
     };
 
     return (
@@ -78,48 +91,60 @@ const AdminRtl = () => {
                         </div>
                         <div className="relative z-10 space-y-6">
                             <div>
-                                <h2 className="text-xl font-bold mb-1">Status Penilaian RTL</h2>
+                                <h2 className="text-xl font-bold mb-1">Pengaturan Waktu RTL</h2>
                                 <p className="text-sm text-gray-500">
-                                    {rtlActive 
-                                        ? 'Peserta saat ini BISA mengakses dan mengisi laman RTL.' 
-                                        : 'Peserta saat ini TIDAK BISA mengakses laman RTL.'}
+                                    Atur rentang waktu RTL atau aktifkan secara manual. (Pengaturan waktu akan menimpa status manual jika diisi).
                                 </p>
                             </div>
 
-                            <div className="flex items-center gap-4">
-                                {rtlActive ? (
-                                    <div className="flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2 rounded-full font-bold text-sm">
-                                        <ShieldCheck size={18} />
-                                        <span>AKTIF</span>
-                                    </div>
-                                ) : (
-                                    <div className="flex items-center gap-2 bg-red-100 text-red-500 px-4 py-2 rounded-full font-bold text-sm">
-                                        <ShieldOff size={18} />
-                                        <span>NONAKTIF</span>
-                                    </div>
-                                )}
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-1">Mulai Tanggal & Jam</label>
+                                    <input 
+                                        type="datetime-local" 
+                                        value={startDatetime} 
+                                        onChange={e => setStartDatetime(e.target.value)}
+                                        className="w-full p-3 border rounded-xl focus:ring focus:ring-pink-200 outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-1">Batas Akhir Tanggal & Jam</label>
+                                    <input 
+                                        type="datetime-local" 
+                                        value={endDatetime} 
+                                        onChange={e => setEndDatetime(e.target.value)}
+                                        className="w-full p-3 border rounded-xl focus:ring focus:ring-pink-200 outline-none"
+                                    />
+                                </div>
+                            </div>
+                            
+                            <hr className="border-gray-200 border-dashed" />
+
+                            <div className="flex items-center justify-between">
+                                <span className="font-bold text-gray-700 block">Status Manual (Fallback)</span>
+                                <button
+                                    onClick={() => setRtlActive(!rtlActive)}
+                                    className={`px-4 py-2 rounded-full font-bold text-sm transition-all shadow active:scale-95 flex items-center gap-2 text-white
+                                        ${rtlActive ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-400 hover:bg-gray-500'}`}
+                                >
+                                    {rtlActive ? <><ShieldCheck size={16} /> AKTIF</> : <><ShieldOff size={16} /> NONAKTIF</>}
+                                </button>
                             </div>
 
                             <button
-                                onClick={toggleRtl}
-                                disabled={toggling || loadingStatus}
-                                className={`w-full py-4 rounded-2xl font-black text-lg transition-all shadow-lg active:scale-95 flex items-center justify-center gap-3 text-white
-                                    ${toggling || loadingStatus ? 'bg-gray-400 cursor-not-allowed' : rtlActive ? 'bg-red-500 hover:bg-red-600' : 'bg-green-600 hover:bg-green-700'}`}
+                                onClick={handleSaveSchedule}
+                                disabled={saving || loadingStatus}
+                                className={`w-full mt-4 py-4 rounded-2xl font-black text-lg transition-all shadow-lg active:scale-95 flex items-center justify-center gap-3 text-white
+                                    ${saving || loadingStatus ? 'bg-gray-400 cursor-not-allowed' : 'bg-pink-600 hover:bg-pink-700'}`}
                             >
-                                {toggling ? (
-                                    <><Loader2 size={22} className="animate-spin" /> Memproses...</>
+                                {saving ? (
+                                    <><Loader2 size={22} className="animate-spin" /> Menyimpan...</>
                                 ) : loadingStatus ? (
                                     <><Loader2 size={22} className="animate-spin" /> Memuat...</>
-                                ) : rtlActive ? (
-                                    <><ShieldOff size={22} /> Nonaktifkan RTL</>
                                 ) : (
-                                    <><ShieldCheck size={22} /> Aktifkan RTL Sekarang</>
+                                    <><Power size={22} /> Simpan Pengaturan RTL</>
                                 )}
                             </button>
-
-                            <p className="text-xs text-gray-400 text-center leading-relaxed">
-                                Aktifkan RTL setelah seluruh kegiatan selesai. Peserta akan bisa mengisi form penilaian RTL beserta selfie dokumentasi.
-                            </p>
                         </div>
                     </div>
                 </div>

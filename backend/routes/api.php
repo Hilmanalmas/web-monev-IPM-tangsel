@@ -159,6 +159,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/admin/rtl/questions/{id}', [\App\Http\Controllers\AdminRtlController::class, 'destroyQuestion']);
         Route::get('/admin/rtl/status', [\App\Http\Controllers\AdminRtlController::class, 'getStatus']);
         Route::post('/admin/rtl/toggle', [\App\Http\Controllers\AdminRtlController::class, 'toggleStatus']);
+        Route::get('/admin/rtl/schedule', [\App\Http\Controllers\AdminRtlController::class, 'getSchedule']);
+        Route::post('/admin/rtl/schedule', [\App\Http\Controllers\AdminRtlController::class, 'saveSchedule']);
+        Route::get('/admin/rtl/monitor', [\App\Http\Controllers\AdminRtlController::class, 'monitor']);
 
         // Settings Ibadah
         Route::get('/admin/worship/slots', [\App\Http\Controllers\AdminIbadahController::class, 'listSlots']);

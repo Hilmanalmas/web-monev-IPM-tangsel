@@ -33,7 +33,8 @@ const Layout = ({ children }) => {
         navItems.push({ path: '/admin', label: 'Statistik', icon: <ShieldAlert size={22} /> });
         navItems.push({ path: '/admin/users', label: 'Pasukan', icon: <Users size={22} /> });
         navItems.push({ path: '/admin/attendance', label: 'Absensi', icon: <Camera size={22} /> });
-        navItems.push({ path: '/admin/rtl', label: 'RTL', icon: <ClipboardEdit size={22} /> });
+        navItems.push({ path: '/admin/rtl', label: 'Set RTL', icon: <ClipboardEdit size={22} /> });
+        navItems.push({ path: '/admin/rtl-monitor', label: 'Monitor RTL', icon: <Eye size={22} /> });
         navItems.push({ path: '/admin/exams', label: 'Test', icon: <BookOpen size={22} /> });
         navItems.push({ path: '/admin/games', label: 'Set Games', icon: <Gamepad2 size={22} /> });
         navItems.push({ path: '/admin/practice', label: 'Set Praktek', icon: <Activity size={22} /> });

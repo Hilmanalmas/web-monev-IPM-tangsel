@@ -15,6 +15,7 @@ import AdminExams from './pages/AdminExams';
 import AdminAttendance from './pages/AdminAttendance';
 import AdminIbadah from './pages/AdminIbadah';
 import AdminRtl from './pages/AdminRtl';
+import AdminRtlMonitor from './pages/AdminRtlMonitor';
 import AdminGames from './pages/AdminGames';
 import AdminPractice from './pages/AdminPractice';
 import ExamPortal from './pages/ExamPortal';
@@ -118,6 +119,7 @@ const AppLayout = () => (
             <Route path="/admin/attendance" element={<ProtectedRoute allowedRoles={['admin']}><AdminAttendance /></ProtectedRoute>} />
             <Route path="/admin/ibadah" element={<ProtectedRoute allowedRoles={['admin']}><AdminIbadah /></ProtectedRoute>} />
             <Route path="/admin/rtl" element={<ProtectedRoute allowedRoles={['admin']}><AdminRtl /></ProtectedRoute>} />
+            <Route path="/admin/rtl-monitor" element={<ProtectedRoute allowedRoles={['admin']}><AdminRtlMonitor /></ProtectedRoute>} />
             <Route path="/admin/games" element={<ProtectedRoute allowedRoles={['admin']}><AdminGames /></ProtectedRoute>} />
             <Route path="/admin/practice" element={<ProtectedRoute allowedRoles={['admin']}><AdminPractice /></ProtectedRoute>} />
             <Route path="/admin/reports" element={<ProtectedRoute allowedRoles={['admin']}><AdminReports /></ProtectedRoute>} />
