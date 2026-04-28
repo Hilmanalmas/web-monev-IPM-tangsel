@@ -46,6 +46,7 @@ const AdminRtlMonitor = () => {
         let htmlTable = '<table style="border-collapse: collapse; width: 100%; border: 1px solid black;"><thead><tr style="background-color: #f3f3f3; font-weight: bold;">';
         htmlTable += `<th style="border: 1px solid black; padding: 5px;">Nama Peserta</th>`;
         htmlTable += `<th style="border: 1px solid black; padding: 5px;">Tanggal</th>`;
+        htmlTable += `<th style="border: 1px solid black; padding: 5px;">Slot/Tes</th>`;
         questionsList.forEach(q => {
             htmlTable += `<th style="border: 1px solid black; padding: 5px;">${q}</th>`;
         });
@@ -55,6 +56,7 @@ const AdminRtlMonitor = () => {
             htmlTable += '<tr>';
             htmlTable += `<td style="border: 1px solid black; padding: 5px;">${r.user_name}</td>`;
             htmlTable += `<td style="border: 1px solid black; padding: 5px;">${r.date}</td>`;
+            htmlTable += `<td style="border: 1px solid black; padding: 5px;">${r.slot}</td>`;
             questionsList.forEach(q => {
                 const found = r.answers.find(ans => ans.question === q);
                 // Ubah enter (\n) menjadi <br> agar di Excel tetap dalam satu sel yang sama
@@ -147,7 +149,7 @@ const AdminRtlMonitor = () => {
                                     </div>
                                 )}
                                 <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded backdrop-blur-sm flex items-center gap-1">
-                                    <Calendar size={12} /> {r.date}
+                                    <Calendar size={12} /> {r.date} | {r.slot}
                                 </div>
                             </div>
                             
@@ -174,7 +176,7 @@ const AdminRtlMonitor = () => {
                         <div className="p-6 border-b flex justify-between items-center bg-gray-50">
                             <div>
                                 <h2 className="text-2xl font-black">{selectedUser.user_name}</h2>
-                                <p className="text-sm text-gray-500">Detail Jawaban RTL - {selectedUser.date}</p>
+                                <p className="text-sm text-gray-500">Detail Jawaban RTL - {selectedUser.date} | {selectedUser.slot}</p>
                             </div>
                             <button onClick={() => setSelectedUser(null)} className="text-gray-400 hover:text-red-500 font-bold p-2">✕ Tutup</button>
                         </div>

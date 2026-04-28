@@ -53,8 +53,9 @@ class AdminRtlController extends Controller {
 
         $grouped = [];
         foreach($responses as $resp) {
-            if (!isset($grouped[$resp->user_id])) {
-                $grouped[$resp->user_id] = [
+            $groupKey = $resp->user_id . '_' . $resp->slot_id;
+            if (!isset($grouped[$groupKey])) {
+                $grouped[$groupKey] = [
                     'user_id' => $resp->user_id,
                     'user_name' => $resp->user_name,
                     'selfie_url' => $resp->selfie_url,
@@ -63,10 +64,10 @@ class AdminRtlController extends Controller {
                     'answers' => []
                 ];
             }
-            if ($resp->selfie_url) {
-                $grouped[$resp->user_id]['selfie_url'] = $resp->selfie_url;
+            if ($resp->selfie_url && empty($grouped[$groupKey]['selfie_url'])) {
+                $grouped[$groupKey]['selfie_url'] = $resp->selfie_url;
             }
-            $grouped[$resp->user_id]['answers'][] = [
+            $grouped[$groupKey]['answers'][] = [
                 'question' => $resp->question_text,
                 'answer' => $resp->answer
             ];
