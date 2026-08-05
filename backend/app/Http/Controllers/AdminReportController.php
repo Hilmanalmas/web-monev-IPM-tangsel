@@ -46,23 +46,28 @@ class AdminReportController extends Controller {
              $sumPsiSlots += ($psiSum / ($psiCount * 4)) * 100;
         }
 
-        $manitoAfektif = $sumAfeSlots / $slotCount;
-        $manitoPsiko = $sumPsiSlots / $slotCount;
+        $override = \App\Models\ManualScoreOverride::where('user_id', $user->id)->first();
+
+        $manitoAfektif = $override->manito_afektif ?? ($sumAfeSlots / $slotCount);
+        $manitoPsiko = $override->manito_psiko ?? ($sumPsiSlots / $slotCount);
 
         $currentDay = AppSetting::get('current_day', 1);
         $slotsPerDay = \App\Models\AttendanceSlot::count();
         $totalExpectedSlots = $slotsPerDay * $currentDay;
         
         $userAtt = Attendance::where('user_id', $user->id)->where('day', '<=', $currentDay)->count();
-        $absensiScore = $totalExpectedSlots > 0 ? ($userAtt / $totalExpectedSlots) * 100 : 0;
+        $absensiComputed = $totalExpectedSlots > 0 ? ($userAtt / $totalExpectedSlots) * 100 : 0;
+        $absensiScore = $override->absensi ?? $absensiComputed;
         if ($absensiScore > 100) $absensiScore = 100;
 
-        $gameAvg = GameScore::where('user_id', $user->id)->avg('score') ?? 0;
-        $pracAvg = PracticeScore::where('user_id', $user->id)->avg('score') ?? 0;
-        $kogAvg = CognitiveScore::where('user_id', $user->id)->avg('score') ?? 0;
+        $gameAvg = $override->games ?? (GameScore::where('user_id', $user->id)->avg('score') ?? 0);
+        $pracAvg = $override->praktek ?? (PracticeScore::where('user_id', $user->id)->avg('score') ?? 0);
+        $kogAvg = $override->kognitif ?? (CognitiveScore::where('user_id', $user->id)->avg('score') ?? 0);
+        
         // Ibadah (Cumulative Sum, capped at 100)
         $worshipSum = WorshipLog::where('user_id', $user->id)->sum('score') ?? 0;
-        $worshipFinal = $worshipSum > 100 ? 100 : $worshipSum;
+        $worshipComputed = $worshipSum > 100 ? 100 : $worshipSum;
+        $worshipFinal = $override->ibadah ?? $worshipComputed;
 
         $afektifFinal = ($manitoAfektif * 0.5) + ($absensiScore * 0.5);
         $psikomotorikFinal = ($manitoPsiko * 0.4) + ($gameAvg * 0.3) + ($pracAvg * 0.3);
@@ -223,5 +228,25 @@ class AdminReportController extends Controller {
         });
 
         return response()->json($detailedReports);
+    }
+
+    public function saveManualOverride(Request $request) {
+        $data = $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'manito_afektif' => 'nullable|numeric|min:0|max:100',
+            'absensi' => 'nullable|numeric|min:0|max:100',
+            'manito_psiko' => 'nullable|numeric|min:0|max:100',
+            'games' => 'nullable|numeric|min:0|max:100',
+            'praktek' => 'nullable|numeric|min:0|max:100',
+            'kognitif' => 'nullable|numeric|min:0|max:100',
+            'ibadah' => 'nullable|numeric|min:0|max:100',
+        ]);
+
+        $override = \App\Models\ManualScoreOverride::updateOrCreate(
+            ['user_id' => $data['user_id']],
+            $data
+        );
+
+        return response()->json(['message' => 'Rekap manual berhasil disimpan', 'override' => $override]);
     }
 }

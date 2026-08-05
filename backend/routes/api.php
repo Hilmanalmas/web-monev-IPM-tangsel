@@ -187,6 +187,7 @@ Route::middleware([\App\Http\Middleware\TokenFromQuery::class, 'auth:sanctum'])-
 
         Route::get('/admin/reports/progress', [\App\Http\Controllers\AdminReportController::class, 'progress']);
         Route::get('/admin/reports', [\App\Http\Controllers\AdminReportController::class, 'index']);
+        Route::post('/admin/reports/override', [\App\Http\Controllers\AdminReportController::class, 'saveManualOverride']);
         Route::post('/admin/reports/publish', [\App\Http\Controllers\AdminReportController::class, 'publish']); // Publish scores
         Route::get('/admin/reports/full', [\App\Http\Controllers\AdminReportController::class, 'fullReport']);
 

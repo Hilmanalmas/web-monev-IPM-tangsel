@@ -11,6 +11,11 @@ const AdminReports = () => {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [expandedUser, setExpandedUser] = useState(null);
+    const [overrideModal, setOverrideModal] = useState(null);
+    const [overrideForm, setOverrideForm] = useState({
+        manito_afektif: '', absensi: '', manito_psiko: '', games: '', praktek: '', kognitif: '', ibadah: ''
+    });
+    const [overrideStatus, setOverrideStatus] = useState('idle');
 
     const fetchData = async () => {
         setLoading(true);
@@ -23,6 +28,48 @@ const AdminReports = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const openOverrideModal = (report) => {
+        setOverrideModal(report);
+        setOverrideForm({
+            manito_afektif: report.summary.manito_afektif,
+            absensi: report.summary.absensi,
+            manito_psiko: report.summary.manito_psiko,
+            games: report.summary.games,
+            praktek: report.summary.praktek,
+            kognitif: report.summary.kognitif,
+            ibadah: report.summary.ibadah
+        });
+    };
+
+    const handleOverrideSubmit = async () => {
+        setOverrideStatus('saving');
+        try {
+            await axios.post('/api/admin/reports/override', {
+                user_id: overrideModal.user.id,
+                ...overrideForm
+            });
+            setOverrideStatus('success');
+            setTimeout(() => {
+                setOverrideModal(null);
+                fetchData();
+            }, 1000);
+        } catch (e) {
+            alert("Gagal menyimpan rekap manual");
+            setOverrideStatus('idle');
+        }
+    };
+
+    const computeLiveFinal = () => {
+        const afektifFinal = (parseFloat(overrideForm.manito_afektif||0) * 0.5) + (parseFloat(overrideForm.absensi||0) * 0.5);
+        const psikoFinal = (parseFloat(overrideForm.manito_psiko||0) * 0.4) + (parseFloat(overrideForm.games||0) * 0.3) + (parseFloat(overrideForm.praktek||0) * 0.3);
+        const final = (afektifFinal * 0.35) + (psikoFinal * 0.35) + (parseFloat(overrideForm.kognitif||0) * 0.20) + (parseFloat(overrideForm.ibadah||0) * 0.10);
+        return {
+            afektif: afektifFinal.toFixed(2),
+            psiko: psikoFinal.toFixed(2),
+            final: final.toFixed(2)
+        };
     };
 
     useEffect(() => {
@@ -155,6 +202,12 @@ const AdminReports = () => {
                         {expandedUser === report.user.id && (report.details ? (
                             <div className="bg-slate-50/50 border-t border-slate-100 p-8 space-y-10 animate-in slide-in-from-top-4 duration-500">
                                 
+                                <div className="flex justify-end">
+                                    <button onClick={(e) => { e.stopPropagation(); openOverrideModal(report); }} className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-2xl font-black text-sm flex items-center gap-2 shadow-lg shadow-indigo-200 transition-all">
+                                        <ClipboardList size={18} /> EDIT REKAP MANUAL
+                                    </button>
+                                </div>
+
                                 {/* Section Grid */}
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                                     
@@ -307,6 +360,67 @@ const AdminReports = () => {
                     </div>
                 )}
             </div>
+
+            {/* Override Modal */}
+            {overrideModal && (
+                <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white w-full max-w-4xl rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in-95 flex flex-col max-h-[90vh]">
+                        <div className="bg-slate-900 p-8 text-white flex justify-between items-center shrink-0">
+                            <div>
+                                <h3 className="text-2xl font-black tracking-tight flex items-center gap-3">
+                                    <ClipboardList className="text-amber-400" />
+                                    REKAP MANUAL: {overrideModal.user.name}
+                                </h3>
+                                <p className="text-slate-400 text-sm mt-1">Kosongkan kolom jika ingin sistem menghitung otomatis dari riwayat.</p>
+                            </div>
+                            <button onClick={() => setOverrideModal(null)} className="bg-slate-800 p-3 rounded-2xl text-slate-400 hover:text-white transition-colors font-black">X</button>
+                        </div>
+                        <div className="p-8 overflow-y-auto flex-1 bg-slate-50">
+                            {/* Live Calculator View */}
+                            <div className="bg-indigo-600 rounded-3xl p-6 mb-8 text-white flex justify-around shadow-xl shadow-indigo-200 items-center">
+                                <div className="text-center">
+                                    <p className="text-[10px] font-black text-indigo-300 uppercase tracking-widest">Live Afektif</p>
+                                    <p className="text-3xl font-black">{computeLiveFinal().afektif}</p>
+                                </div>
+                                <div className="text-center">
+                                    <p className="text-[10px] font-black text-indigo-300 uppercase tracking-widest">Live Psiko</p>
+                                    <p className="text-3xl font-black">{computeLiveFinal().psiko}</p>
+                                </div>
+                                <div className="text-center bg-white text-indigo-900 px-8 py-4 rounded-2xl shadow-inner border-4 border-indigo-500">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-1">Final Score</p>
+                                    <p className="text-5xl font-black">{computeLiveFinal().final}</p>
+                                </div>
+                            </div>
+                            
+                            {/* Inputs Grid */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {['manito_afektif', 'absensi', 'manito_psiko', 'games', 'praktek', 'kognitif', 'ibadah'].map(key => (
+                                    <div key={key} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">{key.replace('_', ' ')} (Raw)</label>
+                                        <input 
+                                            type="number" 
+                                            min="0" max="100" 
+                                            value={overrideForm[key] || ''}
+                                            onChange={e => setOverrideForm({...overrideForm, [key]: e.target.value})}
+                                            className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl p-3 font-black text-slate-700 text-xl outline-none focus:border-indigo-500 transition-colors"
+                                            placeholder="Otomatis dari Riwayat"
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="p-6 bg-white border-t border-slate-100 flex justify-end shrink-0">
+                            <button 
+                                onClick={handleOverrideSubmit}
+                                disabled={overrideStatus === 'saving'}
+                                className="bg-amber-500 hover:bg-amber-600 text-white px-8 py-4 rounded-2xl font-black shadow-lg shadow-amber-200 transition-all flex items-center gap-2"
+                            >
+                                {overrideStatus === 'saving' ? <RefreshCcw className="animate-spin" /> : 'SIMPAN REKAP MANUAL'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
