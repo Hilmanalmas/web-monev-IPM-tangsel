@@ -177,16 +177,23 @@ class ObserverController extends Controller {
 
         $currentDay = AppSetting::get('current_day', 1);
 
-        // For manual input (null submission_id), we use updateOrCreate with user_id + maybe notes? 
-        // Or just allow multiple manual scores per day.
-        $score = CognitiveScore::create([
-            'user_id' => $data['user_id'],
-            'exam_submission_id' => $data['exam_submission_id'],
-            'observer_id' => Auth::id(),
-            'score' => $data['score'],
-            'notes' => $data['notes'],
-            'day' => $currentDay
-        ]);
+        // Prevent duplicates for the same exam submission or manual test
+        $matchCriteria = ['user_id' => $data['user_id']];
+        if (!empty($data['exam_submission_id'])) {
+            $matchCriteria['exam_submission_id'] = $data['exam_submission_id'];
+        } else {
+            $matchCriteria['exam_submission_id'] = null;
+            $matchCriteria['notes'] = $data['notes'];
+        }
+
+        $score = CognitiveScore::updateOrCreate(
+            $matchCriteria,
+            [
+                'observer_id' => Auth::id(),
+                'score' => $data['score'],
+                'day' => $currentDay
+            ]
+        );
 
         // Sync to Spreadsheet
         try {
