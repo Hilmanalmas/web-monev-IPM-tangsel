@@ -189,7 +189,6 @@ Route::middleware([\App\Http\Middleware\TokenFromQuery::class, 'auth:sanctum'])-
         Route::get('/admin/reports', [\App\Http\Controllers\AdminReportController::class, 'index']);
         Route::post('/admin/reports/publish', [\App\Http\Controllers\AdminReportController::class, 'publish']); // Publish scores
         Route::get('/admin/reports/full', [\App\Http\Controllers\AdminReportController::class, 'fullReport']);
-        Route::get('/admin/reports/export', [\App\Http\Controllers\AdminReportController::class, 'exportScores']);
 
         // Global Settings (Days, etc)
         Route::get('/admin/surveys/realtime', [\App\Http\Controllers\AdminStatsController::class, 'getRealtimeFeed']);
@@ -197,3 +196,6 @@ Route::middleware([\App\Http\Middleware\TokenFromQuery::class, 'auth:sanctum'])-
         Route::post('/admin/settings', [\App\Http\Controllers\AdminStatsController::class, 'updateSettings']);
     });
 });
+
+// Export Route (Manual Auth to support window.open query tokens, placed outside auth:sanctum)
+Route::get('/admin/reports/export', [\App\Http\Controllers\AdminReportController::class, 'exportScores']);

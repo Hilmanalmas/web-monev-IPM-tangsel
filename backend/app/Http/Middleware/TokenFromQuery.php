@@ -9,9 +9,10 @@ class TokenFromQuery
 {
     public function handle(Request $request, Closure $next)
     {
-        if ($request->has('bearer') && !$request->bearerToken()) {
+        if ($request->has('bearer')) {
             $token = trim($request->query('bearer'), '"\'');
             $request->headers->set('Authorization', 'Bearer ' . $token);
+            \Illuminate\Support\Facades\Log::info('TokenFromQuery injected token', ['token' => substr($token, 0, 10) . '...']);
         }
         
         // Force JSON response so unauthenticated errors don't trigger the "login route not defined" 500 error

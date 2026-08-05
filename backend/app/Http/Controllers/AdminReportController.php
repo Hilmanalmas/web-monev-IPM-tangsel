@@ -81,7 +81,23 @@ class AdminReportController extends Controller {
         ];
     }
 
-    public function exportScores() {
+    public function exportScores(\Illuminate\Http\Request $request) {
+        $token = $request->query('bearer');
+        if (!$token) {
+            abort(401, 'Unauthorized');
+        }
+
+        // Validate token
+        $accessToken = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
+        if (!$accessToken || !$accessToken->tokenable) {
+            abort(401, 'Unauthorized');
+        }
+        
+        // Validate admin role
+        if ($accessToken->tokenable->role !== 'admin') {
+            abort(403, 'Forbidden');
+        }
+
         $users = User::where('role', 'peserta')->get();
         $handle = fopen('php://temp', 'w+');
         fputcsv($handle, [
