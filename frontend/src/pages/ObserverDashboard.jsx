@@ -27,6 +27,7 @@ const ObserverDashboard = () => {
 
     // Form states for adding scores inline
     const [formScore, setFormScore] = useState('');
+    const [inlineScores, setInlineScores] = useState({});
     const [formNotes, setFormNotes] = useState('');
     const [formSlotId, setFormSlotId] = useState('');
     const [availableSlots, setAvailableSlots] = useState({ games: [], practice: [], ibadah: [] });
@@ -88,6 +89,7 @@ const ObserverDashboard = () => {
     const fetchTabData = async (userId, tab) => {
         setTabLoading(true);
         setFormScore('');
+        setInlineScores({});
         setFormNotes('');
         setFormSlotId('');
         setScoringId(null);
@@ -123,13 +125,14 @@ const ObserverDashboard = () => {
     };
 
     const submitCognitive = async (submissionId = null) => {
-        if (!formScore) return alert('Nilai wajib diisi (0-100)');
+        const scoreToSubmit = submissionId ? inlineScores[submissionId] : formScore;
+        if (!scoreToSubmit) return alert('Nilai wajib diisi (0-100)');
         setSubmitStatus('submitting');
         try {
             await axios.post('/api/observer/score/cognitive', {
                 user_id: selectedUser.id,
                 exam_submission_id: submissionId,
-                score: formScore,
+                score: scoreToSubmit,
                 notes: submissionId ? null : formNotes // Use notes as test name for manual input
             });
             setSubmitStatus('success');
@@ -334,7 +337,7 @@ const ObserverDashboard = () => {
                                                                 <div className="flex items-center gap-4">
                                                                     {ex.submission_id && ex.observer_score === null && (
                                                                         <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
-                                                                            <input type="number" min="0" max="100" placeholder="Skor" className="w-20 p-2 border-2 border-indigo-100 rounded-xl text-center font-black" value={formScore} onChange={e=>setFormScore(e.target.value)}/>
+                                                                            <input type="number" min="0" max="100" placeholder="Skor" className="w-20 p-2 border-2 border-indigo-100 rounded-xl text-center font-black" value={inlineScores[ex.submission_id] || ''} onChange={e=>setInlineScores({...inlineScores, [ex.submission_id]: e.target.value})}/>
                                                                             <button onClick={() => submitCognitive(ex.submission_id)} className="bg-indigo-600 text-white p-2 rounded-xl" title="Simpan Nilai Pengawas">
                                                                                 <CheckCircle size={20}/>
                                                                             </button>
