@@ -169,10 +169,16 @@ class AdminReportController extends Controller {
         $userIds = $users->pluck('id');
         
         // Bulk fetch all data
-        $allExams = DB::table('exam_submissions')
-            ->join('exams', 'exam_submissions.exam_id', '=', 'exams.id')
-            ->whereIn('user_id', $userIds)
-            ->select('exam_submissions.user_id', 'exams.title', 'exam_submissions.score', 'exam_submissions.created_at')
+        $allExams = DB::table('cognitive_scores')
+            ->leftJoin('exam_submissions', 'cognitive_scores.exam_submission_id', '=', 'exam_submissions.id')
+            ->leftJoin('exams', 'exam_submissions.exam_id', '=', 'exams.id')
+            ->whereIn('cognitive_scores.user_id', $userIds)
+            ->select(
+                'cognitive_scores.user_id', 
+                DB::raw('COALESCE(exams.title, cognitive_scores.notes) as title'), 
+                'cognitive_scores.score', 
+                'cognitive_scores.created_at'
+            )
             ->get()->groupBy('user_id');
 
         $allSurveys = DB::table('survey_responses')
