@@ -286,17 +286,22 @@ const ObserverDashboard = () => {
                                                 </div>
                                                 <div className="flex gap-4 w-full md:w-auto items-end">
                                                     <div className="flex-1 md:w-48">
-                                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 block">Nama Tes (Opsional)</label>
-                                                        <input type="text" placeholder="Misal: Pre-test Tertulis" className="w-full p-3 border-2 border-white rounded-xl outline-none focus:border-amber-400 font-bold bg-white/50" 
-                                                               value={formNotes} onChange={e=>setFormNotes(e.target.value)}/>
+                                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 block">Pilih Tes</label>
+                                                        <select className="w-full p-3 border-2 border-white rounded-xl outline-none focus:border-amber-400 font-bold bg-white/50" 
+                                                                value={formNotes} onChange={e=>setFormNotes(e.target.value)}>
+                                                            <option value="">-- Pilih Tes (Manual) --</option>
+                                                            {availableSlots.exams?.map(ex => (
+                                                                <option key={ex.id} value={ex.title}>{ex.title}</option>
+                                                            ))}
+                                                        </select>
                                                     </div>
                                                     <div className="w-24">
                                                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 block">Skor</label>
                                                         <input type="number" min="0" max="100" placeholder="0" className="w-full p-3 border-2 border-white rounded-xl outline-none focus:border-amber-400 font-black text-center text-lg bg-white/50" 
                                                                value={formScore} onChange={e=>setFormScore(e.target.value)}/>
                                                     </div>
-                                                    <button onClick={() => submitCognitive(null)} disabled={submitStatus === 'submitting'}
-                                                            className="bg-amber-500 text-white px-6 py-3.5 rounded-xl font-black hover:bg-amber-600 transition-all shadow-lg shadow-amber-200">
+                                                    <button onClick={() => submitCognitive(null)} disabled={submitStatus === 'submitting' || !formNotes || !formScore}
+                                                            className="bg-amber-500 text-white px-6 py-3.5 rounded-xl font-black hover:bg-amber-600 disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-lg shadow-amber-200">
                                                         SIMPAN
                                                     </button>
                                                 </div>

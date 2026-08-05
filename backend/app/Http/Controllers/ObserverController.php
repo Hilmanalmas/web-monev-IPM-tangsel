@@ -231,7 +231,8 @@ class ObserverController extends Controller {
         return response()->json([
             'games' => \App\Models\GameSlot::where('day', $day)->get(),
             'practice' => \App\Models\PracticeSlot::where('day', $day)->get(),
-            'ibadah' => \App\Models\WorshipSlot::where('day', $day)->get()
+            'ibadah' => \App\Models\WorshipSlot::where('day', $day)->get(),
+            'exams' => \App\Models\Exam::select('id', 'title')->get()
         ]);
     }
 
