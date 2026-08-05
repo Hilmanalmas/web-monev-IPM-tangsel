@@ -161,12 +161,12 @@ class AdminSpreadsheetController extends Controller
                 ->join('users as evaluators', 'survey_responses.user_id', '=', 'evaluators.id')
                 ->join('users as targets', 'survey_responses.target_id', '=', 'targets.id')
                 ->join('survey_questions', 'survey_responses.question_id', '=', 'survey_questions.id')
-                ->select('evaluators.name as evaluator_name', 'targets.name as target_name', 'survey_questions.question_text', 'survey_responses.answer')
+                ->select('evaluators.name as evaluator_name', 'targets.name as target_name', 'survey_questions.question_text', 'survey_questions.category', 'survey_responses.answer')
                 ->get();
             foreach ($rawManito as $rm) {
                 $detailData[] = [
                     'name' => $rm->evaluator_name,
-                    'category' => 'RAW MANITO',
+                    'category' => 'RAW MANITO (' . strtoupper($rm->category) . ')',
                     'title' => 'Menilai: ' . $rm->target_name,
                     'notes' => $rm->question_text,
                     'score' => $rm->answer
@@ -215,7 +215,7 @@ class AdminSpreadsheetController extends Controller
             $surveyQuestions = SurveyQuestion::all();
             foreach ($surveyQuestions as $sq) {
                 $soalData[] = [
-                    'category' => 'SOAL SURVEY',
+                    'category' => 'SOAL SURVEY (' . strtoupper($sq->category) . ')',
                     'title' => 'Manito',
                     'day' => $sq->day,
                     'notes' => $sq->question_text,

@@ -8,7 +8,7 @@ const AdminSurveys = () => {
     const [questions, setQuestions] = useState([]);
     const [users, setUsers] = useState([]);
     const [form, setForm] = useState({ name: '', day: 1, start_time: '', end_time: '' });
-    const [qForm, setQForm] = useState({ question_text: '', day: 1 });
+    const [qForm, setQForm] = useState({ question_text: '', category: 'afektif', day: 1 });
     const [resetForm, setResetForm] = useState({ user_id: '', day: 1, period: '' });
     const [isSyncing, setIsSyncing] = useState(false);
 
@@ -75,7 +75,7 @@ const AdminSurveys = () => {
         e.preventDefault();
         try {
             await axios.post('/api/admin/surveys/questions', qForm);
-            setQForm({ question_text: '' });
+            setQForm(prev => ({ ...prev, question_text: '' }));
             fetchData();
         } catch (err) {
             alert("Gagal menyimpan pertanyaan.");
@@ -208,17 +208,31 @@ const AdminSurveys = () => {
                         <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-amber-600">
                             <HelpCircle /> Daftar Pertanyaan Survey
                         </h2>
-                        <form onSubmit={handleQuestionSubmit} className="flex gap-4">
-                            <input type="text" placeholder="Tulis pertanyaan..." required className="flex-1 p-3 border rounded-xl"
-                                   value={qForm.question_text} onChange={e => setQForm({question_text: e.target.value})} />
-                            <button type="submit" className="bg-amber-500 text-white px-6 rounded-xl font-black hover:bg-amber-600">TAMBAH</button>
+                        <form onSubmit={handleQuestionSubmit} className="flex flex-col md:flex-row gap-4">
+                            <select 
+                                className="p-3 border rounded-xl bg-gray-50 text-sm font-bold text-gray-700 outline-none focus:border-amber-500"
+                                value={qForm.category || 'afektif'}
+                                onChange={e => setQForm({...qForm, category: e.target.value})}
+                            >
+                                <option value="afektif">Afektif</option>
+                                <option value="psikomotorik">Psikomotorik</option>
+                            </select>
+                            <input type="text" placeholder="Tulis pertanyaan..." required className="flex-1 p-3 border rounded-xl outline-none focus:border-amber-500"
+                                   value={qForm.question_text} onChange={e => setQForm({...qForm, question_text: e.target.value})} />
+                            <button type="submit" className="bg-amber-500 text-white px-6 py-3 md:py-0 rounded-xl font-black hover:bg-amber-600 transition-colors">TAMBAH</button>
                         </form>
                     </div>
 
                     <div className="bg-white rounded-3xl shadow-lg border overflow-hidden">
                         {Array.isArray(questions) && questions.map((q, idx) => (
-                            <div key={q.id} className="p-4 border-b last:border-0 flex justify-between items-center hover:bg-gray-50 group">
-                                <p className="text-gray-700"><span className="text-gray-300 font-bold mr-3">{idx + 1}</span>{q.question_text}</p>
+                            <div key={q.id} className="p-4 border-b last:border-0 flex justify-between items-center hover:bg-gray-50 group transition-colors">
+                                <div className="text-gray-700 flex items-center gap-3">
+                                    <span className="text-gray-300 font-black">{idx + 1}</span>
+                                    <span className={`text-[9px] font-black px-2 py-1 rounded-md uppercase tracking-widest ${(q.category || 'afektif') === 'psikomotorik' ? 'bg-emerald-100 text-emerald-700' : 'bg-indigo-100 text-indigo-700'}`}>
+                                        {q.category || 'afektif'}
+                                    </span>
+                                    <span>{q.question_text}</span>
+                                </div>
                                 <button onClick={() => handleDeleteQuestion(q.id)} className="text-gray-300 hover:text-red-500 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <Trash2 size={18}/>
                                 </button>
