@@ -206,6 +206,26 @@ class ObserverController extends Controller {
         return response()->json($score);
     }
 
+    public function deleteCognitiveScore(Request $request) {
+        $data = $request->validate([
+            'user_id' => 'required',
+            'exam_submission_id' => 'nullable',
+            'notes' => 'nullable|string'
+        ]);
+
+        $query = CognitiveScore::where('user_id', $data['user_id']);
+        
+        if (!empty($data['exam_submission_id'])) {
+            $query->where('exam_submission_id', $data['exam_submission_id']);
+        } else {
+            $query->whereNull('exam_submission_id')->where('notes', $data['notes']);
+        }
+
+        $deleted = $query->delete();
+        
+        return response()->json(['success' => $deleted > 0]);
+    }
+
     public function getGamesPractice(Request $request, $id) {
         $day = $request->query('day');
         

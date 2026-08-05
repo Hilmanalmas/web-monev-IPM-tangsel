@@ -143,6 +143,22 @@ const ObserverDashboard = () => {
         }
     };
 
+    const deleteCognitive = async (submissionId = null, notes = null) => {
+        if (!confirm('Hapus nilai ini?')) return;
+        try {
+            await axios.delete('/api/observer/score/cognitive', {
+                data: {
+                    user_id: selectedUser.id,
+                    exam_submission_id: submissionId,
+                    notes: notes
+                }
+            });
+            fetchTabData(selectedUser.id, 'kognitif');
+        } catch(e) {
+            alert('Gagal menghapus nilai');
+        }
+    };
+
     const submitGamePractice = async (type) => {
         if (!formSlotId || !formScore) return alert('Sesi/Slot dan nilai wajib diisi (0-100)');
         setSubmitStatus('submitting');
@@ -349,11 +365,18 @@ const ObserverDashboard = () => {
                                                                         </div>
                                                                     )}
                                                                     
-                                                                    <div className="text-right flex flex-col items-end">
+                                                                    <div className="text-right flex flex-col items-end gap-1">
                                                                         <label className="text-[9px] font-black text-gray-400 uppercase tracking-tighter mb-0.5 whitespace-nowrap">Skor Pengawas</label>
-                                                                        <span className={`w-14 h-14 flex items-center justify-center rounded-2xl font-black text-2xl shadow-md ${ex.submission_id ? 'bg-indigo-600 text-white' : 'bg-amber-500 text-white'}`}>
-                                                                            {ex.observer_score ?? '-'}
-                                                                        </span>
+                                                                        <div className="flex items-center gap-2">
+                                                                            {ex.observer_score !== null && (
+                                                                                <button onClick={(e) => { e.stopPropagation(); deleteCognitive(ex.submission_id, ex.submission_id ? null : ex.exam_title); }} className="bg-rose-100 text-rose-500 hover:bg-rose-500 hover:text-white transition-colors p-2 rounded-xl" title="Hapus Nilai">
+                                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                                                                </button>
+                                                                            )}
+                                                                            <span className={`w-14 h-14 flex items-center justify-center rounded-2xl font-black text-2xl shadow-md ${ex.submission_id ? 'bg-indigo-600 text-white' : 'bg-amber-500 text-white'}`}>
+                                                                                {ex.observer_score ?? '-'}
+                                                                            </span>
+                                                                        </div>
                                                                     </div>
                                                                     
                                                                     {ex.submission_id && (

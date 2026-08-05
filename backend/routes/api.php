@@ -116,6 +116,7 @@ Route::middleware([\App\Http\Middleware\TokenFromQuery::class, 'auth:sanctum'])-
         // Cognitive
         Route::get('/observer/peserta/{id}/exams', [\App\Http\Controllers\ObserverController::class, 'getPesertaExams']);
         Route::post('/observer/score/cognitive', [\App\Http\Controllers\ObserverController::class, 'storeCognitiveScore']);
+        Route::delete('/observer/score/cognitive', [\App\Http\Controllers\ObserverController::class, 'deleteCognitiveScore']);
         
         // Settings & Filtering
         Route::get('/observer/settings', [\App\Http\Controllers\AdminStatsController::class, 'getSettings']);
