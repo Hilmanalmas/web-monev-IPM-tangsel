@@ -237,7 +237,16 @@ class AdminSpreadsheetController extends Controller
                     'name' => $user->name,
                     'nip' => $user->nip,
                     'instansi' => $user->asal_instansi,
-                    'score' => $final['final']
+                    'manito_afektif' => $final['manito_afektif'],
+                    'absensi' => $final['absensi'],
+                    'manito_psiko' => $final['manito_psiko'],
+                    'games' => $final['games'],
+                    'praktek' => $final['praktek'],
+                    'kognitif' => $final['kognitif'],
+                    'ibadah' => $final['ibadah'],
+                    'afektif_bobot' => $final['afektif'],
+                    'psiko_bobot' => $final['psiko'],
+                    'final_score' => $final['final']
                 ];
             }
             SpreadsheetService::postBatch($rekapData, 'Rekap_Nilai_Akhir');
@@ -289,6 +298,17 @@ class AdminSpreadsheetController extends Controller
 
         $finalScore = ($afektifFinal * 0.35) + ($psikomotorikFinal * 0.35) + ($kogAvg * 0.20) + ($worshipFinal * 0.10);
 
-        return ['final' => round($finalScore, 2)];
+        return [
+            'manito_afektif' => round($manitoAfektif, 2),
+            'absensi' => round($absensiScore, 2),
+            'manito_psiko' => round($manitoPsiko, 2),
+            'games' => round($gameAvg, 2),
+            'praktek' => round($pracAvg, 2),
+            'kognitif' => round($kogAvg, 2),
+            'ibadah' => round($worshipFinal, 2),
+            'afektif' => round($afektifFinal, 2),
+            'psiko' => round($psikomotorikFinal, 2),
+            'final' => round($finalScore, 2)
+        ];
     }
 }

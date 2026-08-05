@@ -71,6 +71,11 @@ class AdminReportController extends Controller {
 
         return [
             'id' => $user->id, 'name' => $user->name, 'instansi' => $user->asal_instansi,
+            'manito_afektif' => round($manitoAfektif, 2),
+            'absensi' => round($absensiScore, 2),
+            'manito_psiko' => round($manitoPsiko, 2),
+            'games' => round($gameAvg, 2),
+            'praktek' => round($pracAvg, 2),
             'afektif' => round($afektifFinal, 2), 'psiko' => round($psikomotorikFinal, 2),
             'kognitif' => round($kogAvg, 2), 'ibadah' => round($worshipFinal, 2), 'final' => round($finalScore, 2)
         ];
@@ -79,10 +84,22 @@ class AdminReportController extends Controller {
     public function exportScores() {
         $users = User::where('role', 'peserta')->get();
         $handle = fopen('php://temp', 'w+');
-        fputcsv($handle, ['ID', 'Nama', 'Instansi', 'Afektif', 'Psikomotorik', 'Kognitif', 'Ibadah', 'Final']);
+        fputcsv($handle, [
+            'ID', 'Nama', 'Instansi', 
+            'Manito Afektif (Raw)', 'Absensi (Raw)', 
+            'Manito Psiko (Raw)', 'Games (Raw)', 'Praktek (Raw)', 
+            'Kognitif (Raw)', 'Ibadah (Raw)',
+            'Afektif (Bobot Internal)', 'Psikomotorik (Bobot Internal)', 'Kognitif (Final)', 'Ibadah (Final)', 'Nilai Akhir'
+        ]);
         foreach ($users as $user) {
             $report = $this->computeFinalScore($user);
-            fputcsv($handle, [$report['id'], $report['name'], $report['instansi'], $report['afektif'], $report['psiko'], $report['kognitif'], $report['ibadah'], $report['final']]);
+            fputcsv($handle, [
+                $report['id'], $report['name'], $report['instansi'], 
+                $report['manito_afektif'], $report['absensi'], 
+                $report['manito_psiko'], $report['games'], $report['praktek'], 
+                $report['kognitif'], $report['ibadah'],
+                $report['afektif'], $report['psiko'], $report['kognitif'], $report['ibadah'], $report['final']
+            ]);
         }
         rewind($handle);
         $content = stream_get_contents($handle);
