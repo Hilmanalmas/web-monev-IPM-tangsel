@@ -22,12 +22,7 @@ Route::get('/media', function (\Illuminate\Http\Request $request) {
     ]);
 });
 
-Route::middleware([function (\Illuminate\Http\Request $request, $next) {
-    if ($request->has('bearer')) {
-        $request->headers->set('Authorization', 'Bearer ' . $request->query('bearer'));
-    }
-    return $next($request);
-}, 'auth:sanctum'])->group(function () {
+Route::middleware([\App\Http\Middleware\TokenFromQuery::class, 'auth:sanctum'])->group(function () {
     Route::get('/me', [\App\Http\Controllers\AuthController::class, 'me']);
     Route::post('/logout', [\App\Http\Controllers\AuthController::class, 'logout']);
 
